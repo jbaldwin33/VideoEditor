@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -26,6 +27,7 @@ namespace VideoUtilities
         private readonly List<string> filenamesWithExtra = new List<string>();
         private readonly List<string> filenames = new List<string>();
         private string tempfile;
+        private TimeSpan duration;
 
         public VideoSplitter(string sourceFolder, string sourceFileWithoutExtension, string extension, ObservableCollection<(TimeSpan, TimeSpan)> times, bool combineVideo)
         {
@@ -116,19 +118,17 @@ namespace VideoUtilities
                 return;
             }
 
-            if (outLine.Data.Contains("Downloading video ") && outLine.Data.Contains(" of "))
+            if (outLine.Data.Contains("Duration: "))
             {
-                var str = outLine.Data.Substring(outLine.Data.IndexOf("video "));
-                var b = string.Empty;
-                var c = string.Empty;
-                for (int i = 0; i < str.Length; i++)
-                {
-                    if (Char.IsDigit(str[i]))
-                        if (string.IsNullOrEmpty(b))
-                            b += str[i];
-                        else
-                            c += str[i];
-                }
+                duration = TimeSpan.ParseExact(outLine.Data.Split(',')[0].Split(' ')[1], "hh:mm:ss.ff", CultureInfo.InvariantCulture);
+                return;
+            }
+
+            TimeSpan currentTime = TimeSpan.Zero;
+            if (outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time="))
+            {
+                currentTime = TimeSpan.ParseExact(outLine.Data.Substring(outLine.Data.IndexOf("time="), 11), "hh:mm:ss.ff", CultureInfo.InvariantCulture);
+                
 
                 //if (b.Length > 0)
                 //    Downloaded = int.Parse(b) - 1;
@@ -149,8 +149,8 @@ namespace VideoUtilities
             //}
 
             // fire the process event
-            var perc = Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
-
+            //var perc = Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
+            var perc = Convert.ToDecimal((float)currentTime.TotalMilliseconds / (float)duration.TotalMilliseconds);
             if (perc > 100 || perc < 0)
             {
                 Console.WriteLine("weird perc {0}", perc);
@@ -186,21 +186,21 @@ namespace VideoUtilities
                     process.EnableRaisingEvents = true;
                     process.Exited += Process_Exited;
                     process.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
-                    process.ErrorDataReceived += new DataReceivedEventHandler(ErrorDataReceived);
+                    process.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
 
                     startInfo.Arguments = arguments[i];
                     process.StartInfo = startInfo;
                     process.Start();
-                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
                     //process.WaitForExit();
                     //processes.Add(process);
                     //var perc = Convert.ToDecimal((float)(i + 1) / (float)arguments.Count * 100);
                     //OnProgress(new ProgressEventArgs { Percentage = perc });
                 }
-                if (combineVideo)
-                    CombineSections();
-                else
-                    finished = true;
+                //if (combineVideo)
+                //    CombineSections();
+                //else
+                //    finished = true;
 
             }
             catch (Exception ex)
@@ -212,7 +212,7 @@ namespace VideoUtilities
             {
                 System.Threading.Thread.Sleep(100); // wait while process exits;
             }
-            OnDownloadFinished(new DownloadEventArgs());
+            //OnDownloadFinished(new DownloadEventArgs());
 
         }
 
