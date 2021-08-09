@@ -94,7 +94,7 @@ namespace VideoUtilities
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             OnProgress(new ProgressEventArgs() { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
-            // extract the percentage from process output
+            // extract the percentage from process outpu
             if (String.IsNullOrEmpty(outLine.Data) || finished)
             {
                 return;
