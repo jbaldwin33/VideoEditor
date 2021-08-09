@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="VideoEditorUi.Controls.NavigationBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:VideoEditorUi.Controls"
+             xmlns:nav="clr-namespace:VideoEditorUi.Singletons"
+             xmlns:controls="clr-namespace:VideoEditorUi.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="auto"/>
+    </Grid.RowDefinitions>
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
+        <!--<ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>
+        <ColumnDefinition Width="auto"/>-->
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+
+      <Button Grid.Column="0" Content="{Binding SplitterLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.Splitter}"/>
+      <Button Grid.Column="1" Content="{Binding ConverterLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.Converter}"/>
+      <!--<Button Grid.Column="2" Content="{Binding UserDetailsLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.UserDetails}" Visibility="{Binding IsActiveSession, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BoolToVisConverter}}"/>
+      <Button Grid.Column="3" Content="{Binding LoginLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.LogIn}"/>
+      <Button Grid.Column="4" Content="{Binding SignUpLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.SignUp}" Visibility="{Binding IsActiveSession, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InvBoolToVisConverter}}"/>
+      <Button Grid.Column="5" Content="{Binding TransactionsLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.Transactions}" Visibility="{Binding IsActiveSession, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BoolToVisConverter}}"/>-->
+    </Grid>
+  </Grid>
+</UserControl>

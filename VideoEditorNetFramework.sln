@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31515.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorUi", "VideoEditorUi\VideoEditorUi.csproj", "{1C4D3A71-B899-44B9-8F6B-0DD848D46411}"
+	ProjectSection(ProjectDependencies) = postProject
+		{96A8755D-750E-40F7-9677-EB5AFEF558B0} = {96A8755D-750E-40F7-9677-EB5AFEF558B0}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoUtilities", "VideoUtilities\VideoUtilities.csproj", "{96A8755D-750E-40F7-9677-EB5AFEF558B0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C4D3A71-B899-44B9-8F6B-0DD848D46411}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C4D3A71-B899-44B9-8F6B-0DD848D46411}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C4D3A71-B899-44B9-8F6B-0DD848D46411}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C4D3A71-B899-44B9-8F6B-0DD848D46411}.Release|Any CPU.Build.0 = Release|Any CPU
+		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0D2276B4-DE8F-47A3-A02C-84228C4C5970}
+	EndGlobalSection
+EndGlobal
