@@ -31,7 +31,7 @@ namespace VideoEditorUi.Views
             var libsPath = "";
             string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (directoryName != null)
-                libsPath = Path.Combine(directoryName, Path.Combine(Path.Combine("CSPlugins", "FFmpeg"), IntPtr.Size == 8 ? "x64" : "x86"));
+                libsPath = Path.Combine(directoryName, Path.Combine(Path.Combine("Binaries")));
             player.Init(libsPath, "UserName", "RegKey");
             viewModel = Navigator.Instance.CurrentViewModel as SplitterViewModel;
             viewModel.Player = player;

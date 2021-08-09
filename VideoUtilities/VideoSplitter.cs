@@ -43,7 +43,7 @@ namespace VideoUtilities
             var libsPath = "";
             string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (directoryName != null)
-                libsPath = Path.Combine(directoryName, Path.Combine(Path.Combine("CSPlugins", "FFmpeg"), IntPtr.Size == 8 ? "x64" : "x86"));
+                libsPath = Path.Combine(directoryName, Path.Combine(Path.Combine("Binaries", "FFmpeg"), IntPtr.Size == 8 ? "x64" : "x86"));
             if (string.IsNullOrEmpty(libsPath))
                 throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
 
