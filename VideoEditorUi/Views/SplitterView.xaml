@@ -29,6 +29,13 @@
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
+          <ItemsControl ItemsSource="{Binding RectCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <Grid/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+          </ItemsControl>
         </Grid>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="70,0,0,0">
           <Button Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>

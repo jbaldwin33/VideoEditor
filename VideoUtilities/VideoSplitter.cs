@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Windows.Threading;
 
 namespace VideoUtilities
 {
@@ -27,7 +28,9 @@ namespace VideoUtilities
         private readonly List<string> filenamesWithExtra = new List<string>();
         private readonly List<string> filenames = new List<string>();
         private string tempfile;
-        private TimeSpan duration;
+        private TimeSpan duration = TimeSpan.Zero;
+        private List<Process> processes = new List<Process>();
+        private decimal percentage;
 
         public VideoSplitter(string sourceFolder, string sourceFileWithoutExtension, string extension, ObservableCollection<(TimeSpan, TimeSpan)> times, bool combineVideo)
         {
@@ -43,7 +46,7 @@ namespace VideoUtilities
             var libsPath = "";
             string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (directoryName != null)
-                libsPath = Path.Combine(directoryName, Path.Combine(Path.Combine("Binaries", "FFmpeg"), IntPtr.Size == 8 ? "x64" : "x86"));
+                libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
             if (string.IsNullOrEmpty(libsPath))
                 throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
 
@@ -65,111 +68,6 @@ namespace VideoUtilities
             startInfo.CreateNoWindow = true;
         }
 
-        protected override void Process_Exited(object sender, EventArgs e) { }//=> OnDownloadFinished(new DownloadEventArgs());
-
-        protected virtual void OnProgress(ProgressEventArgs e)
-        {
-            if (ProgressDownload != null)
-                ProgressDownload(this, e);
-        }
-
-        protected override void OnDownloadFinished(DownloadEventArgs e)
-        {
-            FinishedDownload?.Invoke(this, e);
-            CleanUp();
-        }
-
-        protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadError(ProgressEventArgs e)
-        {
-            ErrorDownload?.Invoke(this, e);
-            CleanUp();
-        }
-
-        protected override void ErrorDataReceived(object sendingprocess, DataReceivedEventArgs error)
-        {
-            if (!string.IsNullOrEmpty(error.Data))
-                OnDownloadError(new ProgressEventArgs() { Error = error.Data });
-        }
-
-        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        {
-            OnProgress(new ProgressEventArgs() { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
-            // extract the percentage from process outpu
-            if (String.IsNullOrEmpty(outLine.Data) || finished)
-            {
-                return;
-            }
-            //if (outLine.Data.Contains("Finished downloading playlist"))
-            //{
-            //    Downloaded++;
-            //}
-            //this.ConsoleLog += outLine.Data;
-
-            if (outLine.Data.Contains("ERROR"))
-            {
-                OnDownloadError(new ProgressEventArgs() { Error = outLine.Data });
-                return;
-            }
-
-            if (!outLine.Data.Contains("[download]"))
-            {
-                return;
-            }
-
-            if (outLine.Data.Contains("Duration: "))
-            {
-                duration = TimeSpan.ParseExact(outLine.Data.Split(',')[0].Split(' ')[1], "hh:mm:ss.ff", CultureInfo.InvariantCulture);
-                return;
-            }
-
-            TimeSpan currentTime = TimeSpan.Zero;
-            if (outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time="))
-            {
-                currentTime = TimeSpan.ParseExact(outLine.Data.Substring(outLine.Data.IndexOf("time="), 11), "hh:mm:ss.ff", CultureInfo.InvariantCulture);
-                
-
-            }
-
-            //if (Downloaded > ToDownload)
-            //{
-            //    OnDownloadError(new ProgressEventArgs() { Error = "This playlist is empty. No videos were downloaded", ProcessObject = ProcessObject });
-            //    return;
-            //}
-
-            var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
-            //if (!pattern.IsMatch(outLine.Data) && ((Downloaded == 0 && ToDownload == 0) || (ToDownload != 0 && Downloaded != ToDownload)))
-            //{
-            //    return;
-            //}
-
-            // fire the process event
-            //var perc = Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
-            var perc = Convert.ToDecimal((float)currentTime.TotalMilliseconds / (float)duration.TotalMilliseconds);
-            if (perc > 100 || perc < 0)
-            {
-                Console.WriteLine("weird perc {0}", perc);
-                return;
-            }
-            percentage = (int)perc;
-            OnProgress(new ProgressEventArgs() { Percentage = perc, Data = outLine.Data });
-
-            // is it finished?
-            if (perc < 100)
-            {
-                return;
-            }
-
-            if (perc == 100 && !finished /*&& ToDownload == Downloaded*/)
-            {
-                OnDownloadFinished(new DownloadEventArgs());
-            }
-        }
-
-        private List<Process> processes = new List<Process>();
-        private int percentage;
-
         public void Download()
         {
             processes.Clear();
@@ -181,7 +79,7 @@ namespace VideoUtilities
                     var process = new Process();
                     process.EnableRaisingEvents = true;
                     process.Exited += Process_Exited;
-                    process.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
+                    //process.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
                     process.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
 
                     startInfo.Arguments = arguments[i];
@@ -208,8 +106,81 @@ namespace VideoUtilities
             {
                 System.Threading.Thread.Sleep(100); // wait while process exits;
             }
-            //OnDownloadFinished(new DownloadEventArgs());
+        }
 
+        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            OnProgress(new ProgressEventArgs() { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
+            // extract the percentage from process outpu
+            if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
+            {
+                OnDownloadFinished(new DownloadEventArgs());
+
+                return;
+            }
+            
+            if (outLine.Data.Contains("ERROR"))
+            {
+                OnDownloadError(new ProgressEventArgs() { Error = outLine.Data });
+                return;
+            }
+
+            if (!outLine.Data.Contains("Duration: ") && !isSplitting())
+                return;
+
+            if (outLine.Data.Contains("Duration: "))
+            {
+                var str = outLine.Data.Split(',')[0].Split(new string[] { "Duration: " }, StringSplitOptions.RemoveEmptyEntries)[1];
+                duration = TimeSpan.Parse(str);
+                return;
+            }
+
+            if (!isSplitting())
+                return;
+
+            TimeSpan currentTime = TimeSpan.Zero;
+            if (isSplitting())
+            {
+                var str = outLine.Data.Split(new string[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+                currentTime = TimeSpan.Parse(str);
+
+
+            }
+
+            //if (Downloaded > ToDownload)
+            //{
+            //    OnDownloadError(new ProgressEventArgs() { Error = "This playlist is empty. No videos were downloaded", ProcessObject = ProcessObject });
+            //    return;
+            //}
+
+            var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
+            //if (!pattern.IsMatch(outLine.Data) && ((Downloaded == 0 && ToDownload == 0) || (ToDownload != 0 && Downloaded != ToDownload)))
+            //{
+            //    return;
+            //}
+
+            // fire the process event
+            //var perc = Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
+            var perc = Convert.ToDecimal((float)currentTime.TotalMilliseconds / (float)duration.TotalMilliseconds);
+            if (perc > 100 || perc < 0)
+            {
+                Console.WriteLine("weird perc {0}", perc);
+                return;
+            }
+            percentage = perc;
+            OnProgress(new ProgressEventArgs() { Percentage = perc, Data = outLine.Data });
+
+            // is it finished?
+            if (perc < 100 && !isFinished())
+                return;
+
+            //if (perc >= 100 && !finished /*&& ToDownload == Downloaded*/)
+            //{
+            //    OnDownloadFinished(new DownloadEventArgs());
+            //}
+
+            bool isSplitting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
+            bool isFinished() => outLine.Data.Contains("global headers:") && outLine.Data.Contains("muxing overhead:");
         }
 
         private void CleanUp()
@@ -240,6 +211,38 @@ namespace VideoUtilities
             process.Start();
             processes.Add(process);
             finished = true;
+        }
+
+        protected override void Process_Exited(object sender, EventArgs e) { }//=> OnDownloadFinished(new DownloadEventArgs());
+
+        protected virtual void OnProgress(ProgressEventArgs e)
+        {
+            if (ProgressDownload != null)
+                ProgressDownload(this, e);
+        }
+
+        protected override void OnDownloadFinished(DownloadEventArgs e)
+        {
+            if (!finished)
+            {
+                finished = true;
+                FinishedDownload?.Invoke(this, e);
+                CleanUp();
+            }
+        }
+
+        protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);
+
+        protected override void OnDownloadError(ProgressEventArgs e)
+        {
+            ErrorDownload?.Invoke(this, e);
+            CleanUp();
+        }
+
+        protected override void ErrorDataReceived(object sendingprocess, DataReceivedEventArgs error)
+        {
+            if (!string.IsNullOrEmpty(error.Data))
+                OnDownloadError(new ProgressEventArgs() { Error = error.Data });
         }
     }
 }

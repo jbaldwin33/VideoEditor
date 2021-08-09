@@ -31,13 +31,13 @@ namespace VideoEditorUi.Views
             var libsPath = "";
             string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (directoryName != null)
-                libsPath = Path.Combine(directoryName, Path.Combine(Path.Combine("Binaries")));
+                libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
             player.Init(libsPath, "UserName", "RegKey");
             viewModel = Navigator.Instance.CurrentViewModel as SplitterViewModel;
             viewModel.Player = player;
             viewModel.Slider = slider;
-            viewModel.AddRectAndSetEventHandler += ViewModel_AddRectAndSetEventHandler;
-            viewModel.ClearAllRectsEventHandler += ViewModel_ClearAllRectsEventHandler;
+            //viewModel.AddRectAndSetEventHandler += ViewModel_AddRectAndSetEventHandler;
+            //viewModel.ClearAllRectsEventHandler += ViewModel_ClearAllRectsEventHandler;
             timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             timer.Tick += timer_Tick;
             player.MediaOpened += Player_MediaOpened;
@@ -48,34 +48,34 @@ namespace VideoEditorUi.Views
             thumb.MouseEnter += Thumb_MouseEnter;
         }
 
-        private void ViewModel_AddRectAndSetEventHandler(object sender, AddRectEventArgs e) => SetRectAndAdd(e.StartTime, e.EndTime);
-        private void ViewModel_ClearAllRectsEventHandler(object sender, EventArgs e) => Dispatcher.Invoke(() => grid.Children.Clear());
+        //private void ViewModel_AddRectAndSetEventHandler(object sender, AddRectEventArgs e) => SetRectAndAdd(e.StartTime, e.EndTime);
+        //private void ViewModel_ClearAllRectsEventHandler(object sender, EventArgs e) => Dispatcher.Invoke(() => grid.Children.Clear());
 
-        private void SetRectAndAdd(TimeSpan t1, TimeSpan t2)
-        {
-            grid.Children.Add(new Rectangle());
+        //private void SetRectAndAdd(TimeSpan t1, TimeSpan t2)
+        //{
+        //    grid.Children.Add(new Rectangle());
 
-            var rect = grid.Children[grid.Children.Count - 1] as Rectangle;
-            rect.MouseDown += Rect_MouseDown;
-            rect.Margin = new Thickness(mapToRange(t1.TotalMilliseconds, 780, slider.Maximum), 0, 0, 0);
-            rect.Width = mapToRange((t2 - t1).TotalMilliseconds, 780, slider.Maximum);
-            rect.Height = 5;
-            rect.HorizontalAlignment = HorizontalAlignment.Left;
-            rect.Fill = new SolidColorBrush(Colors.Red);
+        //    var rect = grid.Children[grid.Children.Count - 1] as Rectangle;
+        //    rect.MouseDown += Rect_MouseDown;
+        //    rect.Margin = new Thickness(mapToRange(t1.TotalMilliseconds, 780, slider.Maximum), 0, 0, 0);
+        //    rect.Width = mapToRange((t2 - t1).TotalMilliseconds, 780, slider.Maximum);
+        //    rect.Height = 5;
+        //    rect.HorizontalAlignment = HorizontalAlignment.Left;
+        //    rect.Fill = new SolidColorBrush(Colors.Red);
 
-            double mapToRange(double toConvert, double maxRange1, double maxRange2) => toConvert * (maxRange1 / maxRange2);
-        }
+        //    double mapToRange(double toConvert, double maxRange1, double maxRange2) => toConvert * (maxRange1 / maxRange2);
+        //}
 
-        private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            if (MessageBox.Show("Do you want to delete this section?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-            {
-                var rect = sender as Rectangle;
-                var index = grid.Children.IndexOf(rect);
-                grid.Children.Remove(rect);
-                viewModel.RectRemoved?.Invoke(index);
-            }
-        }
+        //private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    if (MessageBox.Show("Do you want to delete this section?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+        //    {
+        //        var rect = sender as Rectangle;
+        //        var index = grid.Children.IndexOf(rect);
+        //        grid.Children.Remove(rect);
+        //        viewModel.RectRemoved?.Invoke(index);
+        //    }
+        //}
 
         private void timer_Tick(object sender, EventArgs e)
         {

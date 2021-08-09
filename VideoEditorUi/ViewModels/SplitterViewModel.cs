@@ -5,12 +5,18 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using VideoUtilities;
+using Path = System.IO.Path;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -38,6 +44,7 @@ namespace VideoEditorUi.ViewModels
         private string filename;
         private string extension;
         private ObservableCollection<(TimeSpan, TimeSpan)> times;
+        private ObservableCollection<Rectangle> rectCollection;
         private bool combineVideo;
 
         public Slider Slider
@@ -150,6 +157,13 @@ namespace VideoEditorUi.ViewModels
             set => Set(ref times, value);
         }
 
+
+        public ObservableCollection<Rectangle> RectCollection
+        {
+            get => rectCollection;
+            set => Set(ref rectCollection, value);
+        }
+
         public bool CombineVideo
         {
             get => combineVideo;
@@ -158,7 +172,6 @@ namespace VideoEditorUi.ViewModels
 
         public VideoSplitter Splitter { get; set; }
 
-        public Action<int> RectRemoved;
         public Action<TimeSpan> PositionChanged;
 
         public string PlayLabel => "Play";
@@ -176,11 +189,8 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, SplitCommandCanExecute));
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, SelectFileCommandCanExecute));
 
-        public event EventHandler<AddRectEventArgs> AddRectAndSetEventHandler;
-        public event EventHandler ClearAllRectsEventHandler;
 
-        public void AddRectAndSetEvent() => AddRectAndSetEventHandler?.Invoke(this, new AddRectEventArgs(StartTime, EndTime));
-        public void ClearAllRectsEvent() => ClearAllRectsEventHandler?.Invoke(this, new EventArgs());
+        private static object _lock = new object();
 
         public SplitterViewModel()
         {
@@ -188,20 +198,36 @@ namespace VideoEditorUi.ViewModels
             Slider = slider;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
-            RectRemoved = (index) => RemoveTime(index);
             PositionChanged = (time) => UpdateCurrentTime(time);
             Times = new ObservableCollection<(TimeSpan, TimeSpan)>();
+            RectCollection = new ObservableCollection<Rectangle>();
             Times.CollectionChanged += Times_CollectionChanged;
+            RectCollection.CollectionChanged += RectCollection_CollectionChanged;
+
+            BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
+            BindingOperations.EnableCollectionSynchronization(Times, _lock);
         }
 
         private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            Dispatcher.CurrentDispatcher.Invoke(() =>
-            {
-                if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
-                    SplitCommand.RaiseCanExecuteChanged();
-            });
+            if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
+                Application.Current.Dispatcher.Invoke(() => SplitCommand.RaiseCanExecuteChanged());
+        }
 
+        private void RectCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+
+        }
+
+        private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (MessageBox.Show("Do you want to delete this section?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                var rect = sender as Rectangle;
+                var index = RectCollection.IndexOf(rect);
+                RectCollection.Remove(rect);
+                Times.RemoveAt(index);
+            }
         }
 
         private bool PlayCommandCanExecute() => true;
@@ -220,20 +246,18 @@ namespace VideoEditorUi.ViewModels
 
         private void SplitCommandExecute()
         {
-            Splitter = new VideoUtilities.VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo);
+            Splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo);
             Splitter.StartedDownload += Splitter_StartedDownload;
             Splitter.ProgressDownload += Splitter_ProgressDownload;
             Splitter.FinishedDownload += Splitter_FinishedDownload;
             Splitter.ErrorDownload += Splitter_ErrorDownload;
-            Splitter.Download();
+            Task.Run(() => Splitter.Download());
         }
 
         private void StartCommandExecute()
         {
             StartTimeSet = true;
             StartTime = player.PositionGet();
-
-
         }
 
         private void EndCommandExecute()
@@ -247,8 +271,9 @@ namespace VideoEditorUi.ViewModels
             }
             EndTimeSet = true;
             EndTime = player.PositionGet();
+            AddRectangle();
             Times.Add((StartTime, EndTime));
-            AddRectAndSetEvent();
+
             StartTimeSet = EndTimeSet = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
         }
@@ -266,15 +291,31 @@ namespace VideoEditorUi.ViewModels
                 SourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
                 Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
                 Extension = Path.GetExtension(openFileDialog.FileName);
-                //player.Source = null;
                 player.Open(new Uri(openFileDialog.FileName));
-                //player.Stop();
                 FileLoaded = true;
                 ResetAll();
             }
         }
 
-        private void RemoveTime(int index) => Times.RemoveAt(index);
+        private void AddRectangle()
+        {
+            RectCollection.Add(new Rectangle());
+            var rect = RectCollection[RectCollection.Count - 1];
+            rect.MouseDown += Rect_MouseDown;
+            rect.Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 780, slider.Maximum), 0, 0, 0);
+            rect.Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 780, slider.Maximum);
+            rect.Height = 5;
+            rect.HorizontalAlignment = HorizontalAlignment.Left;
+            rect.Fill = new SolidColorBrush(Colors.Red);
+
+            double mapToRange(double toConvert, double maxRange1, double maxRange2) => toConvert * (maxRange1 / maxRange2);
+        }
+
+        private void ClearAllRectangles()
+        {
+            RectCollection.Clear();
+            Times.Clear();
+        }
 
         private void UpdateCurrentTime(TimeSpan time) => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
 
@@ -299,16 +340,11 @@ namespace VideoEditorUi.ViewModels
 
         private void Splitter_FinishedDownload(object sender, DownloadEventArgs e)
         {
-            Dispatcher.CurrentDispatcher.Invoke(() =>
-            {
-                StartTime = EndTime = TimeSpan.FromMilliseconds(0);
-                CombineVideo = false;
-                Times.Clear();
-                ClearAllRectsEvent();
-                MessageBox.Show("Video successfully split.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-                ProgressValue = -1;
-            });
-
+            StartTime = EndTime = TimeSpan.FromMilliseconds(0);
+            CombineVideo = false;
+            ClearAllRectangles();
+            MessageBox.Show("Video successfully split.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            ProgressValue = -1;
         }
 
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)

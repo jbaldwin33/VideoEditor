@@ -82,10 +82,18 @@
     <Compile Include="ViewModels\ConverterViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
-    <Compile Include="Views\ConverterView.xaml.cs" />
-    <Compile Include="Views\MainWindow.xaml.cs" />
-    <Compile Include="Views\SplitterView.xaml.cs" />
-    <Compile Include="Views\TestWindow.xaml.cs" />
+    <Compile Include="Views\ConverterView.xaml.cs">
+      <DependentUpon>ConverterView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SplitterView.xaml.cs">
+      <DependentUpon>SplitterView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TestWindow.xaml.cs">
+      <DependentUpon>TestWindow.xaml</DependentUpon>
+    </Compile>
     <Page Include="Controls\NavigationBar.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -142,6 +150,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(SolutionDir)\CSFiles\*" "Binaries\"</PostBuildEvent>
+    <PostBuildEvent>if not exist "Binaries" mkdir "Binaries"
+xcopy /Y/E "$(SolutionDir)\CSFiles\*" "Binaries\"</PostBuildEvent>
   </PropertyGroup>
 </Project>
