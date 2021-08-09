@@ -130,10 +130,6 @@ namespace VideoUtilities
                 currentTime = TimeSpan.ParseExact(outLine.Data.Substring(outLine.Data.IndexOf("time="), 11), "hh:mm:ss.ff", CultureInfo.InvariantCulture);
                 
 
-                //if (b.Length > 0)
-                //    Downloaded = int.Parse(b) - 1;
-                //if (c.Length > 0)
-                //    ToDownload = int.Parse(c);
             }
 
             //if (Downloaded > ToDownload)
