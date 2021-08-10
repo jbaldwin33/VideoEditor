@@ -16,6 +16,7 @@ using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using VideoUtilities;
+using static VideoUtilities.Enums.Enums;
 using Path = System.IO.Path;
 
 namespace VideoEditorUi.ViewModels
@@ -45,7 +46,10 @@ namespace VideoEditorUi.ViewModels
         private string extension;
         private ObservableCollection<(TimeSpan, TimeSpan)> times;
         private ObservableCollection<Rectangle> rectCollection;
+        private ObservableCollection<FormatTypeViewModel> formats;
+        private FormatEnum formatType;
         private bool combineVideo;
+        private bool outputDifferentFormat;
 
         public Slider Slider
         {
@@ -164,10 +168,28 @@ namespace VideoEditorUi.ViewModels
             set => Set(ref rectCollection, value);
         }
 
+        public FormatEnum FormatType
+        {
+            get => formatType;
+            set => Set(ref formatType, value);
+        }
+
+        public ObservableCollection<FormatTypeViewModel> Formats
+        {
+            get => formats;
+            set => Set(ref formats, value);
+        }
+
         public bool CombineVideo
         {
             get => combineVideo;
             set => Set(ref combineVideo, value);
+        }
+
+        public bool OutputDifferentFormat
+        {
+            get => outputDifferentFormat;
+            set => Set(ref outputDifferentFormat, value);
         }
 
         public Action<TimeSpan> PositionChanged;
@@ -199,6 +221,19 @@ namespace VideoEditorUi.ViewModels
             PositionChanged = (time) => UpdateCurrentTime(time);
             Times = new ObservableCollection<(TimeSpan, TimeSpan)>();
             RectCollection = new ObservableCollection<Rectangle>();
+            Formats = new ObservableCollection<FormatTypeViewModel>
+            {
+                new FormatTypeViewModel(FormatEnum.avi, ".avi"),
+                new FormatTypeViewModel(FormatEnum.m4a, ".m4a"),
+                new FormatTypeViewModel(FormatEnum.mkv, ".mkv"),
+                new FormatTypeViewModel(FormatEnum.mov, ".mov"),
+                new FormatTypeViewModel(FormatEnum.mp4, ".mp4"),
+                new FormatTypeViewModel(FormatEnum.mpeg, ".mpeg"),
+                new FormatTypeViewModel(FormatEnum.mpg, ".mpg"),
+                new FormatTypeViewModel(FormatEnum.ts, ".ts"),
+                new FormatTypeViewModel(FormatEnum.wmv, ".wmv"),
+            };
+            FormatType = FormatEnum.avi;
             Times.CollectionChanged += Times_CollectionChanged;
             RectCollection.CollectionChanged += RectCollection_CollectionChanged;
 
@@ -241,15 +276,16 @@ namespace VideoEditorUi.ViewModels
         private void PauseCommandExecute() => player.Pause();
 
         private void StopCommandExecute() => player.Stop();
-        private Window window = new Window();
+        private Window window;
         private void SplitCommandExecute()
         {
-            splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo);
+            splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo, OutputDifferentFormat, $".{FormatType}");
             splitter.StartedDownload += Splitter_StartedDownload;
             splitter.ProgressDownload += Splitter_ProgressDownload;
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
             Task.Run(() => splitter.Split());
+            window = new Window();
             window.Owner = Application.Current.MainWindow;
             window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
             window.Width = 350;
@@ -346,6 +382,8 @@ namespace VideoEditorUi.ViewModels
             Application.Current.Dispatcher.Invoke(() => window.Close());
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CombineVideo = false;
+            OutputDifferentFormat = false;
+            FormatType = FormatEnum.avi;
             ClearAllRectangles();
             MessageBox.Show("Video successfully split.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
             ProgressValue = -1;
@@ -354,6 +392,17 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    public class FormatTypeViewModel
+    {
+        public FormatEnum FormType { get; set; }
+        public string Name { get; set; }
+        public FormatTypeViewModel(FormatEnum f, string n)
+        {
+            FormType = f;
+            Name = n;
         }
     }
 

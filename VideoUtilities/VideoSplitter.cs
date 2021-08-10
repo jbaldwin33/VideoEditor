@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using static VideoUtilities.Enums.Enums;
 
 namespace VideoUtilities
 {
@@ -18,6 +19,8 @@ namespace VideoUtilities
         private readonly string sourceFolder;
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
+        private readonly bool outputDifferentFormat;
+        private readonly string outputFormat;
         private readonly ObservableCollection<(TimeSpan, TimeSpan)> times;
         private readonly bool combineVideo;
         private readonly ProcessStartInfo startInfo;
@@ -31,15 +34,17 @@ namespace VideoUtilities
         private static int currentSplit;
         private static object _lock = new object();
 
-        public VideoSplitter(string sourceFolder, string sourceFileWithoutExtension, string extension, ObservableCollection<(TimeSpan, TimeSpan)> times, bool combineVideo)
+        public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, ObservableCollection<(TimeSpan, TimeSpan)> t, bool combine, bool outputDiffFormat, string outFormat)
         {
             finished = false;
-            this.sourceFolder = sourceFolder;
-            this.sourceFileWithoutExtension = sourceFileWithoutExtension;
-            this.extension = extension;
-            this.times = times;
-            this.combineVideo = combineVideo;
-            toSplit = times.Count;
+            sourceFolder = sFolder;
+            sourceFileWithoutExtension = sFileWithoutExtension;
+            extension = ext;
+            times = t;
+            combineVideo = combine;
+            outputDifferentFormat = outputDiffFormat;
+            outputFormat = outFormat;
+            toSplit = t.Count;
 
             var libsPath = "";
             var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
@@ -48,10 +53,10 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(libsPath))
                 throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
 
-            for (int i = 0; i < this.times.Count; i++)
+            for (int i = 0; i < times.Count; i++)
             {
-                var output = $"{this.sourceFolder}\\{this.sourceFileWithoutExtension}_trimmed{i + 1}{this.extension}";
-                arguments.Add($"-y -i {this.sourceFolder}\\{this.sourceFileWithoutExtension}{this.extension} -ss {this.times[i].Item1.TotalSeconds} -t {this.times[i].Item2.TotalSeconds} -c copy {output}");
+                var output = $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{i + 1}{(outputDifferentFormat ? outputFormat : extension)}";
+                arguments.Add($"-y -i {sourceFolder}\\{sourceFileWithoutExtension}{extension} -ss {times[i].Item1.TotalSeconds} -t {times[i].Item2.TotalSeconds} -c copy {output}");
                 filenames.Add(output);
                 filenamesWithExtra.Add($"file '{output}'");
             }
@@ -170,7 +175,7 @@ namespace VideoUtilities
             process.Exited += CombineProcess_Exited;
             //process.ErrorDataReceived += new DataReceivedEventHandler(ErrorDataReceived);
 
-            startInfo.Arguments = $"-safe 0 -f concat -i {tempfile} -c copy {sourceFolder}\\{sourceFileWithoutExtension}_combined{extension}";
+            startInfo.Arguments = $"-safe 0 -f concat -i {tempfile} -c copy {sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";
             process.StartInfo = startInfo;
             process.Start();
             //process.BeginErrorReadLine();

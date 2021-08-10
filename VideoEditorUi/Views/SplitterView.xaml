@@ -44,6 +44,8 @@
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,10,0,0" HorizontalAlignment="Left" Width="200">
           <CheckBox Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
         </StackPanel>
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
           <Button Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
