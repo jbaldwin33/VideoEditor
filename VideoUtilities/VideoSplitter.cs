@@ -192,6 +192,11 @@ namespace VideoUtilities
                     finished = true;
                     if (combineVideo)
                         CombineSections();
+                    else
+                    {
+                        FinishedDownload?.Invoke(this, new DownloadEventArgs());
+                        CleanUp();
+                    }
                 }
             }
         }

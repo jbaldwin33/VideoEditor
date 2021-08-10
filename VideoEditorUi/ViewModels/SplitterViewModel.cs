@@ -241,7 +241,7 @@ namespace VideoEditorUi.ViewModels
         private void PauseCommandExecute() => player.Pause();
 
         private void StopCommandExecute() => player.Stop();
-
+        private Window window = new Window();
         private void SplitCommandExecute()
         {
             splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo);
@@ -250,6 +250,11 @@ namespace VideoEditorUi.ViewModels
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
             Task.Run(() => splitter.Split());
+            window.Owner = Application.Current.MainWindow;
+            window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            window.Width = 350;
+            window.Height = 250;
+            Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
 
         private void StartCommandExecute()
@@ -338,6 +343,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Splitter_FinishedDownload(object sender, DownloadEventArgs e)
         {
+            Application.Current.Dispatcher.Invoke(() => window.Close());
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CombineVideo = false;
             ClearAllRectangles();
