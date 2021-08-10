@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using static VideoUtilities.Enums.Enums;
 
 namespace VideoUtilities
 {

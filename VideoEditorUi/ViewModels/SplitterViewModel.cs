@@ -4,17 +4,13 @@ using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 using VideoEditorNetFramework.ViewModels;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
@@ -212,6 +208,7 @@ namespace VideoEditorUi.ViewModels
 
         private VideoSplitter splitter;
         private static object _lock = new object();
+        private Window window;
 
         public SplitterViewModel()
         {
@@ -225,7 +222,6 @@ namespace VideoEditorUi.ViewModels
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             Times.CollectionChanged += Times_CollectionChanged;
-            RectCollection.CollectionChanged += RectCollection_CollectionChanged;
 
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
@@ -235,11 +231,6 @@ namespace VideoEditorUi.ViewModels
         {
             if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
                 Application.Current.Dispatcher.Invoke(() => SplitCommand.RaiseCanExecuteChanged());
-        }
-
-        private void RectCollection_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-
         }
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
@@ -266,7 +257,6 @@ namespace VideoEditorUi.ViewModels
         private void PauseCommandExecute() => player.Pause();
 
         private void StopCommandExecute() => player.Stop();
-        private Window window;
         private void SplitCommandExecute()
         {
             splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo, OutputDifferentFormat, $".{FormatType}");
@@ -275,11 +265,13 @@ namespace VideoEditorUi.ViewModels
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
             Task.Run(() => splitter.Split());
-            window = new Window();
-            window.Owner = Application.Current.MainWindow;
-            window.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            window.Width = 350;
-            window.Height = 250;
+            window = new Window
+            {
+                Owner = Application.Current.MainWindow,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Width = 350,
+                Height = 250
+            };
             Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
 

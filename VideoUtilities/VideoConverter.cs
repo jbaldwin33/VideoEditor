@@ -7,16 +7,19 @@ namespace VideoUtilities
 {
     public class VideoConverter : BaseClass
     {
-        private string sourceFolder;
-        private string sourceFileWithoutExtension;
-        private string inputExtension;
-        private string outputExtension;
-        private ProcessStartInfo startInfo;
+        private readonly string sourceFolder;
+        private readonly string sourceFileWithoutExtension;
+        private readonly string inputExtension;
+        private readonly string outputExtension;
+        private readonly ProcessStartInfo startInfo;
 
         public event ProgressEventHandler ProgressDownload;
         public event FinishedDownloadEventHandler FinishedDownload;
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
+        private bool finished;
+        private decimal percentage;
+        private TimeSpan duration;
 
         public VideoConverter(string folder, string fileWithoutExtension, string inExtension, string outExtension)
         {
@@ -30,33 +33,34 @@ namespace VideoUtilities
                 throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
 
             var output = $"{sourceFolder}\\{sourceFileWithoutExtension}{outputExtension}";
-            startInfo.Arguments = $"-i {sourceFolder}\\{sourceFileWithoutExtension}{inputExtension} {output}";
 
             // setup the process that will fire youtube-dl
-            startInfo = new ProcessStartInfo();
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = Path.Combine(binaryPath, "ffmpeg.exe");
-            startInfo.CreateNoWindow = true;
+            startInfo = new ProcessStartInfo
+            {
+                Arguments = $"-i {sourceFolder}\\{sourceFileWithoutExtension}{inputExtension} {output}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                CreateNoWindow = true
+            };
         }
 
-        public void Download()
+        public void ConvertVideo()
         {
             try
             {
                 OnDownloadStarted(new DownloadEventArgs());
-                var process = new Process();
-                process.EnableRaisingEvents = true;
+                var process = new Process
+                {
+                    EnableRaisingEvents = true,
+                    StartInfo = startInfo
+                };
                 process.Exited += Process_Exited;
-                process.ErrorDataReceived += new DataReceivedEventHandler(ErrorDataReceived);
-                process.StartInfo = startInfo;
+                process.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
                 process.Start();
-                var perc = 0;//Convert.ToDecimal((float)(i + 1) / (float)arguments.Count * 100);
-                OnProgress(new ProgressEventArgs { Percentage = perc });
-
-                OnDownloadFinished(new DownloadEventArgs());
+                process.BeginErrorReadLine();
             }
             catch (Exception ex)
             {
@@ -64,6 +68,58 @@ namespace VideoUtilities
             }
         }
 
+        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            OnProgress(new ProgressEventArgs() { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
+            // extract the percentage from process outpu
+            if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
+            {
+                OnDownloadFinished(new DownloadEventArgs());
+                return;
+            }
+
+            if (outLine.Data.Contains("ERROR"))
+            {
+                OnDownloadError(new ProgressEventArgs() { Error = outLine.Data });
+                return;
+            }
+
+            if (!outLine.Data.Contains("Duration: ") && !isConverting())
+                return;
+
+            if (outLine.Data.Contains("Duration: "))
+            {
+                duration = TimeSpan.Parse(outLine.Data.Split(new string[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
+                return;
+            }
+
+            TimeSpan currentTime = TimeSpan.Zero;
+            if (isConverting())
+            {
+                var strSub = outLine.Data.Split(new string[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+                currentTime = TimeSpan.Parse(strSub);
+            }
+
+            // fire the process event
+            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
+            if (perc < 0)
+            {
+                Console.WriteLine("weird perc {0}", perc);
+                return;
+            }
+            percentage = perc;
+            OnProgress(new ProgressEventArgs() { Percentage = perc, Data = outLine.Data });
+
+            // is it finished?
+            if (perc < 100 && !isFinished())
+                return;
+
+            if (perc >= 100 && !finished)
+                OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
+
+            bool isConverting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
+            bool isFinished() => outLine.Data.Contains("global headers:") && outLine.Data.Contains("muxing overhead:");
+        }
 
         protected virtual void OnProgress(ProgressEventArgs e)
         {
@@ -73,30 +129,21 @@ namespace VideoUtilities
 
         protected override void OnDownloadFinished(DownloadEventArgs e)
         {
-            FinishedDownload?.Invoke(this, e);
-            CleanUp();
+            if (!finished)
+            {
+                finished = true;
+                FinishedDownload?.Invoke(this, e);
+            }
         }
 
         protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);
 
-        protected override void OnDownloadError(ProgressEventArgs e)
-        {
-            ErrorDownload?.Invoke(this, e);
-            CleanUp();
-        }
-
-        protected override void Process_Exited(object sender, EventArgs e) => OnDownloadFinished(new DownloadEventArgs());
-
+        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
 
         protected override void ErrorDataReceived(object sendingprocess, DataReceivedEventArgs error)
         {
             if (!string.IsNullOrEmpty(error.Data))
                 OnDownloadError(new ProgressEventArgs() { Error = error.Data });
-        }
-
-        private void CleanUp()
-        {
-            throw new NotImplementedException();
         }
     }
 }
