@@ -80,6 +80,7 @@
     <Compile Include="Converters.cs" />
     <Compile Include="Singletons\Navigator.cs" />
     <Compile Include="ViewModels\ConverterViewModel.cs" />
+    <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
     <Compile Include="Views\ConverterView.xaml.cs">

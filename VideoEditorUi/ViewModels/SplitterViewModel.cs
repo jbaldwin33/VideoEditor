@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using VideoEditorNetFramework.ViewModels;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
 using Path = System.IO.Path;
@@ -221,18 +222,7 @@ namespace VideoEditorUi.ViewModels
             PositionChanged = (time) => UpdateCurrentTime(time);
             Times = new ObservableCollection<(TimeSpan, TimeSpan)>();
             RectCollection = new ObservableCollection<Rectangle>();
-            Formats = new ObservableCollection<FormatTypeViewModel>
-            {
-                new FormatTypeViewModel(FormatEnum.avi, ".avi"),
-                new FormatTypeViewModel(FormatEnum.m4a, ".m4a"),
-                new FormatTypeViewModel(FormatEnum.mkv, ".mkv"),
-                new FormatTypeViewModel(FormatEnum.mov, ".mov"),
-                new FormatTypeViewModel(FormatEnum.mp4, ".mp4"),
-                new FormatTypeViewModel(FormatEnum.mpeg, ".mpeg"),
-                new FormatTypeViewModel(FormatEnum.mpg, ".mpg"),
-                new FormatTypeViewModel(FormatEnum.ts, ".ts"),
-                new FormatTypeViewModel(FormatEnum.wmv, ".wmv"),
-            };
+            Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             Times.CollectionChanged += Times_CollectionChanged;
             RectCollection.CollectionChanged += RectCollection_CollectionChanged;
@@ -392,17 +382,6 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    public class FormatTypeViewModel
-    {
-        public FormatEnum FormType { get; set; }
-        public string Name { get; set; }
-        public FormatTypeViewModel(FormatEnum f, string n)
-        {
-            FormType = f;
-            Name = n;
         }
     }
 
