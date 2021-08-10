@@ -170,8 +170,6 @@ namespace VideoEditorUi.ViewModels
             set => Set(ref combineVideo, value);
         }
 
-        public VideoSplitter Splitter { get; set; }
-
         public Action<TimeSpan> PositionChanged;
 
         public string PlayLabel => "Play";
@@ -189,7 +187,7 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, SplitCommandCanExecute));
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, SelectFileCommandCanExecute));
 
-
+        private VideoSplitter splitter;
         private static object _lock = new object();
 
         public SplitterViewModel()
@@ -246,12 +244,12 @@ namespace VideoEditorUi.ViewModels
 
         private void SplitCommandExecute()
         {
-            Splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo);
-            Splitter.StartedDownload += Splitter_StartedDownload;
-            Splitter.ProgressDownload += Splitter_ProgressDownload;
-            Splitter.FinishedDownload += Splitter_FinishedDownload;
-            Splitter.ErrorDownload += Splitter_ErrorDownload;
-            Task.Run(() => Splitter.Download());
+            splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo);
+            splitter.StartedDownload += Splitter_StartedDownload;
+            splitter.ProgressDownload += Splitter_ProgressDownload;
+            splitter.FinishedDownload += Splitter_FinishedDownload;
+            splitter.ErrorDownload += Splitter_ErrorDownload;
+            Task.Run(() => splitter.Split());
         }
 
         private void StartCommandExecute()

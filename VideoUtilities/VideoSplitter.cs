@@ -2,11 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Windows.Threading;
 
 namespace VideoUtilities
 {
@@ -28,9 +25,11 @@ namespace VideoUtilities
         private readonly List<string> filenamesWithExtra = new List<string>();
         private readonly List<string> filenames = new List<string>();
         private string tempfile;
-        private TimeSpan duration = TimeSpan.Zero;
         private List<Process> processes = new List<Process>();
         private decimal percentage;
+        private int toSplit;
+        private static int currentSplit;
+        private static object _lock = new object();
 
         public VideoSplitter(string sourceFolder, string sourceFileWithoutExtension, string extension, ObservableCollection<(TimeSpan, TimeSpan)> times, bool combineVideo)
         {
@@ -40,11 +39,10 @@ namespace VideoUtilities
             this.extension = extension;
             this.times = times;
             this.combineVideo = combineVideo;
-
-            //var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+            toSplit = times.Count;
 
             var libsPath = "";
-            string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (directoryName != null)
                 libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
             if (string.IsNullOrEmpty(libsPath))
@@ -53,7 +51,7 @@ namespace VideoUtilities
             for (int i = 0; i < this.times.Count; i++)
             {
                 var output = $"{this.sourceFolder}\\{this.sourceFileWithoutExtension}_trimmed{i + 1}{this.extension}";
-                arguments.Add(string.Format($"-i {this.sourceFolder}\\{this.sourceFileWithoutExtension}{this.extension} -ss {this.times[i].Item1.TotalSeconds} -t {this.times[i].Item2.TotalSeconds} -c copy {output}"));
+                arguments.Add($"-y -i {this.sourceFolder}\\{this.sourceFileWithoutExtension}{this.extension} -ss {this.times[i].Item1.TotalSeconds} -t {this.times[i].Item2.TotalSeconds} -c copy {output}");
                 filenames.Add(output);
                 filenamesWithExtra.Add($"file '{output}'");
             }
@@ -68,7 +66,7 @@ namespace VideoUtilities
             startInfo.CreateNoWindow = true;
         }
 
-        public void Download()
+        public void Split()
         {
             processes.Clear();
             try
@@ -79,23 +77,13 @@ namespace VideoUtilities
                     var process = new Process();
                     process.EnableRaisingEvents = true;
                     process.Exited += Process_Exited;
-                    //process.OutputDataReceived += new DataReceivedEventHandler(OutputHandler);
                     process.ErrorDataReceived += new DataReceivedEventHandler(OutputHandler);
 
                     startInfo.Arguments = arguments[i];
                     process.StartInfo = startInfo;
                     process.Start();
                     process.BeginErrorReadLine();
-                    //process.WaitForExit();
-                    //processes.Add(process);
-                    //var perc = Convert.ToDecimal((float)(i + 1) / (float)arguments.Count * 100);
-                    //OnProgress(new ProgressEventArgs { Percentage = perc });
                 }
-                //if (combineVideo)
-                //    CombineSections();
-                //else
-                //    finished = true;
-
             }
             catch (Exception ex)
             {
@@ -110,28 +98,21 @@ namespace VideoUtilities
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
+            var str = (sendingProcess as Process).StartInfo.Arguments.Split(new string[] { "-ss " }, StringSplitOptions.None)[1];
+            var startSec = double.Parse(str.Substring(0, 7));
+            var endSec = double.Parse(str.Split(new string[] { "-t " }, StringSplitOptions.None)[1].Substring(0, 7));
+            var dur = TimeSpan.FromSeconds(endSec - startSec);
             OnProgress(new ProgressEventArgs() { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
             // extract the percentage from process outpu
             if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
             {
                 OnDownloadFinished(new DownloadEventArgs());
-
                 return;
             }
-            
+
             if (outLine.Data.Contains("ERROR"))
             {
                 OnDownloadError(new ProgressEventArgs() { Error = outLine.Data });
-                return;
-            }
-
-            if (!outLine.Data.Contains("Duration: ") && !isSplitting())
-                return;
-
-            if (outLine.Data.Contains("Duration: "))
-            {
-                var str = outLine.Data.Split(',')[0].Split(new string[] { "Duration: " }, StringSplitOptions.RemoveEmptyEntries)[1];
-                duration = TimeSpan.Parse(str);
                 return;
             }
 
@@ -141,28 +122,13 @@ namespace VideoUtilities
             TimeSpan currentTime = TimeSpan.Zero;
             if (isSplitting())
             {
-                var str = outLine.Data.Split(new string[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                currentTime = TimeSpan.Parse(str);
-
-
+                var strSub = outLine.Data.Split(new string[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+                currentTime = TimeSpan.Parse(strSub);
             }
 
-            //if (Downloaded > ToDownload)
-            //{
-            //    OnDownloadError(new ProgressEventArgs() { Error = "This playlist is empty. No videos were downloaded", ProcessObject = ProcessObject });
-            //    return;
-            //}
-
-            var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
-            //if (!pattern.IsMatch(outLine.Data) && ((Downloaded == 0 && ToDownload == 0) || (ToDownload != 0 && Downloaded != ToDownload)))
-            //{
-            //    return;
-            //}
-
             // fire the process event
-            //var perc = Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
-            var perc = Convert.ToDecimal((float)currentTime.TotalMilliseconds / (float)duration.TotalMilliseconds);
-            if (perc > 100 || perc < 0)
+            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)dur.TotalSeconds) * 100;
+            if (perc < 0)
             {
                 Console.WriteLine("weird perc {0}", perc);
                 return;
@@ -174,10 +140,8 @@ namespace VideoUtilities
             if (perc < 100 && !isFinished())
                 return;
 
-            //if (perc >= 100 && !finished /*&& ToDownload == Downloaded*/)
-            //{
-            //    OnDownloadFinished(new DownloadEventArgs());
-            //}
+            if (perc >= 100 && !finished)
+                OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
 
             bool isSplitting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
             bool isFinished() => outLine.Data.Contains("global headers:") && outLine.Data.Contains("muxing overhead:");
@@ -203,17 +167,34 @@ namespace VideoUtilities
 
             var process = new Process();
             process.EnableRaisingEvents = true;
-            process.Exited += Process_Exited;
-            process.ErrorDataReceived += new DataReceivedEventHandler(ErrorDataReceived);
+            process.Exited += CombineProcess_Exited;
+            //process.ErrorDataReceived += new DataReceivedEventHandler(ErrorDataReceived);
 
             startInfo.Arguments = $"-safe 0 -f concat -i {tempfile} -c copy {sourceFolder}\\{sourceFileWithoutExtension}_combined{extension}";
             process.StartInfo = startInfo;
             process.Start();
-            processes.Add(process);
-            finished = true;
+            //process.BeginErrorReadLine();
         }
 
-        protected override void Process_Exited(object sender, EventArgs e) { }//=> OnDownloadFinished(new DownloadEventArgs());
+        private void CombineProcess_Exited(object sender, EventArgs e)
+        {
+            FinishedDownload?.Invoke(this, new DownloadEventArgs());
+            CleanUp();
+        }
+
+        protected override void Process_Exited(object sender, EventArgs e)
+        {
+            lock (_lock)
+            {
+                currentSplit++;
+                if (!finished && toSplit == currentSplit)
+                {
+                    finished = true;
+                    if (combineVideo)
+                        CombineSections();
+                }
+            }
+        }
 
         protected virtual void OnProgress(ProgressEventArgs e)
         {
@@ -223,12 +204,7 @@ namespace VideoUtilities
 
         protected override void OnDownloadFinished(DownloadEventArgs e)
         {
-            if (!finished)
-            {
-                finished = true;
-                FinishedDownload?.Invoke(this, e);
-                CleanUp();
-            }
+            
         }
 
         protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);

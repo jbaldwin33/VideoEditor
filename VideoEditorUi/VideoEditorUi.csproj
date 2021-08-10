@@ -91,9 +91,6 @@
     <Compile Include="Views\SplitterView.xaml.cs">
       <DependentUpon>SplitterView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\TestWindow.xaml.cs">
-      <DependentUpon>TestWindow.xaml</DependentUpon>
-    </Compile>
     <Page Include="Controls\NavigationBar.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -112,10 +109,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\SplitterView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\TestWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
