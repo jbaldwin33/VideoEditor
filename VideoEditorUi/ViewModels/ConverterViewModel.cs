@@ -27,6 +27,7 @@ namespace VideoEditorUi.ViewModels
         }
 
         private string extension;
+        private bool fileLoaded;
 
         public ObservableCollection<FormatTypeViewModel> Formats
         {
@@ -35,7 +36,8 @@ namespace VideoEditorUi.ViewModels
         }
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
-        public RelayCommand ConvertCommand => convertCommand ?? (convertCommand = new RelayCommand(ConvertCommandExecute, ConvertCommandCanExecute)
+        public RelayCommand ConvertCommand => convertCommand ?? (convertCommand = new RelayCommand(ConvertCommandExecute, ConvertCommandCanExecute));
+
         public string SelectFileLabel => "Click to select a file...";
         public string ConvertLabel => "Convert";
 
@@ -43,6 +45,8 @@ namespace VideoEditorUi.ViewModels
         {
             Formats = FormatTypeViewModel.CreateViewModels();
         }
+
+        private bool ConvertCommandCanExecute() => fileLoaded;
 
         private void SelectFileCommandExecute()
         {
@@ -57,7 +61,13 @@ namespace VideoEditorUi.ViewModels
                 sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
                 Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
                 extension = Path.GetExtension(openFileDialog.FileName);
+                fileLoaded = true;
             }
+        }
+
+        private void ConvertCommandExecute()
+        {
+            throw new NotImplementedException();
         }
 
         private void ResetAll()
