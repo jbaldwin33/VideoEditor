@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{1C4D3A71-B899-44B9-8F6B-0DD848D46411}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>VideoEditorNetFramework</RootNamespace>
-    <AssemblyName>VideoEditorNetFramework</AssemblyName>
+    <RootNamespace>VideoEditorUi</RootNamespace>
+    <AssemblyName>VideoEditorUi</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -82,12 +82,16 @@
     <Compile Include="ViewModels\ConverterViewModel.cs" />
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\ProgressBarViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
     <Compile Include="Views\ConverterView.xaml.cs">
       <DependentUpon>ConverterView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProgressBarView.xaml.cs">
+      <DependentUpon>ProgressBarView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SplitterView.xaml.cs">
       <DependentUpon>SplitterView.xaml</DependentUpon>
@@ -96,7 +100,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Controls\NavigationBar.xaml.cs" />
+    <Compile Include="Controls\NavigationBar.xaml.cs">
+      <DependentUpon>NavigationBar.xaml</DependentUpon>
+    </Compile>
     <ApplicationDefinition Include="App.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -108,6 +114,10 @@
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ProgressBarView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SplitterView.xaml">
       <Generator>MSBuild:Compile</Generator>

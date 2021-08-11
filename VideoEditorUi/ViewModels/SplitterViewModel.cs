@@ -270,7 +270,8 @@ namespace VideoEditorUi.ViewModels
                 Owner = Application.Current.MainWindow,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Width = 350,
-                Height = 250
+                Height = 250,
+                Content = "Please wait..."
             };
             Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }

@@ -16,19 +16,11 @@
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="auto"/>
         <ColumnDefinition Width="auto"/>
-        <!--<ColumnDefinition Width="auto"/>
-        <ColumnDefinition Width="auto"/>
-        <ColumnDefinition Width="auto"/>
-        <ColumnDefinition Width="auto"/>-->
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
 
       <Button Grid.Column="0" Content="{Binding SplitterLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.Splitter}"/>
       <Button Grid.Column="1" Content="{Binding ConverterLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.Converter}"/>
-      <!--<Button Grid.Column="2" Content="{Binding UserDetailsLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.UserDetails}" Visibility="{Binding IsActiveSession, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BoolToVisConverter}}"/>
-      <Button Grid.Column="3" Content="{Binding LoginLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.LogIn}"/>
-      <Button Grid.Column="4" Content="{Binding SignUpLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.SignUp}" Visibility="{Binding IsActiveSession, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource InvBoolToVisConverter}}"/>
-      <Button Grid.Column="5" Content="{Binding TransactionsLabel}" Command="{Binding UpdateCurrentViewModelCommand}" CommandParameter="{x:Static nav:ViewType.Transactions}" Visibility="{Binding IsActiveSession, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay, Converter={StaticResource BoolToVisConverter}}"/>-->
     </Grid>
   </Grid>
 </UserControl>

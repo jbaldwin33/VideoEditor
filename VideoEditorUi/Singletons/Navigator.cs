@@ -4,19 +4,25 @@ using System.ComponentModel;
 using System.Windows.Input;
 using System.Windows;
 using VideoEditorUi.ViewModels;
+using VideoEditorUi.Views;
 
 namespace VideoEditorUi.Singletons
 {
     public enum ViewType
     {
         Splitter,
-        Converter
+        Converter,
+        ProgressBar
     }
 
     public interface INavigator
     {
         ViewModelBase CurrentViewModel { get; set; }
+        ViewModelBase ChildViewModel { get; set; }
         ICommand UpdateCurrentViewModelCommand { get; }
+        ICommand OpenChildWindow { get; }
+        ICommand CloseChildWindow { get; }
+        void SetChildViewShown(bool shown);
     }
 
     public class Navigator : INavigator, INotifyPropertyChanged
@@ -25,6 +31,10 @@ namespace VideoEditorUi.Singletons
         public static Navigator Instance => instance.Value;
 
         private ViewModelBase currentViewModel;
+        private ViewModelBase childViewModel;
+        private bool childViewShown;
+        private Window childView;
+
 
         public Navigator()
         {
@@ -34,10 +44,6 @@ namespace VideoEditorUi.Singletons
         #region Properties
         public string SplitterLabel => "Splitter";
         public string ConverterLabel => "Converter";
-        //public string UserDetailsLabel => new UserDetailsLabelTranslatable();
-        //public string LoginLabel => new LoginLabelTranslatable();
-        //public string SignUpLabel => new SignUpLabelTranslatable();
-        //public string TransactionsLabel => new TransactionsLabelTranslatable();
 
         public ViewModelBase CurrentViewModel
         {
@@ -49,10 +55,36 @@ namespace VideoEditorUi.Singletons
             }
         }
 
+        public ViewModelBase ChildViewModel
+        {
+            get => childViewModel;
+            set
+            {
+                childViewModel = value;
+                OnPropertyChanged(nameof(ChildViewModel));
+            }
+        }
+
+        public bool ChildViewShown
+        {
+            get => childViewShown;
+            set
+            {
+                childViewShown = value;
+                OnPropertyChanged(nameof(ChildViewShown));
+            }
+        }
+
+        public Window GetChildView() => childView;
+        public void SetChildView(Window view) => childView = view;
 
         #endregion
 
+        public void SetChildViewShown(bool shown) => ChildViewShown = shown;
+
         public ICommand UpdateCurrentViewModelCommand => new UpdateCurrentViewModelCommand(this);
+        public ICommand OpenChildWindow => new OpenChildWindowCommand();
+        public ICommand CloseChildWindow => new CloseChildWindowCommand();
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -82,6 +114,56 @@ namespace VideoEditorUi.Singletons
                         break;
                     case ViewType.Converter:
                         navigator.CurrentViewModel = new ConverterViewModel();
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+    }
+
+    public class OpenChildWindowCommand : ICommand
+    {
+
+        public event EventHandler CanExecuteChanged;
+
+        public bool CanExecute(object parameter) => true;
+
+        public void Execute(object parameter)
+        {
+            if (parameter is ViewType viewType)
+            {
+                switch (viewType)
+                {
+                    case ViewType.ProgressBar:
+                        Navigator.Instance.ChildViewModel = new ProgressBarViewModel();
+                        Navigator.Instance.SetChildViewShown(true);
+                        Navigator.Instance.SetChildView(new ProgressBarView());
+                        Navigator.Instance.GetChildView().Show();
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
+    }
+
+    public class CloseChildWindowCommand : ICommand
+    {
+        public event EventHandler CanExecuteChanged;
+
+        public bool CanExecute(object parameter) => true;
+
+        public void Execute(object parameter)
+        {
+            if (parameter is ViewType viewType)
+            {
+                switch (viewType)
+                {
+                    case ViewType.ProgressBar:
+                        Navigator.Instance.ChildViewModel = null;
+                        Navigator.Instance.SetChildViewShown(false);
+                        Navigator.Instance.GetChildView().Close();
                         break;
                     default:
                         throw new NotSupportedException();

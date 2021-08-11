@@ -16,5 +16,8 @@
     <controls:NavigationBar Grid.Row="0" DataContext="{Binding Navigator}"/>
     <Separator Grid.Row="1" Height="50"/>
     <ContentControl Grid.Row="2" Content="{Binding Navigator.CurrentViewModel}"/>
+    <!--<Window Grid.Row="2" Height="350" Width="700" IsEnabled="{Binding Navigator.ChildViewShown}">
+      <ContentControl Content="{Binding Navigator.ChildViewModel}"/>
+    </Window>-->
   </Grid>
 </Window>

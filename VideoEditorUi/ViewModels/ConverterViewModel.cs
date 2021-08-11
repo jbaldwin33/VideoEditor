@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using VideoEditorNetFramework.ViewModels;
+using VideoEditorUi.Singletons;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
 
@@ -99,12 +100,14 @@ namespace VideoEditorUi.ViewModels
             converter.FinishedDownload += Converter_FinishedDownload;
             converter.ErrorDownload += Converter_ErrorDownload;
             Task.Run(() => converter.ConvertVideo());
+            //Navigator.Instance.OpenChildWindow.Execute(ViewType.ProgressBar);
             window = new Window
             {
                 Owner = Application.Current.MainWindow,
                 WindowStartupLocation = WindowStartupLocation.CenterOwner,
                 Width = 350,
-                Height = 250
+                Height = 250,
+                Content = "Please wait..."
             };
             Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
@@ -118,6 +121,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Converter_FinishedDownload(object sender, DownloadEventArgs e)
         {
+            //Navigator.Instance.CloseChildWindow.Execute(ViewType.ProgressBar);
             Application.Current.Dispatcher.Invoke(() => window.Close());
             FormatType = FormatEnum.avi;
             Filename = "No file selected.";

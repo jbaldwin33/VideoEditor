@@ -27,5 +27,8 @@
     <DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
       <views:ConverterView/>
     </DataTemplate>
+    <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
+      <views:ProgressBarView/>
+    </DataTemplate>
   </Application.Resources>
 </Application>
