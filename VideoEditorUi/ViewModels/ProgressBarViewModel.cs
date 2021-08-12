@@ -31,6 +31,6 @@ namespace VideoEditorUi.ViewModels
 
         public void UpdateProgressValue(decimal value) => ProgressValue = value;
 
-        private void CancelCommandExecute() => Navigator.Instance.CloseChildWindow.Execute(null);
+        private void CancelCommandExecute() => Navigator.Instance.CloseChildWindow.Execute(true);
     }
 }

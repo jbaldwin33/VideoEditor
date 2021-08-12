@@ -103,15 +103,6 @@ namespace VideoEditorUi.ViewModels
             converter.ErrorDownload += Converter_ErrorDownload;
             Task.Run(() => converter.ConvertVideo());
             Navigator.Instance.OpenChildWindow.Execute(null);
-            //window = new Window
-            //{
-            //    Owner = Application.Current.MainWindow,
-            //    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            //    Width = 350,
-            //    Height = 250,
-            //    Content = "Please wait..."
-            //};
-            //Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
 
         private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
@@ -123,8 +114,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Converter_FinishedDownload(object sender, DownloadEventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(null);
-            //Application.Current.Dispatcher.Invoke(() => window.Close());
+            Navigator.Instance.CloseChildWindow.Execute(false);
             FormatType = FormatEnum.avi;
             Filename = "No file selected.";
             FileLoaded = false;

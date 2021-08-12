@@ -269,15 +269,6 @@ namespace VideoEditorUi.ViewModels
             splitter.ErrorDownload += Splitter_ErrorDownload;
             Task.Run(() => splitter.Split());
             Navigator.Instance.OpenChildWindow.Execute(null);
-            //window = new Window
-            //{
-            //    Owner = Application.Current.MainWindow,
-            //    WindowStartupLocation = WindowStartupLocation.CenterOwner,
-            //    Width = 350,
-            //    Height = 250,
-            //    Content = "Please wait..."
-            //};
-            //Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
 
         private void StartCommandExecute()
@@ -364,8 +355,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Splitter_FinishedDownload(object sender, DownloadEventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(null);
-            //Application.Current.Dispatcher.Invoke(() => window.Close());
+            Navigator.Instance.CloseChildWindow.Execute(false);
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CombineVideo = false;
             OutputDifferentFormat = false;
@@ -378,17 +368,6 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
-
-    public class AddRectEventArgs : EventArgs
-    {
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
-        public AddRectEventArgs(TimeSpan t1, TimeSpan t2)
-        {
-            StartTime = t1;
-            EndTime = t2;
         }
     }
 }

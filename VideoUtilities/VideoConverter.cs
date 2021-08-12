@@ -8,10 +8,6 @@ namespace VideoUtilities
 {
     public class VideoConverter : BaseClass
     {
-        private readonly string sourceFolder;
-        private readonly string sourceFileWithoutExtension;
-        private readonly string inputExtension;
-        private readonly string outputExtension;
         private readonly string output;
         private readonly ProcessStartInfo startInfo;
 
@@ -26,21 +22,17 @@ namespace VideoUtilities
 
         public VideoConverter(string folder, string fileWithoutExtension, string inExtension, string outExtension)
         {
-            sourceFolder = folder;
-            sourceFileWithoutExtension = fileWithoutExtension;
-            inputExtension = inExtension;
-            outputExtension = outExtension;
 
             var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
             if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
 
-            output = $"{sourceFolder}\\{sourceFileWithoutExtension}{outputExtension}";
+            output = $"{folder}\\{fileWithoutExtension}{outExtension}";
 
             // setup the process that will fire youtube-dl
             startInfo = new ProcessStartInfo
             {
-                Arguments = $"-i {sourceFolder}\\{sourceFileWithoutExtension}{inputExtension} {output}",
+                Arguments = $"-i {folder}\\{fileWithoutExtension}{inExtension} {output}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -73,12 +65,12 @@ namespace VideoUtilities
 
         public override void CancelOperation()
         {
-            if (!process.HasExited)
-            {
-                process.Kill();
-                Thread.Sleep(100);
-                File.Delete(output);
-            }
+            if (process.HasExited) 
+                return;
+
+            process.Kill();
+            Thread.Sleep(100);
+            File.Delete(output);
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
@@ -93,7 +85,7 @@ namespace VideoUtilities
 
             if (outLine.Data.Contains("ERROR"))
             {
-                OnDownloadError(new ProgressEventArgs() { Error = outLine.Data });
+                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
                 return;
             }
 
@@ -102,14 +94,14 @@ namespace VideoUtilities
 
             if (outLine.Data.Contains("Duration: "))
             {
-                duration = TimeSpan.Parse(outLine.Data.Split(new string[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
+                duration = TimeSpan.Parse(outLine.Data.Split(new [] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
                 return;
             }
 
             TimeSpan currentTime = TimeSpan.Zero;
             if (isConverting())
             {
-                var strSub = outLine.Data.Split(new string[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+                var strSub = outLine.Data.Split(new [] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
                 currentTime = TimeSpan.Parse(strSub);
             }
 
@@ -121,7 +113,7 @@ namespace VideoUtilities
                 return;
             }
             percentage = perc;
-            OnProgress(new ProgressEventArgs() { Percentage = perc, Data = outLine.Data });
+            OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
 
             // is it finished?
             if (perc < 100 && !isFinished())
@@ -136,7 +128,11 @@ namespace VideoUtilities
 
         protected override void Process_Exited(object sender, EventArgs e)
         {
+            if (finished) 
+                return;
 
+            finished = true;
+            FinishedDownload?.Invoke(this, new DownloadEventArgs());
         }
 
         protected override void OnProgress(ProgressEventArgs e)
@@ -147,21 +143,17 @@ namespace VideoUtilities
 
         protected override void OnDownloadFinished(DownloadEventArgs e)
         {
-            if (!finished)
-            {
-                finished = true;
-                FinishedDownload?.Invoke(this, e);
-            }
+            
         }
 
         protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);
 
         protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
 
-        protected override void ErrorDataReceived(object sendingprocess, DataReceivedEventArgs error)
+        protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
         {
             if (!string.IsNullOrEmpty(error.Data))
-                OnDownloadError(new ProgressEventArgs() { Error = error.Data });
+                OnDownloadError(new ProgressEventArgs{ Error = error.Data });
         }
     }
 }

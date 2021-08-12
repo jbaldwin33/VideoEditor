@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 namespace VideoUtilities
@@ -24,16 +25,13 @@ namespace VideoUtilities
         private readonly ObservableCollection<(TimeSpan, TimeSpan)> times;
         private readonly bool combineVideo;
         private readonly ProcessStartInfo startInfo;
-        private readonly List<string> arguments = new List<string>();
         private readonly List<string> filenamesWithExtra = new List<string>();
         private readonly List<string> filenames = new List<string>();
         private string tempfile;
-        private List<Process> processes = new List<Process>();
         private decimal percentage;
-        private int toSplit;
-        private static int currentSplit;
-        private static object _lock = new object();
         private bool cancelled;
+        private TimeSpan newDur = TimeSpan.Zero;
+        private Process process;
 
         public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, ObservableCollection<(TimeSpan, TimeSpan)> t, bool combine, bool outputDiffFormat, string outFormat)
         {
@@ -46,7 +44,6 @@ namespace VideoUtilities
             combineVideo = combine;
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;
-            toSplit = t.Count;
 
             var libsPath = "";
             var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
@@ -55,43 +52,45 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(libsPath))
                 throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
 
+            var args = $"-y -i \"{sourceFolder}\\{sourceFileWithoutExtension}{extension}\"";
+            var sb = new StringBuilder(args);
+
             for (int i = 0; i < times.Count; i++)
             {
                 var output = $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{i + 1}{(outputDifferentFormat ? outputFormat : extension)}";
-                arguments.Add($"-y -i \"{sourceFolder}\\{sourceFileWithoutExtension}{extension}\" -ss {times[i].Item1.TotalSeconds} -t {times[i].Item2.TotalSeconds} -c copy \"{output}\"");
+                sb.Append($" -codec copy -ss {times[i].Item1.TotalSeconds} -to {times[i].Item2.TotalSeconds} \"{output}\"");
+
                 filenames.Add(output);
                 filenamesWithExtra.Add($"file '{output}'");
-            }
 
+                newDur += times[i].Item2 - times[i].Item1;
+            }
             // setup the process that will fire youtube-dl
-            startInfo = new ProcessStartInfo();
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-            startInfo.FileName = Path.Combine(libsPath, "ffmpeg.exe");
-            startInfo.CreateNoWindow = true;
+            startInfo = new ProcessStartInfo
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = Path.Combine(libsPath, "ffmpeg.exe"),
+                CreateNoWindow = true,
+                Arguments = sb.ToString()
+            };
         }
 
         public void Split()
         {
-            processes.Clear();
             try
             {
                 OnDownloadStarted(new DownloadEventArgs());
-                for (int i = 0; i < arguments.Count; i++)
-                {
-                    var process = new Process();
-                    process.EnableRaisingEvents = true;
-                    process.Exited += Process_Exited;
-                    process.ErrorDataReceived += OutputHandler;
+                process = new Process();
+                process.EnableRaisingEvents = true;
+                process.Exited += Process_Exited;
+                process.ErrorDataReceived += OutputHandler;
 
-                    startInfo.Arguments = arguments[i];
-                    process.StartInfo = startInfo;
-                    processes.Add(process);
-                    process.Start();
-                    process.BeginErrorReadLine();
-                }
+                process.StartInfo = startInfo;
+                process.Start();
+                process.BeginErrorReadLine();
             }
             catch (Exception ex)
             {
@@ -107,14 +106,11 @@ namespace VideoUtilities
         public override void CancelOperation()
         {
             cancelled = true;
-            processes.ForEach(p =>
+            if (!process.HasExited)
             {
-                if (!p.HasExited)
-                {
-                    p.Kill();
-                    Thread.Sleep(100);
-                }
-            });
+                process.Kill();
+                Thread.Sleep(100);
+            }
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
             filenames.ForEach(f =>
@@ -126,16 +122,11 @@ namespace VideoUtilities
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
-            var str = (sendingProcess as Process).StartInfo.Arguments.Split(new [] { "-ss " }, StringSplitOptions.None)[1];
-            var startSec = double.Parse(str.Substring(0, str.IndexOf(" -t")));
-            var newStr = str.Split(new [] { "-t " }, StringSplitOptions.None)[1];
-            var endSec = double.Parse(newStr.Substring(0, newStr.IndexOf(" -c")));
-            var dur = TimeSpan.FromSeconds(endSec - startSec);
             if (cancelled)
                 return;
 
             OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
-            // extract the percentage from process outpu
+            // extract the percentage from process output
             if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
             {
                 OnDownloadFinished(new DownloadEventArgs());
@@ -144,22 +135,22 @@ namespace VideoUtilities
 
             if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
             {
-                OnDownloadError(new ProgressEventArgs() { Error = outLine.Data });
+                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
                 return;
             }
 
             if (!isSplitting())
                 return;
 
-            TimeSpan currentTime = TimeSpan.Zero;
+            var currentTime = TimeSpan.Zero;
             if (isSplitting())
             {
-                var strSub = outLine.Data.Split(new string[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+                var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
                 currentTime = TimeSpan.Parse(strSub);
             }
 
             // fire the process event
-            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)dur.TotalSeconds) * 100;
+            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)newDur.TotalSeconds) * 100;
             if (perc < 0)
             {
                 Console.WriteLine("weird perc {0}", perc);
@@ -181,15 +172,15 @@ namespace VideoUtilities
 
         private void CleanUp()
         {
-            processes.ForEach(p =>
+            if (!process.HasExited)
             {
-                if (!p.HasExited)
-                    p.Close();
-            });
+                process.Close();
+                Thread.Sleep(100);
+            }
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
             if (combineVideo)
-                filenames.ForEach(file => File.Delete(file));
+                filenames.ForEach(File.Delete);
         }
 
         private void CombineSections()
@@ -197,14 +188,20 @@ namespace VideoUtilities
             tempfile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
             File.WriteAllLines(tempfile, filenamesWithExtra);
 
-            var process = new Process();
+            process = new Process();
             process.EnableRaisingEvents = true;
             process.Exited += CombineProcess_Exited;
+            process.ErrorDataReceived += CombineProcess_ErrorDataReceived;
 
-            startInfo.Arguments = $"-safe 0 -f concat -i '{tempfile}' -c copy '{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}'";
+            startInfo.Arguments = $"-safe 0 -f concat -i \"{tempfile}\" -c copy \"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}\"";
             process.StartInfo = startInfo;
-            processes.Add(process);
             process.Start();
+            process.BeginErrorReadLine();
+        }
+
+        private void CombineProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outline)
+        {
+
         }
 
         private void CombineProcess_Exited(object sender, EventArgs e)
@@ -215,20 +212,16 @@ namespace VideoUtilities
 
         protected override void Process_Exited(object sender, EventArgs e)
         {
-            lock (_lock)
-            {
-                currentSplit++;
-                if (finished || toSplit != currentSplit) 
-                    return;
+            if (finished)
+                return;
 
-                finished = true;
-                if (combineVideo)
-                    CombineSections();
-                else
-                {
-                    FinishedDownload?.Invoke(this, new DownloadEventArgs());
-                    CleanUp();
-                }
+            finished = true;
+            if (combineVideo)
+                CombineSections();
+            else
+            {
+                FinishedDownload?.Invoke(this, new DownloadEventArgs());
+                CleanUp();
             }
         }
 
