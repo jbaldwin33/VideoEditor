@@ -12,13 +12,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using VideoEditorNetFramework.ViewModels;
+using VideoEditorUi.Singletons;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
 using Path = System.IO.Path;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SplitterViewModel : ViewModelBase
+    public class SplitterViewModel : BaseViewModel
     {
         private RelayCommand playCommand;
         private RelayCommand pauseCommand;
@@ -216,7 +217,7 @@ namespace VideoEditorUi.ViewModels
             Slider = slider;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
-            PositionChanged = (time) => UpdateCurrentTime(time);
+            PositionChanged = time => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
             Times = new ObservableCollection<(TimeSpan, TimeSpan)>();
             RectCollection = new ObservableCollection<Rectangle>();
             Formats = FormatTypeViewModel.CreateViewModels();
@@ -226,6 +227,8 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
         }
+
+        public void CancelOperation() => splitter.CancelOperation();
 
         private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -252,7 +255,7 @@ namespace VideoEditorUi.ViewModels
         private bool SplitCommandCanExecute() => Times.Count > 0;
         private bool SelectFileCommandCanExecute() => true;
 
-        private void PlayCommandExecute() => player.Play();
+        private void PlayCommandExecute() => Navigator.Instance.OpenChildWindow.Execute(null);//player.Play();
 
         private void PauseCommandExecute() => player.Pause();
 
@@ -265,15 +268,16 @@ namespace VideoEditorUi.ViewModels
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
             Task.Run(() => splitter.Split());
-            window = new Window
-            {
-                Owner = Application.Current.MainWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Width = 350,
-                Height = 250,
-                Content = "Please wait..."
-            };
-            Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
+            Navigator.Instance.OpenChildWindow.Execute(null);
+            //window = new Window
+            //{
+            //    Owner = Application.Current.MainWindow,
+            //    WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            //    Width = 350,
+            //    Height = 250,
+            //    Content = "Please wait..."
+            //};
+            //Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
 
         private void StartCommandExecute()
@@ -339,8 +343,6 @@ namespace VideoEditorUi.ViewModels
             Times.Clear();
         }
 
-        private void UpdateCurrentTime(TimeSpan time) => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
-
         private void ResetAll()
         {
             StartTimeSet = EndTimeSet = false;
@@ -355,14 +357,15 @@ namespace VideoEditorUi.ViewModels
 
         private void Splitter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue)
-                ProgressValue = e.Percentage;
+            if (e.Percentage > ProgressValue) (Navigator.Instance.ChildViewModel as ProgressBarViewModel).UpdateProgressValue(e.Percentage);
+            //ProgressValue = e.Percentage;
             OutputData = e.Data;
         }
 
         private void Splitter_FinishedDownload(object sender, DownloadEventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() => window.Close());
+            Navigator.Instance.CloseChildWindow.Execute(null);
+            //Application.Current.Dispatcher.Invoke(() => window.Close());
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CombineVideo = false;
             OutputDifferentFormat = false;

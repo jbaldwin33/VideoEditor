@@ -10,20 +10,16 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using VideoEditorUi.Singletons;
-using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views
 {
     /// <summary>
-    /// Interaction logic for ConverterView.xaml
+    /// Interaction logic for NewWindow.xaml
     /// </summary>
-    public partial class ConverterView : UserControl
+    public partial class PopupWindowView : Window
     {
-
-        public ConverterView()
+        public PopupWindowView()
         {
             InitializeComponent();
         }

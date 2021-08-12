@@ -17,7 +17,7 @@ namespace VideoEditorUi.Singletons
 
     public interface INavigator
     {
-        ViewModelBase CurrentViewModel { get; set; }
+        BaseViewModel CurrentViewModel { get; set; }
         ViewModelBase ChildViewModel { get; set; }
         ICommand UpdateCurrentViewModelCommand { get; }
         ICommand OpenChildWindow { get; }
@@ -30,22 +30,27 @@ namespace VideoEditorUi.Singletons
         private static readonly Lazy<Navigator> instance = new Lazy<Navigator>(() => new Navigator());
         public static Navigator Instance => instance.Value;
 
-        private ViewModelBase currentViewModel;
+        private BaseViewModel currentViewModel;
         private ViewModelBase childViewModel;
         private bool childViewShown;
-        private Window childView;
+        private PopupWindowView childView;
 
 
         public Navigator()
         {
             currentViewModel = new SplitterViewModel();
+            childView = new PopupWindowView
+            {
+                DataContext = new PopupWindowViewModel(this),
+                WindowStartupLocation = WindowStartupLocation.CenterOwner
+            };
         }
 
         #region Properties
         public string SplitterLabel => "Splitter";
         public string ConverterLabel => "Converter";
 
-        public ViewModelBase CurrentViewModel
+        public BaseViewModel CurrentViewModel
         {
             get => currentViewModel;
             set
@@ -65,6 +70,16 @@ namespace VideoEditorUi.Singletons
             }
         }
 
+        public PopupWindowView ChildView
+        {
+            get => childView;
+            set
+            {
+                childView = value;
+                OnPropertyChanged(nameof(ChildView));
+            }
+        }
+
         public bool ChildViewShown
         {
             get => childViewShown;
@@ -74,9 +89,6 @@ namespace VideoEditorUi.Singletons
                 OnPropertyChanged(nameof(ChildViewShown));
             }
         }
-
-        public Window GetChildView() => childView;
-        public void SetChildView(Window view) => childView = view;
 
         #endregion
 
@@ -131,20 +143,11 @@ namespace VideoEditorUi.Singletons
 
         public void Execute(object parameter)
         {
-            if (parameter is ViewType viewType)
-            {
-                switch (viewType)
-                {
-                    case ViewType.ProgressBar:
-                        Navigator.Instance.ChildViewModel = new ProgressBarViewModel();
-                        Navigator.Instance.SetChildViewShown(true);
-                        Navigator.Instance.SetChildView(new ProgressBarView());
-                        Navigator.Instance.GetChildView().Show();
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
+            var view = Navigator.Instance.ChildView;
+            Navigator.Instance.ChildViewModel = new ProgressBarViewModel();
+            Navigator.Instance.SetChildViewShown(true);
+            view.Owner = Application.Current.MainWindow;
+            view.Show();
         }
     }
 
@@ -156,19 +159,14 @@ namespace VideoEditorUi.Singletons
 
         public void Execute(object parameter)
         {
-            if (parameter is ViewType viewType)
-            {
-                switch (viewType)
-                {
-                    case ViewType.ProgressBar:
-                        Navigator.Instance.ChildViewModel = null;
-                        Navigator.Instance.SetChildViewShown(false);
-                        Navigator.Instance.GetChildView().Close();
-                        break;
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
+            var type = Navigator.Instance.CurrentViewModel.GetType();
+            if (type == typeof(SplitterViewModel))
+                (Navigator.Instance.CurrentViewModel as SplitterViewModel).CancelOperation();
+            else if (type == typeof(ConverterViewModel))
+                (Navigator.Instance.CurrentViewModel as ConverterViewModel).CancelOperation();
+            Navigator.Instance.ChildViewModel = null;
+            Navigator.Instance.SetChildViewShown(false);
+            Application.Current.Dispatcher.Invoke(() => Navigator.Instance.ChildView.Close());
         }
     }
 }

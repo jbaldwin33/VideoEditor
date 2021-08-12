@@ -79,6 +79,8 @@
     </Compile>
     <Compile Include="Converters.cs" />
     <Compile Include="Singletons\Navigator.cs" />
+    <Compile Include="ViewModels\BaseViewModel.cs" />
+    <Compile Include="ViewModels\PopupWindowViewModel.cs" />
     <Compile Include="ViewModels\ConverterViewModel.cs" />
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
@@ -89,6 +91,9 @@
     </Compile>
     <Compile Include="Views\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PopupWindowView.xaml.cs">
+      <DependentUpon>PopupWindowView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProgressBarView.xaml.cs">
       <DependentUpon>ProgressBarView.xaml</DependentUpon>
@@ -114,6 +119,10 @@
     <Page Include="Views\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\PopupWindowView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\ProgressBarView.xaml">
       <SubType>Designer</SubType>

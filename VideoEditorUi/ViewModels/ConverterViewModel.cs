@@ -13,7 +13,7 @@ using static VideoUtilities.Enums.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class ConverterViewModel : ViewModelBase
+    public class ConverterViewModel : BaseViewModel
     {
         private ObservableCollection<FormatTypeViewModel> formats;
         private FormatEnum formatType;
@@ -74,6 +74,8 @@ namespace VideoEditorUi.ViewModels
             Filename = "No file selected.";
         }
 
+        public void CancelOperation() => converter.CancelOperation();
+
         private bool ConvertCommandCanExecute() => FileLoaded;
 
         private void SelectFileCommandExecute()
@@ -100,29 +102,29 @@ namespace VideoEditorUi.ViewModels
             converter.FinishedDownload += Converter_FinishedDownload;
             converter.ErrorDownload += Converter_ErrorDownload;
             Task.Run(() => converter.ConvertVideo());
-            //Navigator.Instance.OpenChildWindow.Execute(ViewType.ProgressBar);
-            window = new Window
-            {
-                Owner = Application.Current.MainWindow,
-                WindowStartupLocation = WindowStartupLocation.CenterOwner,
-                Width = 350,
-                Height = 250,
-                Content = "Please wait..."
-            };
-            Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
+            Navigator.Instance.OpenChildWindow.Execute(null);
+            //window = new Window
+            //{
+            //    Owner = Application.Current.MainWindow,
+            //    WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            //    Width = 350,
+            //    Height = 250,
+            //    Content = "Please wait..."
+            //};
+            //Application.Current.Dispatcher.Invoke(() => window.ShowDialog());
         }
 
         private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue)
-                ProgressValue = e.Percentage;
+            if (e.Percentage > ProgressValue) (Navigator.Instance.ChildViewModel as ProgressBarViewModel).UpdateProgressValue(e.Percentage);
+                //ProgressValue = e.Percentage;
             outputData = e.Data;
         }
 
         private void Converter_FinishedDownload(object sender, DownloadEventArgs e)
         {
-            //Navigator.Instance.CloseChildWindow.Execute(ViewType.ProgressBar);
-            Application.Current.Dispatcher.Invoke(() => window.Close());
+            Navigator.Instance.CloseChildWindow.Execute(null);
+            //Application.Current.Dispatcher.Invoke(() => window.Close());
             FormatType = FormatEnum.avi;
             Filename = "No file selected.";
             FileLoaded = false;

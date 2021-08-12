@@ -18,7 +18,7 @@ namespace VideoEditorUi.Views
     /// <summary>
     /// Interaction logic for ProgressBarView.xaml
     /// </summary>
-    public partial class ProgressBarView : Window
+    public partial class ProgressBarView : UserControl
     {
         public ProgressBarView()
         {
