@@ -19,13 +19,17 @@ namespace VideoUtilities
         private bool finished;
         private decimal percentage;
         private TimeSpan duration;
+        private bool cancelled;
+        private bool failed;
+        private string lastData;
 
         public VideoConverter(string folder, string fileWithoutExtension, string inExtension, string outExtension)
         {
-
+            failed = false;
+            cancelled = false;
             var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
             if (string.IsNullOrEmpty(binaryPath))
-                throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
+                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             output = $"{folder}\\{fileWithoutExtension}{outExtension}";
 
@@ -46,7 +50,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadEventArgs());
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Converting video..." });
                 process = new Process
                 {
                     EnableRaisingEvents = true,
@@ -59,32 +63,37 @@ namespace VideoUtilities
             }
             catch (Exception ex)
             {
+                failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
 
         public override void CancelOperation()
         {
-            if (process.HasExited) 
-                return;
-
-            process.Kill();
-            Thread.Sleep(100);
+            cancelled = true;
+            if (!process.HasExited)
+            {
+                process.Kill();
+                Thread.Sleep(100);
+            }
             File.Delete(output);
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
-            OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
-            // extract the percentage from process outpu
-            if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
-            {
-                OnDownloadFinished(new DownloadEventArgs());
+            if (cancelled)
                 return;
-            }
 
+            OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
+            // extract the percentage from process output
+            if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
+                return;
+
+            lastData = outLine.Data;
             if (outLine.Data.Contains("ERROR"))
             {
+                failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
                 return;
             }
@@ -94,14 +103,14 @@ namespace VideoUtilities
 
             if (outLine.Data.Contains("Duration: "))
             {
-                duration = TimeSpan.Parse(outLine.Data.Split(new [] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
+                duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
                 return;
             }
 
-            TimeSpan currentTime = TimeSpan.Zero;
+            var currentTime = TimeSpan.Zero;
             if (isConverting())
             {
-                var strSub = outLine.Data.Split(new [] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+                var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
                 currentTime = TimeSpan.Parse(strSub);
             }
 
@@ -128,32 +137,34 @@ namespace VideoUtilities
 
         protected override void Process_Exited(object sender, EventArgs e)
         {
-            if (finished) 
+            if (finished || failed || cancelled)
                 return;
 
+            if (process.ExitCode != 0)
+            {
+                OnDownloadError(new ProgressEventArgs { Error = lastData });
+                return;
+            }
+
             finished = true;
-            FinishedDownload?.Invoke(this, new DownloadEventArgs());
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
         }
 
-        protected override void OnProgress(ProgressEventArgs e)
-        {
-            if (ProgressDownload != null)
-                ProgressDownload(this, e);
-        }
+        protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
-        protected override void OnDownloadFinished(DownloadEventArgs e)
-        {
-            
-        }
+        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
 
-        protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);
+        protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
         protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
 
         protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
         {
-            if (!string.IsNullOrEmpty(error.Data))
-                OnDownloadError(new ProgressEventArgs{ Error = error.Data });
+            if (string.IsNullOrEmpty(error.Data))
+                return;
+
+            failed = true;
+            OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }
 }

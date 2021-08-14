@@ -24,9 +24,7 @@ namespace VideoEditorUi.ViewModels
         private string extension;
         private bool fileLoaded;
         private VideoConverter converter;
-        private Window window;
         private decimal progressValue;
-        private string outputData;
 
         public ObservableCollection<FormatTypeViewModel> Formats
         {
@@ -74,7 +72,7 @@ namespace VideoEditorUi.ViewModels
             Filename = "No file selected.";
         }
 
-        public void CancelOperation() => converter.CancelOperation();
+        public override void CancelOperation() => converter.CancelOperation();
 
         private bool ConvertCommandCanExecute() => FileLoaded;
 
@@ -86,43 +84,59 @@ namespace VideoEditorUi.ViewModels
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
             };
 
-            if (openFileDialog.ShowDialog() == true)
-            {
-                sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
-                Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-                extension = Path.GetExtension(openFileDialog.FileName);
-                FileLoaded = true;
-            }
+            if (openFileDialog.ShowDialog() == false) 
+                return;
+
+            sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
+            Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
+            extension = Path.GetExtension(openFileDialog.FileName);
+            FileLoaded = true;
         }
 
         private void ConvertCommandExecute()
         {
             converter = new VideoConverter(sourceFolder, Filename, extension, $".{FormatType}");
+            converter.StartedDownload += Converter_DownloadStarted;
             converter.ProgressDownload += Converter_ProgressDownload;
             converter.FinishedDownload += Converter_FinishedDownload;
             converter.ErrorDownload += Converter_ErrorDownload;
-            Task.Run(() => converter.ConvertVideo());
             Navigator.Instance.OpenChildWindow.Execute(null);
+            Task.Run(() => converter.ConvertVideo());
+        }
+
+        private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e)
+        {
+            if (Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
+                vm.UpdateLabel(e.Label);
         }
 
         private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue) (Navigator.Instance.ChildViewModel as ProgressBarViewModel).UpdateProgressValue(e.Percentage);
-                //ProgressValue = e.Percentage;
-            outputData = e.Data;
+            if (e.Percentage > ProgressValue && Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
+                vm.UpdateProgressValue(e.Percentage);
         }
 
-        private void Converter_FinishedDownload(object sender, DownloadEventArgs e)
+        private void Converter_FinishedDownload(object sender, FinishedEventArgs e)
+        {
+            CleanUp();
+            var message = e.Cancelled
+                ? "Operation cancelled."
+                : "Video successfully converted.";
+            MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
+        {
+            Navigator.Instance.CloseChildWindow.Execute(false);
+            MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             FormatType = FormatEnum.avi;
             Filename = "No file selected.";
             FileLoaded = false;
-            MessageBox.Show("Video successfully converted.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-            ProgressValue = -1;
         }
-
-        private void Converter_ErrorDownload(object sender, ProgressEventArgs e) 
-            => MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }

@@ -1,5 +1,4 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Command;
+﻿using GalaSoft.MvvmLight.Command;
 using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
@@ -21,7 +20,9 @@ namespace VideoEditorUi.ViewModels
 {
     public class SplitterViewModel : BaseViewModel
     {
+        private RelayCommand seekBackCommand;
         private RelayCommand playCommand;
+        private RelayCommand seekForwardCommand;
         private RelayCommand pauseCommand;
         private RelayCommand stopCommand;
         private RelayCommand startCommand;
@@ -35,7 +36,6 @@ namespace VideoEditorUi.ViewModels
         private string startTimeString;
         private string currentTimeString;
         private decimal progressValue = -1;
-        private string outputData;
         private bool startTimeSet;
         private bool endTimeSet;
         private bool fileLoaded;
@@ -46,6 +46,7 @@ namespace VideoEditorUi.ViewModels
         private ObservableCollection<Rectangle> rectCollection;
         private ObservableCollection<FormatTypeViewModel> formats;
         private FormatEnum formatType;
+        private bool canCombine;
         private bool combineVideo;
         private bool outputDifferentFormat;
 
@@ -95,12 +96,6 @@ namespace VideoEditorUi.ViewModels
             set => Set(ref progressValue, value);
         }
 
-        public string OutputData
-        {
-            get => outputData;
-            set => Set(ref outputData, value);
-        }
-
         public bool StartTimeSet
         {
             get => startTimeSet;
@@ -131,6 +126,8 @@ namespace VideoEditorUi.ViewModels
                 Set(ref fileLoaded, value);
                 StartCommand.RaiseCanExecuteChanged();
                 EndCommand.RaiseCanExecuteChanged();
+                SeekBackCommand.RaiseCanExecuteChanged();
+                SeekForwardCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -178,6 +175,12 @@ namespace VideoEditorUi.ViewModels
             set => Set(ref formats, value);
         }
 
+        public bool CanCombine
+        {
+            get => canCombine;
+            set => Set(ref canCombine, value);
+        }
+
         public bool CombineVideo
         {
             get => combineVideo;
@@ -191,14 +194,17 @@ namespace VideoEditorUi.ViewModels
         }
 
         public Action<TimeSpan> PositionChanged;
-
         public string PlayLabel => "Play";
+        public string SeekBackLabel => "Back (5 sec.)";
+        public string SeekForwardLabel => "Forward (5 sec.)";
         public string PauseLabel => "Pause";
         public string StopLabel => "Stop";
         public string StartLabel => "Start time";
         public string EndLabel => "End time";
         public string SplitLabel => "Split";
 
+        public RelayCommand SeekBackCommand => seekBackCommand ?? (seekBackCommand = new RelayCommand(SeekBackCommandExecute, () => FileLoaded));
+        public RelayCommand SeekForwardCommand => seekForwardCommand ?? (seekForwardCommand = new RelayCommand(SeekForwardCommandExecute, () => FileLoaded));
         public RelayCommand PlayCommand => playCommand ?? (playCommand = new RelayCommand(PlayCommandExecute, PlayCommandCanExecute));
         public RelayCommand PauseCommand => pauseCommand ?? (pauseCommand = new RelayCommand(PauseCommandExecute, PauseCommandCanExecute));
         public RelayCommand StopCommand => stopCommand ?? (stopCommand = new RelayCommand(StopCommandExecute, StopCommandCanExecute));
@@ -208,13 +214,13 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, SelectFileCommandCanExecute));
 
         private VideoSplitter splitter;
-        private static object _lock = new object();
-        private Window window;
+        private static readonly object _lock = new object();
 
         public SplitterViewModel()
         {
             Player = player;
             Slider = slider;
+            CanCombine = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
             PositionChanged = time => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
@@ -228,10 +234,11 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
         }
 
-        public void CancelOperation() => splitter.CancelOperation();
+        public override void CancelOperation() => splitter.CancelOperation();
 
         private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            CanCombine = Times.Count > 1;
             if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
                 Application.Current.Dispatcher.Invoke(() => SplitCommand.RaiseCanExecuteChanged());
         }
@@ -255,7 +262,19 @@ namespace VideoEditorUi.ViewModels
         private bool SplitCommandCanExecute() => Times.Count > 0;
         private bool SelectFileCommandCanExecute() => true;
 
-        private void PlayCommandExecute() => Navigator.Instance.OpenChildWindow.Execute(null);//player.Play();
+        private void PlayCommandExecute() => Navigator.Instance.OpenChildWindow.Execute(null);
+        private void SeekBackCommandExecute()
+        {
+            slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
+            player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)slider.Value));
+            PositionChanged?.Invoke(player.PositionGet());
+        }
+        private void SeekForwardCommandExecute()
+        {
+            slider.Value = slider.Value + 5000 > slider.Maximum ? slider.Maximum : slider.Value + 5000;
+            player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)slider.Value));
+            PositionChanged?.Invoke(player.PositionGet());
+        }
 
         private void PauseCommandExecute() => player.Pause();
 
@@ -267,8 +286,8 @@ namespace VideoEditorUi.ViewModels
             splitter.ProgressDownload += Splitter_ProgressDownload;
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
-            Task.Run(() => splitter.Split());
             Navigator.Instance.OpenChildWindow.Execute(null);
+            Task.Run(() => splitter.Split());
         }
 
         private void StartCommandExecute()
@@ -319,8 +338,8 @@ namespace VideoEditorUi.ViewModels
             RectCollection.Add(new Rectangle());
             var rect = RectCollection[RectCollection.Count - 1];
             rect.MouseDown += Rect_MouseDown;
-            rect.Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 780, slider.Maximum), 0, 0, 0);
-            rect.Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 780, slider.Maximum);
+            rect.Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, slider.Maximum), 0, 0, 0);
+            rect.Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, slider.Maximum);
             rect.Height = 5;
             rect.HorizontalAlignment = HorizontalAlignment.Left;
             rect.Fill = new SolidColorBrush(Colors.Red);
@@ -341,19 +360,34 @@ namespace VideoEditorUi.ViewModels
             Times.Clear();
         }
 
-        private void Splitter_StartedDownload(object sender, DownloadEventArgs e)
+        private void Splitter_StartedDownload(object sender, DownloadStartedEventArgs e)
         {
-
+            if (Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
+                vm.UpdateLabel(e.Label);
         }
 
         private void Splitter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue) (Navigator.Instance.ChildViewModel as ProgressBarViewModel).UpdateProgressValue(e.Percentage);
-            //ProgressValue = e.Percentage;
-            OutputData = e.Data;
+            if (e.Percentage > ProgressValue && Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
+                vm.UpdateProgressValue(e.Percentage);
         }
 
-        private void Splitter_FinishedDownload(object sender, DownloadEventArgs e)
+        private void Splitter_FinishedDownload(object sender, FinishedEventArgs e)
+        {
+            CleanUp();
+            var message = e.Cancelled
+                ? "Operation cancelled."
+                : "Video successfully split.";
+            MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
+        {
+            CleanUp();
+            MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
@@ -361,13 +395,6 @@ namespace VideoEditorUi.ViewModels
             OutputDifferentFormat = false;
             FormatType = FormatEnum.avi;
             ClearAllRectangles();
-            MessageBox.Show("Video successfully split.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
-            ProgressValue = -1;
-        }
-
-        private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
-        {
-            MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

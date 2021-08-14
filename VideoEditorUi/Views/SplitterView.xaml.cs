@@ -17,15 +17,13 @@ namespace VideoEditorUi.Views
     {
         private DispatcherTimer timer;
         private bool isDragging;
-        public Action<TimeSpan, TimeSpan> SetRectAndAddAction;
-        public Action RectRemoved;
         private SplitterViewModel viewModel;
 
         public SplitterView()
         {
             InitializeComponent();
             var libsPath = "";
-            string directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             if (directoryName != null)
                 libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
             player.Init(libsPath, "UserName", "RegKey");

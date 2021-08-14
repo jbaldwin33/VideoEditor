@@ -101,7 +101,7 @@ namespace VideoEditorUi.Singletons
     public class UpdateCurrentViewModelCommand : ICommand
     {
         public event EventHandler CanExecuteChanged;
-        private INavigator navigator;
+        private readonly INavigator navigator;
 
         public UpdateCurrentViewModelCommand(INavigator navigator)
         {
@@ -160,13 +160,19 @@ namespace VideoEditorUi.Singletons
         public void Execute(object parameter)
         {
             var vm = Navigator.Instance.CurrentViewModel;
-            var type = vm.GetType();
             if ((bool)parameter)
             {
-                if (type == typeof(SplitterViewModel))
-                    (vm as SplitterViewModel).CancelOperation();
-                else if (type == typeof(ConverterViewModel))
-                    (vm as ConverterViewModel).CancelOperation();
+                switch (vm)
+                {
+                    case SplitterViewModel svm:
+                        svm.CancelOperation();
+                        break;
+                    case ConverterViewModel cvm:
+                        cvm.CancelOperation();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(vm), vm.GetType(), null);
+                }
             }
 
             Navigator.Instance.ChildViewModel = null;

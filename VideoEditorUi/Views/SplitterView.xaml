@@ -6,11 +6,11 @@
         xmlns:local="clr-namespace:VideoEditorUi.Views"
         xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
         mc:Ignorable="d"
-        Height="500" Width="800">
+        Height="580" Width="800">
 
   <Grid Margin="10">
     <Grid.RowDefinitions>
-      <RowDefinition Height="1.5*" />
+      <RowDefinition Height="1.4*" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <CSVideoPlayer:VideoPlayerWPF Grid.Row="0" x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
@@ -21,9 +21,8 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
-          <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Slider Grid.Row="0" Width="780" Name="slider" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted" Margin="0,0,0,0"/>
+        <Slider HorizontalAlignment="Left" Grid.Row="0" Width="760" Name="slider" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
         <Grid Grid.Row="0" Name="grid" HorizontalAlignment="Left">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -36,14 +35,16 @@
             </ItemsControl.ItemsPanel>
           </ItemsControl>
         </Grid>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="70,0,0,0">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="70,10,0,0">
+          <Button Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}" Width="80"/>
           <Button Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
+          <Button Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}" Width="90"/>
           <Button Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
           <Button Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
           <Button Command="{Binding SelectFileCommand}" Content="Click to select a file..." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="12" Width="130"/>
         </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="0,10,0,0" HorizontalAlignment="Left" Width="200">
-          <CheckBox Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Left" Width="200">
+          <CheckBox Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
         </StackPanel>
@@ -55,7 +56,6 @@
         <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
           <TextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5" Width="150" Height="30" FontSize="25"/>
         </StackPanel>
-        <ProgressBar Margin="0,10,0,0" Grid.Row="4" Value="{Binding ProgressValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="100" Width="400" Height="20"/>
       </Grid>
     </StackPanel>
   </Grid>

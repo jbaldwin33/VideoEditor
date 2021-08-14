@@ -16,7 +16,7 @@ namespace VideoUtilities
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
 
-        private bool finished;
+        private bool splitFinished;
         private readonly string sourceFolder;
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
@@ -32,11 +32,15 @@ namespace VideoUtilities
         private bool cancelled;
         private TimeSpan newDur = TimeSpan.Zero;
         private Process process;
+        private string lastData;
+        private bool failed;
+        private bool combineFinished;
+        private string combinedFile;
 
         public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, ObservableCollection<(TimeSpan, TimeSpan)> t, bool combine, bool outputDiffFormat, string outFormat)
         {
             cancelled = false;
-            finished = false;
+            splitFinished = false;
             sourceFolder = sFolder;
             sourceFileWithoutExtension = sFileWithoutExtension;
             extension = ext;
@@ -50,7 +54,7 @@ namespace VideoUtilities
             if (directoryName != null)
                 libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
             if (string.IsNullOrEmpty(libsPath))
-                throw new Exception("Cannot read 'binaryfolder' variable from app.config / web.config.");
+                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             var args = $"-y -i \"{sourceFolder}\\{sourceFileWithoutExtension}{extension}\"";
             var sb = new StringBuilder(args);
@@ -82,22 +86,24 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadEventArgs());
-                process = new Process();
-                process.EnableRaisingEvents = true;
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Splitting video..." });
+                process = new Process
+                {
+                    EnableRaisingEvents = true,
+                    StartInfo = startInfo
+                };
                 process.Exited += Process_Exited;
                 process.ErrorDataReceived += OutputHandler;
-
-                process.StartInfo = startInfo;
                 process.Start();
                 process.BeginErrorReadLine();
             }
             catch (Exception ex)
             {
+                failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
 
-            while (finished == false)
+            while (splitFinished == false || combineFinished == false)
             {
                 Thread.Sleep(100); // wait while process exits;
             }
@@ -107,17 +113,14 @@ namespace VideoUtilities
         {
             cancelled = true;
             if (!process.HasExited)
-            {
                 process.Kill();
-                Thread.Sleep(100);
-            }
+
+            Thread.Sleep(100);
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
-            filenames.ForEach(f =>
-            {
-                if (File.Exists(f))
-                    File.Delete(f);
-            });
+            filenames.ForEach(File.Delete);
+            File.Delete(combinedFile);
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
@@ -125,25 +128,23 @@ namespace VideoUtilities
             if (cancelled)
                 return;
 
-            OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
-            // extract the percentage from process output
-            if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
-            {
-                OnDownloadFinished(new DownloadEventArgs());
+            OnProgress(new ProgressEventArgs { Percentage = splitFinished ? 0 : percentage, Data = splitFinished ? string.Empty : outLine.Data });
+            if (string.IsNullOrEmpty(outLine.Data) || splitFinished || IsFinished(outLine.Data))
                 return;
-            }
 
+            lastData = outLine.Data;
             if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
             {
+                failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
                 return;
             }
 
-            if (!isSplitting())
+            if (!IsProcessing(outLine.Data))
                 return;
 
             var currentTime = TimeSpan.Zero;
-            if (isSplitting())
+            if (IsProcessing(outLine.Data))
             {
                 var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
                 currentTime = TimeSpan.Parse(strSub);
@@ -153,86 +154,116 @@ namespace VideoUtilities
             var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)newDur.TotalSeconds) * 100;
             if (perc < 0)
             {
-                Console.WriteLine("weird perc {0}", perc);
+                Console.WriteLine($"weird percentage {perc}");
                 return;
             }
             percentage = perc;
             OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
 
             // is it finished?
-            if (perc < 100 && !isFinished())
+            if (perc < 100 && !IsFinished(outLine.Data))
                 return;
 
-            if (perc >= 100 && !finished)
+            if (perc >= 100 && !splitFinished)
                 OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
-
-            bool isSplitting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
-            bool isFinished() => outLine.Data.Contains("global headers:") && outLine.Data.Contains("muxing overhead:");
         }
 
         private void CleanUp()
         {
             if (!process.HasExited)
-            {
                 process.Close();
-                Thread.Sleep(100);
-            }
+            
+            Thread.Sleep(100);
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
-            if (combineVideo)
+            if (combineVideo || cancelled)
+            {
                 filenames.ForEach(File.Delete);
+                File.Delete(combinedFile);
+            }
         }
 
         private void CombineSections()
         {
+            OnDownloadStarted(new DownloadStartedEventArgs { Label = "Combining sections into one video..." });
             tempfile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
             File.WriteAllLines(tempfile, filenamesWithExtra);
-
-            process = new Process();
-            process.EnableRaisingEvents = true;
+            combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";
+            startInfo.Arguments = $"-safe 0 -f concat -i \"{tempfile}\" -c copy \"{combinedFile}\"";
+            process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = startInfo
+            };
             process.Exited += CombineProcess_Exited;
             process.ErrorDataReceived += CombineProcess_ErrorDataReceived;
 
-            startInfo.Arguments = $"-safe 0 -f concat -i \"{tempfile}\" -c copy \"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}\"";
-            process.StartInfo = startInfo;
             process.Start();
             process.BeginErrorReadLine();
         }
 
-        private void CombineProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outline)
+        private void CombineProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outLine)
         {
+            if (cancelled)
+                return;
 
+            if (string.IsNullOrEmpty(outLine.Data) || combineFinished || IsFinished(outLine.Data))
+            {
+                OnProgress(new ProgressEventArgs { Percentage = 100, Data = outLine.Data });
+                return;
+            }
+            
+            lastData = outLine.Data;
+            if (!outLine.Data.Contains("ERROR") && !outLine.Data.Contains("Invalid")) 
+                return;
+
+            failed = true;
+            OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
         }
+
+        private static bool IsProcessing(string data) => data.Contains("frame=") && data.Contains("fps=") && data.Contains("time=");
+        private static bool IsFinished(string data) => data.Contains("global headers:") && data.Contains("muxing overhead:");
 
         private void CombineProcess_Exited(object sender, EventArgs e)
         {
-            FinishedDownload?.Invoke(this, new DownloadEventArgs());
+            if (process.ExitCode != 0 || failed || cancelled)
+            {
+                if (process.ExitCode != 0)
+                    OnDownloadError(new ProgressEventArgs { Error = lastData });
+                CleanUp();
+                return;
+            }
+
+            combineFinished = true;
+            FinishedDownload?.Invoke(this, new FinishedEventArgs { Cancelled = cancelled });
             CleanUp();
         }
 
         protected override void Process_Exited(object sender, EventArgs e)
         {
-            if (finished)
+            if (process.ExitCode != 0 || failed || cancelled)
+            {
+                if (process.ExitCode != 0)
+                    OnDownloadError(new ProgressEventArgs { Error = lastData });
+                CleanUp();
                 return;
+            }
 
-            finished = true;
+            splitFinished = true;
             if (combineVideo)
                 CombineSections();
             else
             {
-                FinishedDownload?.Invoke(this, new DownloadEventArgs());
+                FinishedDownload?.Invoke(this, new FinishedEventArgs { Cancelled = cancelled });
                 CleanUp();
             }
         }
 
         protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
-        protected override void OnDownloadFinished(DownloadEventArgs e)
-        {
+        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
 
-        }
-
-        protected override void OnDownloadStarted(DownloadEventArgs e) => StartedDownload?.Invoke(this, e);
+        protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
         protected override void OnDownloadError(ProgressEventArgs e)
         {
@@ -240,10 +271,13 @@ namespace VideoUtilities
             CleanUp();
         }
 
-        protected override void ErrorDataReceived(object sendingprocess, DataReceivedEventArgs error)
+        protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
         {
-            if (!string.IsNullOrEmpty(error.Data))
-                OnDownloadError(new ProgressEventArgs { Error = error.Data });
+            if (string.IsNullOrEmpty(error.Data))
+                return;
+
+            failed = true;
+            OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }
 }

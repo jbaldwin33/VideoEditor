@@ -1,18 +1,20 @@
 ﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using VideoEditorUi.Singletons;
 
 namespace VideoEditorUi.ViewModels
 {
     public class ProgressBarViewModel : ViewModelBase
     {
+        private string progressLabel;
         private decimal progressValue;
         private RelayCommand cancelCommand;
+
+        public string ProgressLabel
+        {
+            get => progressLabel;
+            set => Set(ref progressLabel, value);
+        }
 
         public decimal ProgressValue
         {
@@ -29,6 +31,7 @@ namespace VideoEditorUi.ViewModels
             
         }
 
+        public void UpdateLabel(string label) => ProgressLabel = label;
         public void UpdateProgressValue(decimal value) => ProgressValue = value;
 
         private void CancelCommandExecute() => Navigator.Instance.CloseChildWindow.Execute(true);
