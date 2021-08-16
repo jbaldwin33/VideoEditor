@@ -74,7 +74,7 @@ namespace VideoUtilities
             if (!process.HasExited)
             {
                 process.Kill();
-                Thread.Sleep(100);
+                Thread.Sleep(1000);
             }
             File.Delete(output);
             OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
@@ -140,7 +140,7 @@ namespace VideoUtilities
             if (finished || failed || cancelled)
                 return;
 
-            if (process.ExitCode != 0)
+            if (process.ExitCode != 0 && !cancelled)
             {
                 OnDownloadError(new ProgressEventArgs { Error = lastData });
                 return;

@@ -1,19 +1,17 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Command;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
-using VideoEditorNetFramework.ViewModels;
-using VideoEditorUi.Singletons;
+using MVVMFramework.ViewNavigator;
+using MVVMFramework.ViewModels;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class ConverterViewModel : BaseViewModel
+    public class ConverterViewModel : ViewModel
     {
         private ObservableCollection<FormatTypeViewModel> formats;
         private FormatEnum formatType;
@@ -25,39 +23,42 @@ namespace VideoEditorUi.ViewModels
         private bool fileLoaded;
         private VideoConverter converter;
         private decimal progressValue;
+        private ProgressBarViewModel progressBarViewModel;
 
         public ObservableCollection<FormatTypeViewModel> Formats
         {
             get => formats;
-            set => Set(ref formats, value);
+            set => SetProperty(ref formats, value);
         }
 
         public FormatEnum FormatType
         {
             get => formatType;
-            set => Set(ref formatType, value);
+            set => SetProperty(ref formatType, value);
         }
 
         public string Filename
         {
             get => filename;
-            set => Set(ref filename, value);
+            set => SetProperty(ref filename, value);
         }
 
         public bool FileLoaded
         {
             get => fileLoaded;
-            set
-            {
-                Set(ref fileLoaded, value);
-                Application.Current.Dispatcher.Invoke(() => ConvertCommand.RaiseCanExecuteChanged());
-            }
+            set => SetProperty(ref fileLoaded, value);
         }
 
         public decimal ProgressValue
         {
             get => progressValue;
-            set => Set(ref progressValue, value);
+            set => SetProperty(ref progressValue, value);
+        }
+
+        public ProgressBarViewModel ProgressBarViewModel
+        {
+            get => progressBarViewModel;
+            set => SetProperty(ref progressBarViewModel, value);
         }
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
@@ -70,9 +71,8 @@ namespace VideoEditorUi.ViewModels
         {
             Formats = FormatTypeViewModel.CreateViewModels();
             Filename = "No file selected.";
+            Title = "Converter";
         }
-
-        public override void CancelOperation() => converter.CancelOperation();
 
         private bool ConvertCommandCanExecute() => FileLoaded;
 
@@ -84,7 +84,7 @@ namespace VideoEditorUi.ViewModels
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
             };
 
-            if (openFileDialog.ShowDialog() == false) 
+            if (openFileDialog.ShowDialog() == false)
                 return;
 
             sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
@@ -100,20 +100,18 @@ namespace VideoEditorUi.ViewModels
             converter.ProgressDownload += Converter_ProgressDownload;
             converter.FinishedDownload += Converter_FinishedDownload;
             converter.ErrorDownload += Converter_ErrorDownload;
-            Navigator.Instance.OpenChildWindow.Execute(null);
+            ProgressBarViewModel = new ProgressBarViewModel();
+            ProgressBarViewModel.OnCancelledHandler += (sender, args) => converter.CancelOperation();
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
             Task.Run(() => converter.ConvertVideo());
         }
 
-        private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e)
-        {
-            if (Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
-                vm.UpdateLabel(e.Label);
-        }
+        private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
 
         private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue && Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
-                vm.UpdateProgressValue(e.Percentage);
+            if (e.Percentage > ProgressValue)
+                ProgressBarViewModel.UpdateProgressValue(e.Percentage);
         }
 
         private void Converter_FinishedDownload(object sender, FinishedEventArgs e)

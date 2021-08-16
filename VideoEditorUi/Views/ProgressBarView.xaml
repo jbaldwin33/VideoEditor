@@ -3,14 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:VideoEditorUi.Views"
+             xmlns:local="clr-namespace:VideoEditorUi.Views" xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
              mc:Ignorable="d"
              d:DesignHeight="150" d:DesignWidth="450">
     <Grid>
-    <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <controls:DefaultStackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Label Content="{Binding ProgressLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center"/>
       <ProgressBar Margin="0,10,0,0" Value="{Binding ProgressValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="100" Width="400" Height="20"/>
-      <Button Margin="0,10,0,0" Content="{Binding CancelLabel}" Command="{Binding CancelCommand}"/>
-    </StackPanel>
+      <controls:MediumButton Content="{Binding CancelLabel}" Command="{Binding CancelCommand}"/>
+    </controls:DefaultStackPanel>
   </Grid>
 </UserControl>

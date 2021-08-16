@@ -1,10 +1,10 @@
-﻿using GalaSoft.MvvmLight;
-using GalaSoft.MvvmLight.Command;
-using VideoEditorUi.Singletons;
+﻿using System;
+using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class ProgressBarViewModel : ViewModelBase
+    public class ProgressBarViewModel : ViewModel
     {
         private string progressLabel;
         private decimal progressValue;
@@ -13,27 +13,30 @@ namespace VideoEditorUi.ViewModels
         public string ProgressLabel
         {
             get => progressLabel;
-            set => Set(ref progressLabel, value);
+            set => SetProperty(ref progressLabel, value);
         }
 
         public decimal ProgressValue
         {
             get => progressValue;
-            set => Set(ref progressValue, value);
+            set => SetProperty(ref progressValue, value);
         }
 
         public RelayCommand CancelCommand => cancelCommand ?? (cancelCommand = new RelayCommand(CancelCommandExecute, () => true));
 
         public string CancelLabel => "Cancel";
 
-        public ProgressBarViewModel()
-        {
-            
-        }
+        public event EventHandler OnCancelledHandler;
+
+        private void OnCancelled() => OnCancelledHandler?.Invoke(this, EventArgs.Empty);
 
         public void UpdateLabel(string label) => ProgressLabel = label;
         public void UpdateProgressValue(decimal value) => ProgressValue = value;
 
-        private void CancelCommandExecute() => Navigator.Instance.CloseChildWindow.Execute(true);
+        private void CancelCommandExecute()
+        {
+            OnCancelled();
+            Navigator.Instance.CloseChildWindow.Execute(true);
+        }
     }
 }

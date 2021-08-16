@@ -1,5 +1,4 @@
-﻿using GalaSoft.MvvmLight.Command;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -10,15 +9,15 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using VideoEditorNetFramework.ViewModels;
-using VideoEditorUi.Singletons;
+using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
 using Path = System.IO.Path;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SplitterViewModel : BaseViewModel
+    public class SplitterViewModel : ViewModel
     {
         private RelayCommand seekBackCommand;
         private RelayCommand playCommand;
@@ -49,17 +48,18 @@ namespace VideoEditorUi.ViewModels
         private bool canCombine;
         private bool combineVideo;
         private bool outputDifferentFormat;
+        private ProgressBarViewModel progressBarViewModel;
 
         public Slider Slider
         {
             get => slider;
-            set => Set(ref slider, value);
+            set => SetProperty(ref slider, value);
         }
 
         public CSVideoPlayer.VideoPlayerWPF Player
         {
             get => player;
-            set => Set(ref player, value);
+            set => SetProperty(ref player, value);
         }
 
         public TimeSpan StartTime
@@ -67,7 +67,7 @@ namespace VideoEditorUi.ViewModels
             get => startTime;
             set
             {
-                Set(ref startTime, value);
+                SetProperty(ref startTime, value);
                 StartTimeString = StartTime.ToString("hh':'mm':'ss':'fff");
             }
         }
@@ -75,122 +75,111 @@ namespace VideoEditorUi.ViewModels
         public TimeSpan EndTime
         {
             get => endTime;
-            set => Set(ref endTime, value);
+            set => SetProperty(ref endTime, value);
         }
 
         public string StartTimeString
         {
             get => startTimeString;
-            set => Set(ref startTimeString, value);
+            set => SetProperty(ref startTimeString, value);
         }
 
         public string CurrentTimeString
         {
             get => currentTimeString;
-            set => Set(ref currentTimeString, value);
+            set => SetProperty(ref currentTimeString, value);
         }
 
         public decimal ProgressValue
         {
             get => progressValue;
-            set => Set(ref progressValue, value);
+            set => SetProperty(ref progressValue, value);
         }
 
         public bool StartTimeSet
         {
             get => startTimeSet;
-            set
-            {
-                Set(ref startTimeSet, value);
-                StartCommand.RaiseCanExecuteChanged();
-                EndCommand.RaiseCanExecuteChanged();
-            }
+            set => SetProperty(ref startTimeSet, value);
         }
 
         public bool EndTimeSet
         {
             get => endTimeSet;
-            set
-            {
-                Set(ref endTimeSet, value);
-                StartCommand.RaiseCanExecuteChanged();
-                EndCommand.RaiseCanExecuteChanged();
-            }
+            set => SetProperty(ref endTimeSet, value);
         }
 
         public bool FileLoaded
         {
             get => fileLoaded;
-            set
-            {
-                Set(ref fileLoaded, value);
-                StartCommand.RaiseCanExecuteChanged();
-                EndCommand.RaiseCanExecuteChanged();
-                SeekBackCommand.RaiseCanExecuteChanged();
-                SeekForwardCommand.RaiseCanExecuteChanged();
+            set => SetProperty(ref fileLoaded, value);
             }
-        }
 
         public string SourceFolder
         {
             get => sourceFolder;
-            set => Set(ref sourceFolder, value);
+            set => SetProperty(ref sourceFolder, value);
         }
 
 
         public string Filename
         {
             get => filename;
-            set => Set(ref filename, value);
+            set => SetProperty(ref filename, value);
         }
 
         public string Extension
         {
             get => extension;
-            set => Set(ref extension, value);
+            set => SetProperty(ref extension, value);
         }
 
         public ObservableCollection<(TimeSpan, TimeSpan)> Times
         {
             get => times;
-            set => Set(ref times, value);
+            set => SetProperty(ref times, value);
         }
 
 
         public ObservableCollection<Rectangle> RectCollection
         {
             get => rectCollection;
-            set => Set(ref rectCollection, value);
+            set => SetProperty(ref rectCollection, value);
         }
 
         public FormatEnum FormatType
         {
             get => formatType;
-            set => Set(ref formatType, value);
+            set => SetProperty(ref formatType, value);
         }
 
         public ObservableCollection<FormatTypeViewModel> Formats
         {
             get => formats;
-            set => Set(ref formats, value);
+            set => SetProperty(ref formats, value);
         }
 
         public bool CanCombine
         {
             get => canCombine;
-            set => Set(ref canCombine, value);
+            set => SetProperty(ref canCombine, value);
         }
 
         public bool CombineVideo
         {
             get => combineVideo;
-            set => Set(ref combineVideo, value);
+            set => SetProperty(ref combineVideo, value);
         }
 
         public bool OutputDifferentFormat
         {
             get => outputDifferentFormat;
-            set => Set(ref outputDifferentFormat, value);
+            set => SetProperty(ref outputDifferentFormat, value);
+        }
+
+        public ProgressBarViewModel ProgressBarViewModel
+        {
+            get => progressBarViewModel;
+            set => SetProperty(ref progressBarViewModel, value);
         }
 
         public Action<TimeSpan> PositionChanged;
@@ -205,19 +194,20 @@ namespace VideoEditorUi.ViewModels
 
         public RelayCommand SeekBackCommand => seekBackCommand ?? (seekBackCommand = new RelayCommand(SeekBackCommandExecute, () => FileLoaded));
         public RelayCommand SeekForwardCommand => seekForwardCommand ?? (seekForwardCommand = new RelayCommand(SeekForwardCommandExecute, () => FileLoaded));
-        public RelayCommand PlayCommand => playCommand ?? (playCommand = new RelayCommand(PlayCommandExecute, PlayCommandCanExecute));
-        public RelayCommand PauseCommand => pauseCommand ?? (pauseCommand = new RelayCommand(PauseCommandExecute, PauseCommandCanExecute));
-        public RelayCommand StopCommand => stopCommand ?? (stopCommand = new RelayCommand(StopCommandExecute, StopCommandCanExecute));
-        public RelayCommand StartCommand => startCommand ?? (startCommand = new RelayCommand(StartCommandExecute, StartCommandCanExecute));
-        public RelayCommand EndCommand => endCommand ?? (endCommand = new RelayCommand(EndCommandExecute, EndCommandCanExecute));
-        public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, SplitCommandCanExecute));
-        public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, SelectFileCommandCanExecute));
+        public RelayCommand PlayCommand => playCommand ?? (playCommand = new RelayCommand(PlayCommandExecute, () => true));
+        public RelayCommand PauseCommand => pauseCommand ?? (pauseCommand = new RelayCommand(PauseCommandExecute, () => true));
+        public RelayCommand StopCommand => stopCommand ?? (stopCommand = new RelayCommand(StopCommandExecute, () => true));
+        public RelayCommand StartCommand => startCommand ?? (startCommand = new RelayCommand(StartCommandExecute, () => !StartTimeSet && FileLoaded));
+        public RelayCommand EndCommand => endCommand ?? (endCommand = new RelayCommand(EndCommandExecute, () => StartTimeSet && !EndTimeSet));
+        public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, () => Times.Count > 0));
+        public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
 
         private VideoSplitter splitter;
         private static readonly object _lock = new object();
 
         public SplitterViewModel()
         {
+            Title = "Splitter";
             Player = player;
             Slider = slider;
             CanCombine = false;
@@ -234,14 +224,7 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
         }
 
-        public override void CancelOperation() => splitter.CancelOperation();
-
-        private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            CanCombine = Times.Count > 1;
-            if (e.Action == NotifyCollectionChangedAction.Add || e.Action == NotifyCollectionChangedAction.Remove || e.Action == NotifyCollectionChangedAction.Reset)
-                Application.Current.Dispatcher.Invoke(() => SplitCommand.RaiseCanExecuteChanged());
-        }
+        private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = Times.Count > 1;
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -254,15 +237,7 @@ namespace VideoEditorUi.ViewModels
             }
         }
 
-        private bool PlayCommandCanExecute() => true;
-        private bool PauseCommandCanExecute() => true;
-        private bool StopCommandCanExecute() => true;
-        private bool StartCommandCanExecute() => !StartTimeSet && FileLoaded;
-        private bool EndCommandCanExecute() => StartTimeSet && !EndTimeSet;
-        private bool SplitCommandCanExecute() => Times.Count > 0;
-        private bool SelectFileCommandCanExecute() => true;
-
-        private void PlayCommandExecute() => Navigator.Instance.OpenChildWindow.Execute(null);
+        private void PlayCommandExecute() => player.Play();
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
@@ -286,7 +261,9 @@ namespace VideoEditorUi.ViewModels
             splitter.ProgressDownload += Splitter_ProgressDownload;
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
-            Navigator.Instance.OpenChildWindow.Execute(null);
+            ProgressBarViewModel = new ProgressBarViewModel();
+            ProgressBarViewModel.OnCancelledHandler += (sender, args) => splitter.CancelOperation();
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
             Task.Run(() => splitter.Split());
         }
 
@@ -360,16 +337,12 @@ namespace VideoEditorUi.ViewModels
             Times.Clear();
         }
 
-        private void Splitter_StartedDownload(object sender, DownloadStartedEventArgs e)
-        {
-            if (Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
-                vm.UpdateLabel(e.Label);
-        }
+        private void Splitter_StartedDownload(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
 
         private void Splitter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue && Navigator.Instance.ChildViewModel is ProgressBarViewModel vm)
-                vm.UpdateProgressValue(e.Percentage);
+            if (e.Percentage > ProgressValue)
+                ProgressBarViewModel.UpdateProgressValue(e.Percentage);
         }
 
         private void Splitter_FinishedDownload(object sender, FinishedEventArgs e)

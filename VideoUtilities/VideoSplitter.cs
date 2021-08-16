@@ -115,7 +115,7 @@ namespace VideoUtilities
             if (!process.HasExited)
                 process.Kill();
 
-            Thread.Sleep(100);
+            Thread.Sleep(1000);
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
             filenames.ForEach(File.Delete);
@@ -173,7 +173,7 @@ namespace VideoUtilities
             if (!process.HasExited)
                 process.Close();
             
-            Thread.Sleep(100);
+            Thread.Sleep(1000);
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
             if (combineVideo || cancelled)
@@ -228,7 +228,7 @@ namespace VideoUtilities
         {
             if (process.ExitCode != 0 || failed || cancelled)
             {
-                if (process.ExitCode != 0)
+                if (process.ExitCode != 0 && !cancelled)
                     OnDownloadError(new ProgressEventArgs { Error = lastData });
                 CleanUp();
                 return;
@@ -243,7 +243,7 @@ namespace VideoUtilities
         {
             if (process.ExitCode != 0 || failed || cancelled)
             {
-                if (process.ExitCode != 0)
+                if (process.ExitCode != 0 && !cancelled)
                     OnDownloadError(new ProgressEventArgs { Error = lastData });
                 CleanUp();
                 return;

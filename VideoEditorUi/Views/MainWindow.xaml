@@ -3,8 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VideoEditorUi.Views"
-        xmlns:controls="clr-namespace:VideoEditorUi.Controls"
+        xmlns:viewNavigator="clr-namespace:MVVMFramework.ViewNavigator;assembly=MVVMFramework"
         mc:Ignorable="d"
         Height="650" Width="800">
   <Grid>
@@ -13,11 +12,8 @@
       <RowDefinition Height="auto"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-    <controls:NavigationBar Grid.Row="0" DataContext="{Binding Navigator}"/>
+    <viewNavigator:NavigationBar x:Name="navigationBar" Grid.Row="0" DataContext="{Binding Navigator}"/>
     <Separator Grid.Row="1" Height="50"/>
     <ContentControl Grid.Row="2" Content="{Binding Navigator.CurrentViewModel}"/>
-    <!--<Window Grid.Row="2" Height="350" Width="700" IsEnabled="{Binding Navigator.ChildViewShown}">
-      <ContentControl Content="{Binding Navigator.ChildViewModel}"/>
-    </Window>-->
   </Grid>
 </Window>

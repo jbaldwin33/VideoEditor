@@ -5,16 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoEditorUi.Views"
         xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
+        xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         mc:Ignorable="d"
         Height="580" Width="800">
 
   <Grid Margin="10">
     <Grid.RowDefinitions>
-      <RowDefinition Height="1.4*" />
+      <RowDefinition Height="1*" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
     <CSVideoPlayer:VideoPlayerWPF Grid.Row="0" x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
-    <StackPanel Grid.Row="1">
+    <controls:DefaultStackPanel Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
@@ -35,28 +36,28 @@
             </ItemsControl.ItemsPanel>
           </ItemsControl>
         </Grid>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="70,10,0,0">
-          <Button Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}" Width="80"/>
-          <Button Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
-          <Button Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}" Width="90"/>
-          <Button Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
-          <Button Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
-          <Button Command="{Binding SelectFileCommand}" Content="Click to select a file..." VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="12" Width="130"/>
-        </StackPanel>
-        <StackPanel Grid.Row="2" Orientation="Vertical" HorizontalAlignment="Left" Width="200">
+        <controls:DefaultStackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+          <controls:MediumButton Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}"/>
+          <controls:ExtraSmallButton Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
+          <controls:MediumButton Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}"/>
+          <controls:ExtraSmallButton Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
+          <controls:ExtraSmallButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
+          <controls:LargeButton Command="{Binding SelectFileCommand}" Content="Click to select a file..." FontSize="12"/>
+        </controls:DefaultStackPanel>
+        <controls:DefaultStackPanel Grid.Row="2" Orientation="Vertical" Width="200">
           <CheckBox Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-        </StackPanel>
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-          <Button Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
-          <Button Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
-          <Button Command="{Binding SplitCommand}" Content="{Binding SplitLabel}"/>
-        </StackPanel>
-        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
-          <TextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,5" Width="150" Height="30" FontSize="25"/>
-        </StackPanel>
+        </controls:DefaultStackPanel>
+        <controls:DefaultStackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" >
+          <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
+          <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
+          <controls:ExtraSmallButton Command="{Binding SplitCommand}" Content="{Binding SplitLabel}"/>
+        </controls:DefaultStackPanel>
+        <controls:DefaultStackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+          <controls:LargeTextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        </controls:DefaultStackPanel>
       </Grid>
-    </StackPanel>
+    </controls:DefaultStackPanel>
   </Grid>
 </UserControl>

@@ -1,5 +1,7 @@
-﻿using System.Windows;
-using VideoEditorUi.Singletons;
+﻿using System;
+using System.Windows;
+using MVVMFramework.ViewNavigator;
+using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
 using VideoEditorUi.Views;
 
@@ -12,8 +14,14 @@ namespace VideoEditorUi
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            var window = new MainWindow { DataContext = new MainViewModel(Navigator.Instance) };
-            window.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            var types = new Type[] { typeof(SplitterViewModel), typeof(ConverterViewModel) };
+            //var window = new MainWindow(types) { DataContext = new MainViewModel(Navigator.Instance) };
+            var window = new BaseWindowView(types)
+            {
+                DataContext = new MainViewModel(Navigator.Instance),
+                WindowStartupLocation = WindowStartupLocation.CenterScreen
+            };
+            Navigator.Instance.UpdateCurrentViewModelCommand.Execute(types[0]);
             window.Show();
             base.OnStartup(e);
         }

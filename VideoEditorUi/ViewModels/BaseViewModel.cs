@@ -1,9 +1,9 @@
 ﻿using System;
-using GalaSoft.MvvmLight;
+using MVVMFramework.ViewModels;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class BaseViewModel : ViewModelBase
+    public abstract class VideoViewModel : ViewModel
     {
         public virtual void CancelOperation() => throw new NotImplementedException();
     }

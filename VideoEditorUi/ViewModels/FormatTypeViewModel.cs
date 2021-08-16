@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using static VideoUtilities.Enums.Enums;
 
-namespace VideoEditorNetFramework.ViewModels
+namespace VideoEditorUi.ViewModels
 {
     public class FormatTypeViewModel
     {
@@ -13,7 +13,7 @@ namespace VideoEditorNetFramework.ViewModels
             Name = n;
         }
 
-        public static ObservableCollection<FormatTypeViewModel> CreateViewModels() => 
+        public static ObservableCollection<FormatTypeViewModel> CreateViewModels() =>
             new ObservableCollection<FormatTypeViewModel>
             {
                 new FormatTypeViewModel(FormatEnum.avi, ".avi"),

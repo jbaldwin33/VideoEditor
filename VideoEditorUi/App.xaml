@@ -5,30 +5,20 @@
              xmlns:viewModels="clr-namespace:VideoEditorUi.ViewModels"
              xmlns:views="clr-namespace:VideoEditorUi.Views">
   <Application.Resources>
-    <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
-    <converters:InverseBooleanToVisibilityConverter x:Key="InvBoolToVisConverter"/>
-
-    <Style TargetType="{x:Type Button}">
-      <Setter Property="Margin" Value="0,0,10,10"/>
-      <Setter Property="Width" Value="60"/>
-      <Setter Property="Height" Value="25"/>
-    </Style>
-
-    <Style TargetType="{x:Type TextBox}">
-      <Setter Property="Margin" Value="0,0,10,0"/>
-      <Setter Property="Width" Value="90"/>
-      <Setter Property="Height" Value="20"/>
-      <Setter Property="TextAlignment" Value="Center"/>
-    </Style>
-
-    <DataTemplate DataType="{x:Type viewModels:SplitterViewModel}">
-      <views:SplitterView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
-      <views:ConverterView/>
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
-      <views:ProgressBarView/>
-    </DataTemplate>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/MVVMFramework;component/Controls/ControlStyles.xaml" />
+      </ResourceDictionary.MergedDictionaries>
+      <Style TargetType="Rectangle"/>
+      <DataTemplate DataType="{x:Type viewModels:SplitterViewModel}">
+        <views:SplitterView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
+        <views:ConverterView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
+        <views:ProgressBarView/>
+      </DataTemplate>
+    </ResourceDictionary>
   </Application.Resources>
 </Application>
