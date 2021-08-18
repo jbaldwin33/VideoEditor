@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 namespace VideoUtilities
@@ -23,7 +24,7 @@ namespace VideoUtilities
         private bool failed;
         private string lastData;
 
-        public VideoConverter(string folder, string fileWithoutExtension, string inExtension, string outExtension)
+        public VideoConverter(string folder, string fileWithoutExtension, string inExtension, string outExtension, bool outputDifferentFormat, Enums.Enums.ScaleRotate scaleRotate)
         {
             failed = false;
             cancelled = false;
@@ -31,12 +32,9 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
-            output = $"{folder}\\{fileWithoutExtension}{outExtension}";
-
-            // setup the process that will fire youtube-dl
+            output = $"{folder}\\{fileWithoutExtension}{(outputDifferentFormat ? string.Empty : "_converted")}{outExtension}";
             startInfo = new ProcessStartInfo
             {
-                Arguments = $"-i {folder}\\{fileWithoutExtension}{inExtension} {output}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -44,6 +42,23 @@ namespace VideoUtilities
                 FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
                 CreateNoWindow = true
             };
+
+            var sb = new StringBuilder($"-i {folder}\\{fileWithoutExtension}{inExtension} ");
+            switch (scaleRotate)
+            {
+                case Enums.Enums.ScaleRotate.NoSNoR: break;
+                case Enums.Enums.ScaleRotate.NoS90R: sb.Append("-vf transpose=1"); break;
+                case Enums.Enums.ScaleRotate.NoS180R: sb.Append("-vf vflip -vf hflip"); break;
+                case Enums.Enums.ScaleRotate.NoS270R: sb.Append("-vf transpose=2"); break;
+                case Enums.Enums.ScaleRotate.SNoR: sb.Append("-vf hflip"); break;
+                case Enums.Enums.ScaleRotate.S90R: sb.Append("-vf hflip -vf transpose=1"); break;
+                case Enums.Enums.ScaleRotate.S180R: sb.Append("-vf vflip"); break;
+                case Enums.Enums.ScaleRotate.S270R: sb.Append("-vf hflip -vf transpose=2"); break;
+                default: throw new ArgumentOutOfRangeException(nameof(scaleRotate), scaleRotate, null);
+            }
+
+            sb.Append($" -c:a copy {output}");
+            startInfo.Arguments = sb.ToString();
         }
 
         public void ConvertVideo()
@@ -68,7 +83,7 @@ namespace VideoUtilities
             }
         }
 
-        public override void CancelOperation()
+        public override void CancelOperation(string cancelMessage)
         {
             cancelled = true;
             if (!process.HasExited)
@@ -77,7 +92,7 @@ namespace VideoUtilities
                 Thread.Sleep(1000);
             }
             File.Delete(output);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage});
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)

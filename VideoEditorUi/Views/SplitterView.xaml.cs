@@ -1,11 +1,9 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using MVVMFramework.ViewNavigator;
+using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views
@@ -13,20 +11,16 @@ namespace VideoEditorUi.Views
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class SplitterView : UserControl
+    public partial class SplitterView : ViewBaseControl
     {
         private DispatcherTimer timer;
         private bool isDragging;
         private SplitterViewModel viewModel;
 
-        public SplitterView()
+        public SplitterView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
-            var libsPath = "";
-            var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            if (directoryName != null)
-                libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
-            player.Init(libsPath, "UserName", "RegKey");
+            Utilities.UtilityClass.InitializePlayer(player);
             viewModel = Navigator.Instance.CurrentViewModel as SplitterViewModel;
             viewModel.Player = player;
             viewModel.Slider = slider;
@@ -34,7 +28,6 @@ namespace VideoEditorUi.Views
             timer.Tick += timer_Tick;
             player.MediaOpened += Player_MediaOpened;
             player.MediaEnded += Player_MediaEnded;
-            slider.IsMoveToPointEnabled = true;
             slider.ApplyTemplate();
             var thumb = (slider.Template.FindName("PART_Track", slider) as Track).Thumb;
             thumb.MouseEnter += Thumb_MouseEnter;

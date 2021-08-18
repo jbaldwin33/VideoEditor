@@ -9,14 +9,22 @@ namespace VideoUtilities
         public delegate void FinishedDownloadEventHandler(object sender, FinishedEventArgs e);
         public delegate void StartedDownloadEventHandler(object sender, DownloadStartedEventArgs e);
         public delegate void ErrorEventHandler(object sender, ProgressEventArgs e);
+        public delegate void MessageEventHandler(object sender, MessageEventArgs e);
 
-        public virtual void CancelOperation() => throw new NotImplementedException();
+        public virtual void CancelOperation(string cancelMessage) => throw new NotImplementedException();
         protected virtual void OnDownloadFinished(FinishedEventArgs e) => throw new NotImplementedException();
         protected virtual void OnDownloadStarted(DownloadStartedEventArgs e) => throw new NotImplementedException();
         protected virtual void OnProgress(ProgressEventArgs e) => throw new NotImplementedException();
         protected virtual void OnDownloadError(ProgressEventArgs e) => throw new NotImplementedException();
+        protected virtual void OnShowMessage(MessageEventArgs e) => throw new NotImplementedException();
         protected virtual void Process_Exited(object sender, EventArgs e) => throw new NotImplementedException();
         protected virtual void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error) => throw new NotImplementedException();
+    }
+
+    public class MessageEventArgs : EventArgs
+    {
+        public string Message { get; set; }
+        public bool Result { get; set; }
     }
 
     public class ProgressEventArgs : EventArgs
@@ -34,5 +42,6 @@ namespace VideoUtilities
     public class FinishedEventArgs : EventArgs
     {
         public bool Cancelled { get; set; }
+        public string Message { get; set; }
     }
 }

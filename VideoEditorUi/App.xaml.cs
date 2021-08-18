@@ -1,9 +1,6 @@
-﻿using System;
-using System.Windows;
-using MVVMFramework.ViewNavigator;
+﻿using System.Windows;
 using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
-using VideoEditorUi.Views;
 
 namespace VideoEditorUi
 {
@@ -14,16 +11,18 @@ namespace VideoEditorUi
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            var types = new Type[] { typeof(SplitterViewModel), typeof(ConverterViewModel) };
-            //var window = new MainWindow(types) { DataContext = new MainViewModel(Navigator.Instance) };
-            var window = new BaseWindowView(types)
+            var types = new[]
             {
-                DataContext = new MainViewModel(Navigator.Instance),
-                WindowStartupLocation = WindowStartupLocation.CenterScreen
+                (typeof(SplitterViewModel), "Splitter"),
+                (typeof(ConverterViewModel), "Converter"),
+                (typeof(FormatterViewModel), "Formatter"),
+                (typeof(ReverseViewModel), "Reverse"),
+                (typeof(MergerViewModel), "Merger")
             };
-            Navigator.Instance.UpdateCurrentViewModelCommand.Execute(types[0]);
+            var window = new BaseWindowView(types) { Title = "Video Editor" };
             window.Show();
             base.OnStartup(e);
         }
     }
+
 }

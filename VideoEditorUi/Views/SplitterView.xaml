@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="VideoEditorUi.Views.SplitterView"
+﻿<framework:ViewBaseControl x:Class="VideoEditorUi.Views.SplitterView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VideoEditorUi.Views"
+        xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
         xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
         xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         mc:Ignorable="d"
@@ -23,8 +23,13 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Slider HorizontalAlignment="Left" Grid.Row="0" Width="760" Name="slider" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
-        <Grid Grid.Row="0" Name="grid" HorizontalAlignment="Left">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Slider HorizontalAlignment="Left" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Width="760" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Name="grid" HorizontalAlignment="Left">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
@@ -36,7 +41,7 @@
             </ItemsControl.ItemsPanel>
           </ItemsControl>
         </Grid>
-        <controls:DefaultStackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+        <controls:DefaultStackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
           <controls:MediumButton Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}"/>
           <controls:ExtraSmallButton Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
           <controls:MediumButton Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}"/>
@@ -44,20 +49,24 @@
           <controls:ExtraSmallButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
           <controls:LargeButton Command="{Binding SelectFileCommand}" Content="Click to select a file..." FontSize="12"/>
         </controls:DefaultStackPanel>
-        <controls:DefaultStackPanel Grid.Row="2" Orientation="Vertical" Width="200">
-          <CheckBox Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-          <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-          <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+        <controls:DefaultStackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" Width="200">
+          <CheckBox Margin="0,0,0,10" Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <CheckBox Margin="0,0,0,10" Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <ComboBox Margin="0,0,0,10" IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+          <CheckBox Content="Re-encode video?*" IsChecked="{Binding ReEncodeVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}"/>
         </controls:DefaultStackPanel>
-        <controls:DefaultStackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" >
+        <controls:DefaultStackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" >
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
           <controls:ExtraSmallButton Command="{Binding SplitCommand}" Content="{Binding SplitLabel}"/>
         </controls:DefaultStackPanel>
-        <controls:DefaultStackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+        <controls:DefaultStackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
           <controls:LargeTextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+        </controls:DefaultStackPanel>
+        <controls:DefaultStackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2">
+          <controls:LargeTextBlock  Height="140" Width="230" FontSize="13" TextWrapping="Wrap" Text="*Re-encoding is more time-consuming, but the start and end times will be more accurate and it will prevent any black frames at the beginning and end of the clips."></controls:LargeTextBlock>
         </controls:DefaultStackPanel>
       </Grid>
     </controls:DefaultStackPanel>
   </Grid>
-</UserControl>
+</framework:ViewBaseControl>

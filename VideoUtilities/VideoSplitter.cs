@@ -37,7 +37,7 @@ namespace VideoUtilities
         private bool combineFinished;
         private string combinedFile;
 
-        public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, ObservableCollection<(TimeSpan, TimeSpan)> t, bool combine, bool outputDiffFormat, string outFormat)
+        public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, ObservableCollection<(TimeSpan, TimeSpan)> t, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             cancelled = false;
             splitFinished = false;
@@ -62,7 +62,7 @@ namespace VideoUtilities
             for (int i = 0; i < times.Count; i++)
             {
                 var output = $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{i + 1}{(outputDifferentFormat ? outputFormat : extension)}";
-                sb.Append($" -codec copy -ss {times[i].Item1.TotalSeconds} -to {times[i].Item2.TotalSeconds} \"{output}\"");
+                sb.Append($"{(reEncodeVideo ? string.Empty : " -codec copy")} -ss {times[i].Item1.TotalSeconds} -to {times[i].Item2.TotalSeconds} \"{output}\"");
 
                 filenames.Add(output);
                 filenamesWithExtra.Add($"file '{output}'");
@@ -109,7 +109,7 @@ namespace VideoUtilities
             }
         }
 
-        public override void CancelOperation()
+        public override void CancelOperation(string cancelMessage)
         {
             cancelled = true;
             if (!process.HasExited)
@@ -120,7 +120,7 @@ namespace VideoUtilities
                 File.Delete(tempfile);
             filenames.ForEach(File.Delete);
             File.Delete(combinedFile);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage});
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
@@ -179,7 +179,8 @@ namespace VideoUtilities
             if (combineVideo || cancelled)
             {
                 filenames.ForEach(File.Delete);
-                File.Delete(combinedFile);
+                if (!string.IsNullOrEmpty(combinedFile))
+                    File.Delete(combinedFile);
             }
         }
 

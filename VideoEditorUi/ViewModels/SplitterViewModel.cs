@@ -38,6 +38,7 @@ namespace VideoEditorUi.ViewModels
         private bool startTimeSet;
         private bool endTimeSet;
         private bool fileLoaded;
+        private bool reEncodeVideo;
         private string sourceFolder;
         private string filename;
         private string extension;
@@ -112,7 +113,12 @@ namespace VideoEditorUi.ViewModels
         {
             get => fileLoaded;
             set => SetProperty(ref fileLoaded, value);
-            }
+        }
+        public bool ReEncodeVideo
+        {
+            get => reEncodeVideo;
+            set => SetProperty(ref reEncodeVideo, value);
+        }
 
         public string SourceFolder
         {
@@ -173,7 +179,11 @@ namespace VideoEditorUi.ViewModels
         public bool OutputDifferentFormat
         {
             get => outputDifferentFormat;
-            set => SetProperty(ref outputDifferentFormat, value);
+            set
+            {
+                SetProperty(ref outputDifferentFormat, value);
+                ReEncodeVideo = value;
+            }
         }
 
         public ProgressBarViewModel ProgressBarViewModel
@@ -207,9 +217,6 @@ namespace VideoEditorUi.ViewModels
 
         public SplitterViewModel()
         {
-            Title = "Splitter";
-            Player = player;
-            Slider = slider;
             CanCombine = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
@@ -228,7 +235,9 @@ namespace VideoEditorUi.ViewModels
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (MessageBox.Show("Do you want to delete this section?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            var args = new MessageBoxEventArgs("Do you want to delete this section?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            ShowMessage(args);
+            if (args.Result == MessageBoxResult.Yes)
             {
                 var rect = sender as Rectangle;
                 var index = RectCollection.IndexOf(rect);
@@ -241,14 +250,16 @@ namespace VideoEditorUi.ViewModels
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
-            player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)slider.Value));
-            PositionChanged?.Invoke(player.PositionGet());
+            var ts = new TimeSpan(0, 0, 0, 0, (int)slider.Value);
+            player.PositionSet(ts);
+            CurrentTimeString = ts.ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
             slider.Value = slider.Value + 5000 > slider.Maximum ? slider.Maximum : slider.Value + 5000;
-            player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)slider.Value));
-            PositionChanged?.Invoke(player.PositionGet());
+            var ts = new TimeSpan(0, 0, 0, 0, (int)slider.Value);
+            player.PositionSet(ts);
+            CurrentTimeString = ts.ToString("hh':'mm':'ss':'fff");
         }
 
         private void PauseCommandExecute() => player.Pause();
@@ -256,15 +267,25 @@ namespace VideoEditorUi.ViewModels
         private void StopCommandExecute() => player.Stop();
         private void SplitCommandExecute()
         {
-            splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo, OutputDifferentFormat, $".{FormatType}");
+            splitter = new VideoSplitter(SourceFolder, Filename, Extension, Times, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
             splitter.StartedDownload += Splitter_StartedDownload;
             splitter.ProgressDownload += Splitter_ProgressDownload;
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
             ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) => splitter.CancelOperation();
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
+            {
+                try
+                {
+                    splitter.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
             Task.Run(() => splitter.Split());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         private void StartCommandExecute()
@@ -279,7 +300,7 @@ namespace VideoEditorUi.ViewModels
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
-                MessageBox.Show("End time must be after the Start time. Please select the Start time again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                ShowMessage(new MessageBoxEventArgs("End time must be after the Start time. Please select the Start time again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
             EndTimeSet = true;
@@ -349,15 +370,15 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? "Operation cancelled."
+                ? $"Operation cancelled. {e.Message}"
                 : "Video successfully split.";
-            MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             CleanUp();
-            MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void CleanUp()
@@ -366,6 +387,7 @@ namespace VideoEditorUi.ViewModels
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CombineVideo = false;
             OutputDifferentFormat = false;
+            ReEncodeVideo = false;
             FormatType = FormatEnum.avi;
             ClearAllRectangles();
         }

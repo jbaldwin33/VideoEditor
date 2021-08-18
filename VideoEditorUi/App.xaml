@@ -16,6 +16,15 @@
       <DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
         <views:ConverterView/>
       </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:FormatterViewModel}">
+        <views:FormatterView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:ReverseViewModel}">
+        <views:ReverseView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:MergerViewModel}">
+        <views:MergerView/>
+      </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
         <views:ProgressBarView/>
       </DataTemplate>

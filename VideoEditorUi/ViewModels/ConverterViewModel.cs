@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.ViewModels;
 using VideoUtilities;
@@ -18,12 +20,19 @@ namespace VideoEditorUi.ViewModels
         private string filename;
         private RelayCommand selectFileCommand;
         private RelayCommand convertCommand;
+        private RelayCommand flipCommand;
+        private RelayCommand rotateCommand;
         private string sourceFolder;
         private string extension;
         private bool fileLoaded;
+        private bool outputDifferentFormat;
         private VideoConverter converter;
         private decimal progressValue;
         private ProgressBarViewModel progressBarViewModel;
+        private CSVideoPlayer.VideoPlayerWPF player;
+        private int flipScale;
+        private int rotateNumber;
+        
 
         public ObservableCollection<FormatTypeViewModel> Formats
         {
@@ -49,6 +58,12 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref fileLoaded, value);
         }
 
+        public bool OutputDifferentFormat
+        {
+            get => outputDifferentFormat;
+            set => SetProperty(ref outputDifferentFormat, value);
+        }
+
         public decimal ProgressValue
         {
             get => progressValue;
@@ -61,17 +76,46 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref progressBarViewModel, value);
         }
 
+        public CSVideoPlayer.VideoPlayerWPF Player
+        {
+            get => player;
+            set => SetProperty(ref player, value);
+        }
+
+        public int FlipScale
+        {
+            get => flipScale;
+            set => SetProperty(ref flipScale, value);
+        }
+
+        public int RotateNumber
+        {
+            get => rotateNumber;
+            set => SetProperty(ref rotateNumber, value);
+        }
+        
+        
+
+
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand ConvertCommand => convertCommand ?? (convertCommand = new RelayCommand(ConvertCommandExecute, ConvertCommandCanExecute));
+        public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
+        public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
 
         public string SelectFileLabel => "Click to select a file...";
         public string ConvertLabel => "Convert";
+        public string FlipLabel => "Flip";
+        public string RotateLabel => "Rotate";
+        public StackPanel VideoStackPanel { get; set; }
+        
+
+        public Action<double> SpeedChanged;
 
         public ConverterViewModel()
         {
             Formats = FormatTypeViewModel.CreateViewModels();
-            Filename = "No file selected.";
-            Title = "Converter";
+            FormatType = FormatEnum.avi;
+            FlipScale = 1;
         }
 
         private bool ConvertCommandCanExecute() => FileLoaded;
@@ -90,20 +134,83 @@ namespace VideoEditorUi.ViewModels
             sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
             Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
             extension = Path.GetExtension(openFileDialog.FileName);
+            player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
         }
 
         private void ConvertCommandExecute()
         {
-            converter = new VideoConverter(sourceFolder, Filename, extension, $".{FormatType}");
+            converter = new VideoConverter(sourceFolder, Filename, extension, OutputDifferentFormat ? $".{FormatType}" : extension, OutputDifferentFormat, ConvertToEnum());
             converter.StartedDownload += Converter_DownloadStarted;
             converter.ProgressDownload += Converter_ProgressDownload;
             converter.FinishedDownload += Converter_FinishedDownload;
             converter.ErrorDownload += Converter_ErrorDownload;
             ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) => converter.CancelOperation();
+            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
+            {
+                try
+                {
+                    converter.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
             Task.Run(() => converter.ConvertVideo());
+        }
+        
+        private void FlipCommandExecute()
+        {
+            if (FlipScale < 0)
+                FlipScale = 1;
+            else
+                FlipScale = -1;
+            
+            var scaleTransform = new ScaleTransform { ScaleX = FlipScale };
+            var rotateTransform = new RotateTransform(RotateNumber * FlipScale);
+            var transformGroup = new TransformGroup();
+            transformGroup.Children.Add(rotateTransform);
+            transformGroup.Children.Add(scaleTransform);
+            VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
+            VideoStackPanel.LayoutTransform = transformGroup;
+
+            //player.RotateNumber(RotateNumber);
+            //player.Flip(FlipScale);
+        }
+
+        private void RotateCommandExecute()
+        {
+            RotateNumber = (RotateNumber + 90) % 360;
+
+            var scaleTransform = new ScaleTransform { ScaleX = FlipScale };
+            var rotateTransform = new RotateTransform(RotateNumber * FlipScale);
+            var transformGroup = new TransformGroup();
+            transformGroup.Children.Add(rotateTransform);
+            transformGroup.Children.Add(scaleTransform);
+            VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
+            VideoStackPanel.LayoutTransform = transformGroup;
+
+            //player.Flip(FlipScale);
+            //player.RotateNumber(RotateNumber);
+        }
+
+        private ScaleRotate ConvertToEnum()
+        {
+            var sr = (FlipScale, RotateNumber);
+            switch (sr)
+            {
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 0: return ScaleRotate.NoSNoR;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 90: return ScaleRotate.NoS90R;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 180: return ScaleRotate.NoS180R;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 270: return ScaleRotate.NoS270R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 0: return ScaleRotate.SNoR;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 90: return ScaleRotate.S90R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 180: return ScaleRotate.S180R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 270: return ScaleRotate.S270R;
+                default: throw new ArgumentOutOfRangeException(nameof(sr), sr, null);
+            }
         }
 
         private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
@@ -118,15 +225,15 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? "Operation cancelled."
+                ? $"Operation cancelled. {e.Message}"
                 : "Video successfully converted.";
-            MessageBox.Show(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            MessageBox.Show($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void CleanUp()
@@ -134,6 +241,7 @@ namespace VideoEditorUi.ViewModels
             Navigator.Instance.CloseChildWindow.Execute(false);
             FormatType = FormatEnum.avi;
             Filename = "No file selected.";
+            OutputDifferentFormat = false;
             FileLoaded = false;
         }
     }

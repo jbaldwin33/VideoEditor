@@ -20,5 +20,18 @@ namespace VideoUtilities.Enums
             mkv,
             ts
         }
+
+        public enum ScaleRotate
+        {
+            NoSNoR,
+            NoS90R,
+            NoS180R,
+            NoS270R,
+            SNoR,
+            S90R,
+            S180R,
+            S270R
+        }
+
     }
 }
