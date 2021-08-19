@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CSVideoPlayer;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
+using static VideoEditorUi.Utilities.UtilityClass;
 
 namespace VideoEditorUi.Views
 {
@@ -16,27 +20,49 @@ namespace VideoEditorUi.Views
         private DispatcherTimer timer;
         private bool isDragging;
         private SplitterViewModel viewModel;
+        //private VideoPlayerWPF player;
 
         public SplitterView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
-            Utilities.UtilityClass.InitializePlayer(player);
             viewModel = Navigator.Instance.CurrentViewModel as SplitterViewModel;
-            viewModel.Player = player;
+            //viewModel.CreateNewPlayer = CreatePlayer;
             viewModel.Slider = slider;
             timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             timer.Tick += timer_Tick;
+            InitializePlayer(player);
+            viewModel.Player = player;
             player.MediaOpened += Player_MediaOpened;
             player.MediaEnded += Player_MediaEnded;
             slider.ApplyTemplate();
             var thumb = (slider.Template.FindName("PART_Track", slider) as Track).Thumb;
             thumb.MouseEnter += Thumb_MouseEnter;
         }
+        
+        //private void CreatePlayer()
+        //{
+            
+        //    //player.Dispose();
+        //    playerPanel.Children.Clear();
+        //    player = new VideoPlayerWPF
+        //    {
+        //        Name = "player",
+        //        Height = 250,
+        //        VerticalAlignment = VerticalAlignment.Top,
+        //        VerticalContentAlignment = VerticalAlignment.Center,
+        //        HorizontalAlignment = HorizontalAlignment.Center
+        //    };
+        //    playerPanel.Children.Add(player);
+        //    InitializePlayer(player);
+        //    viewModel.Player = player;
+        //    player.MediaOpened += Player_MediaOpened;
+        //    player.MediaEnded += Player_MediaEnded;
+        //}
 
         private void timer_Tick(object sender, EventArgs e)
         {
             if (!isDragging)
-                slider.Value = player.PositionGet().TotalMilliseconds;
+                slider.Value = GetPlayerPosition(player).TotalMilliseconds;
         }
 
         private void slider_DragStarted(object sender, DragStartedEventArgs e) => isDragging = true;
@@ -44,8 +70,8 @@ namespace VideoEditorUi.Views
         private void slider_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             isDragging = false;
-            player.PositionSet(TimeSpan.FromMilliseconds(slider.Value));
-            viewModel.PositionChanged?.Invoke(player.PositionGet());
+            SetPlayerPosition(player, slider.Value);
+            viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
         }
 
         private void Player_MediaOpened(object sender, CSVideoPlayer.MediaOpenedEventArgs e)
@@ -63,8 +89,8 @@ namespace VideoEditorUi.Views
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)slider.Value));
-                viewModel.PositionChanged?.Invoke(player.PositionGet());
+                SetPlayerPosition(player, slider.Value);
+                viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
             }
         }
     }

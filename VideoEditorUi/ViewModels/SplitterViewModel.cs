@@ -2,6 +2,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,10 +10,12 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using CSVideoPlayer;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
+using static VideoEditorUi.Utilities.UtilityClass;
 using Path = System.IO.Path;
 
 namespace VideoEditorUi.ViewModels
@@ -214,6 +217,7 @@ namespace VideoEditorUi.ViewModels
 
         private VideoSplitter splitter;
         private static readonly object _lock = new object();
+        //public Action CreateNewPlayer;
 
         public SplitterViewModel()
         {
@@ -226,7 +230,7 @@ namespace VideoEditorUi.ViewModels
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             Times.CollectionChanged += Times_CollectionChanged;
-
+            
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
         }
@@ -250,16 +254,14 @@ namespace VideoEditorUi.ViewModels
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
-            var ts = new TimeSpan(0, 0, 0, 0, (int)slider.Value);
-            player.PositionSet(ts);
-            CurrentTimeString = ts.ToString("hh':'mm':'ss':'fff");
+            SetPlayerPosition(player, slider.Value);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
             slider.Value = slider.Value + 5000 > slider.Maximum ? slider.Maximum : slider.Value + 5000;
-            var ts = new TimeSpan(0, 0, 0, 0, (int)slider.Value);
-            player.PositionSet(ts);
-            CurrentTimeString = ts.ToString("hh':'mm':'ss':'fff");
+            SetPlayerPosition(player, slider.Value);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
         }
 
         private void PauseCommandExecute() => player.Pause();
@@ -291,12 +293,12 @@ namespace VideoEditorUi.ViewModels
         private void StartCommandExecute()
         {
             StartTimeSet = true;
-            StartTime = player.PositionGet();
+            StartTime = GetPlayerPosition(player);
         }
 
         private void EndCommandExecute()
         {
-            if (player.PositionGet() < StartTime)
+            if (GetPlayerPosition(player) < StartTime)
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
@@ -304,7 +306,7 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
             EndTimeSet = true;
-            EndTime = player.PositionGet();
+            EndTime = GetPlayerPosition(player);
             AddRectangle();
             Times.Add((StartTime, EndTime));
 
@@ -325,6 +327,9 @@ namespace VideoEditorUi.ViewModels
                 SourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
                 Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
                 Extension = Path.GetExtension(openFileDialog.FileName);
+                //CreateNewPlayer();
+                GetDetails(player, openFileDialog.FileName);
+                //Thread.Sleep(100);
                 player.Open(new Uri(openFileDialog.FileName));
                 FileLoaded = true;
                 ResetAll();

@@ -1,43 +1,48 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
+using System.Windows.Media;
 using Microsoft.Win32;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
+using Microsoft.WindowsAPICodePack.Dialogs;
+using VideoUtilities.Enums;
+using static VideoUtilities.Enums.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
     public class MergerViewModel : ViewModel
     {
-        private CSVideoPlayer.VideoPlayerWPF player;
-        private string filename;
-        private string sourceFolder;
-        private string extension;
-        private bool fileLoaded;
+        private string outputPath;
         private decimal progressValue;
         private RelayCommand selectFileCommand;
         private RelayCommand mergeCommand;
+        private RelayCommand moveUpCommand;
+        private RelayCommand moveDownCommand;
+        private RelayCommand removeCommand;
+        private RelayCommand selectOutputFolderCommand;
         private ProgressBarViewModel progressBarViewModel;
         private VideoMerger merger;
+        private string selectedFile;
+        private bool fileSelected;
+        private List<(string, string, string)> fileViewModels;
+        private ObservableCollection<string> fileCollection;
+        private bool canChangeExtension;
+        private bool outputDifferentFormat;
+        private bool multipleExtensions;
+        private ObservableCollection<FormatTypeViewModel> formats;
+        private FormatEnum formatType;
 
-        public CSVideoPlayer.VideoPlayerWPF Player
+        public string OutputPath
         {
-            get => player;
-            set => SetProperty(ref player, value);
-        }
-        
-        public string Filename
-        {
-            get => filename;
-            set => SetProperty(ref filename, value);
-        }
-
-        public bool FileLoaded
-        {
-            get => fileLoaded;
-            set => SetProperty(ref fileLoaded, value);
+            get => outputPath;
+            set => SetProperty(ref outputPath, value);
         }
 
         public decimal ProgressValue
@@ -52,18 +57,103 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref progressBarViewModel, value);
         }
 
+        public ObservableCollection<string> FileCollection
+        {
+            get => fileCollection;
+            set => SetProperty(ref fileCollection, value);
+        }
+
+        public string SelectedFile
+        {
+            get => selectedFile;
+            set
+            {
+                SetProperty(ref selectedFile, value);
+                FileSelected = !string.IsNullOrEmpty(value);
+            }
+        }
+
+        public bool FileSelected
+        {
+            get => fileSelected;
+            set => SetProperty(ref fileSelected, value);
+        }
+
+        public List<(string folder, string filename, string extension)> FileViewModels
+        {
+            get => fileViewModels;
+            set => SetProperty(ref fileViewModels, value);
+        }
+
+        public bool CanChangeExtension
+        {
+            get => canChangeExtension;
+            set => SetProperty(ref canChangeExtension, value);
+        }
+
+        public bool OutputDifferentFormat
+        {
+            get => outputDifferentFormat;
+            set => SetProperty(ref outputDifferentFormat, value);
+        }
+
+        public bool MultipleExtensions
+        {
+            get => multipleExtensions;
+            set => SetProperty(ref multipleExtensions, value);
+        }
+
+        public ObservableCollection<FormatTypeViewModel> Formats
+        {
+            get => formats;
+            set => SetProperty(ref formats, value);
+        }
+
+        public FormatEnum FormatType
+        {
+            get => formatType;
+            set => SetProperty(ref formatType, value);
+        }
+
+
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand MergeCommand => mergeCommand ?? (mergeCommand = new RelayCommand(MergeCommandExecute, MergeCommandCanExecute));
+        public RelayCommand MoveUpCommand => moveUpCommand ?? (moveUpCommand = new RelayCommand(MoveUpExecute, () => FileSelected));
+        public RelayCommand MoveDownCommand => moveDownCommand ?? (moveDownCommand = new RelayCommand(MoveDownExecute, () => FileSelected));
+        public RelayCommand RemoveCommand => removeCommand ?? (removeCommand = new RelayCommand(RemoveExecute, () => FileSelected));
+
+        public RelayCommand SelectOutputFolderCommand => selectOutputFolderCommand ?? (selectOutputFolderCommand = new RelayCommand(SelectOutputFolderCommandExecute, () => true));
 
         public string MergeLabel => "Merge";
         public string SelectFileLabel => "Click to select a file...";
+        private static readonly object _lock = new object();
 
         public MergerViewModel()
         {
-            
+            FileCollection = new ObservableCollection<string>();
+            FileViewModels = new List<(string, string, string)>();
+            Formats = FormatTypeViewModel.CreateViewModels();
+            FileCollection.CollectionChanged += FileCollection_CollectionChanged;
+            FormatType = FormatEnum.avi;
+
+            BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
+            BindingOperations.EnableCollectionSynchronization(FileViewModels, _lock);
         }
 
-        private bool MergeCommandCanExecute() => FileLoaded;
+        private void FileCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            MultipleExtensions = FileViewModels.Any(f => f.extension != FileViewModels[0].extension);
+            if (FileViewModels.Any(f => f.extension.Contains(FormatEnum.mp4.ToString())))
+            {
+                CanChangeExtension = false;
+                FormatType = FormatEnum.mp4;
+                OutputDifferentFormat = true;
+            }
+            else
+                CanChangeExtension = true;
+        }
+
+        private bool MergeCommandCanExecute() => FileCollection.Count > 1;
 
         private void SelectFileCommandExecute()
         {
@@ -76,20 +166,25 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
-            Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-            extension = Path.GetExtension(openFileDialog.FileName);
-            player.Open(new Uri(openFileDialog.FileName));
-            FileLoaded = true;
+            FileViewModels.Add(CreateFileViewModel(openFileDialog.FileName));
+            FileCollection.Add(openFileDialog.SafeFileName);
         }
+
+        private (string folder, string filename, string extension) CreateFileViewModel(string filename)
+            => (Path.GetDirectoryName(filename), Path.GetFileNameWithoutExtension(filename), Path.GetExtension(filename));
 
         private void MergeCommandExecute()
         {
-            merger = new VideoMerger(sourceFolder, Filename, extension);
-            merger.StartedDownload += Converter_DownloadStarted;
-            merger.ProgressDownload += Converter_ProgressDownload;
-            merger.FinishedDownload += Converter_FinishedDownload;
-            merger.ErrorDownload += Converter_ErrorDownload;
+            var outExt = FileViewModels.Any(f => f.extension.Contains("mp4"))
+                ? ".mp4"
+                : MultipleExtensions
+                    ? $".{FormatType}"
+                    : FileViewModels[0].extension;
+            merger = new VideoMerger(FileViewModels, OutputPath, outExt);
+            merger.StartedDownload += Merger_DownloadStarted;
+            merger.ProgressDownload += Merger_ProgressDownload;
+            merger.FinishedDownload += Merger_FinishedDownload;
+            merger.ErrorDownload += Merger_ErrorDownload;
             ProgressBarViewModel = new ProgressBarViewModel();
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
@@ -102,19 +197,60 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
+            Task.Run(() => merger.MergeVideo());
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
-            Task.Run(() => merger.FormatVideo());
         }
 
-        private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
+        private void MoveUpExecute()
+        {
+            var index = FileCollection.IndexOf(SelectedFile);
+            if (index == 0)
+                return;
+            var file = SelectedFile;
+            FileCollection.Remove(SelectedFile);
+            FileCollection.Insert(index - 1, file);
+            SelectedFile = file;
+        }
+        private void MoveDownExecute()
+        {
+            var index = FileCollection.IndexOf(SelectedFile);
+            if (index == FileCollection.Count - 1)
+                return;
+            var file = SelectedFile;
+            FileCollection.Remove(SelectedFile);
+            FileCollection.Insert(index + 1, file);
+            SelectedFile = file;
+        }
 
-        private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
+        private void RemoveExecute()
+        {
+            FileViewModels.Remove(FileViewModels.First(f => f.filename.Contains(Path.GetFileNameWithoutExtension(SelectedFile))));
+            FileCollection.Remove(SelectedFile);
+        }
+
+        private void SelectOutputFolderCommandExecute()
+        {
+            var openFolderDialog = new CommonOpenFileDialog
+            {
+                IsFolderPicker = true,
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
+            };
+
+            if (openFolderDialog.ShowDialog() == CommonFileDialogResult.Cancel)
+                return;
+
+            OutputPath = openFolderDialog.FileName;
+        }
+
+        private void Merger_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
+
+        private void Merger_ProgressDownload(object sender, ProgressEventArgs e)
         {
             if (e.Percentage > ProgressValue)
                 ProgressBarViewModel.UpdateProgressValue(e.Percentage);
         }
 
-        private void Converter_FinishedDownload(object sender, FinishedEventArgs e)
+        private void Merger_FinishedDownload(object sender, FinishedEventArgs e)
         {
             CleanUp();
             var message = e.Cancelled
@@ -123,7 +259,7 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
+        private void Merger_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
@@ -131,9 +267,12 @@ namespace VideoEditorUi.ViewModels
 
         private void CleanUp()
         {
+            FileCollection.Clear();
+            FileViewModels.Clear();
+            FormatType = FormatEnum.avi;
+            OutputDifferentFormat = false;
+            OutputPath = null;
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Filename = "No file selected.";
-            FileLoaded = false;
         }
     }
 }

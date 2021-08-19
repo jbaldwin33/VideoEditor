@@ -143,8 +143,8 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
             Task.Run(() => formatter.FormatVideo());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => CurrentSpeed = e.NewValue;

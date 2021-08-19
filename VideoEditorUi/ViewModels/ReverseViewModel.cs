@@ -108,8 +108,8 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
             Task.Run(() => reverser.ReverseVideo());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         private void Reverser_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);

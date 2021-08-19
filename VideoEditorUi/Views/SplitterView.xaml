@@ -14,7 +14,10 @@
       <RowDefinition Height="1*" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
-    <CSVideoPlayer:VideoPlayerWPF Grid.Row="0" x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
+    <!--<controls:DefaultStackPanel x:Name="playerPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-250,0,0">
+      <CSVideoPlayer:VideoPlayerWPF x:Name="player" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
+    </controls:DefaultStackPanel>-->
+    <CSVideoPlayer:VideoPlayerWPF x:Name="player" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
     <controls:DefaultStackPanel Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>

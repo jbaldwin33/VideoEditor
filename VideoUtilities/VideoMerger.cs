@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace VideoUtilities
 {
@@ -26,16 +26,31 @@ namespace VideoUtilities
         private bool cancelled;
         private bool failed;
         private string lastData;
+        private string binaryPath;
+        private List<MetadataClass> metadataClasses = new List<MetadataClass>();
+        private TimeSpan totalDuration;
+        private readonly string tempFile;
 
-        public VideoMerger(string folder, string fileWithoutExtension, string extension)
+        public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outputPath, string outputExtension)
         {
             failed = false;
             cancelled = false;
-            var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
             if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
+            
+            GetMetadata(fileViewModels);
+            foreach (var meta in metadataClasses)
+                totalDuration += meta.format.duration;
 
-            output = $"{folder}\\{fileWithoutExtension}_formatted{extension}";
+            tempFile = Path.Combine(outputPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
+            using (var writeText = new StreamWriter(tempFile))
+            {
+                for (var i = 0; i < fileViewModels.Count; i++)
+                    writeText.WriteLine($"file '{fileViewModels[i].sourceFolder}\\{fileViewModels[i].filename}{fileViewModels[i].extension}'");
+            }
+
+            output = $"{outputPath}\\Merged_File{outputExtension}";
             startInfo = new ProcessStartInfo
             {
                 UseShellExecute = false,
@@ -45,20 +60,31 @@ namespace VideoUtilities
                 FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
                 CreateNoWindow = true
             };
+            var sb = new StringBuilder("-y ");
+            var ext = fileViewModels.First().extension;
+            if (fileViewModels.All(f => f.extension == ext))
+                sb.Append($"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
+            else
+            {
+                foreach (var (folder, filename, extension) in fileViewModels)
+                    sb.Append($"-i \"{folder}\\{filename}{extension}\" ");
+                sb.Append("-f lavfi -i anullsrc -filter_complex \"");
+                for (int i = 1; i < fileViewModels.Count; i++)
+                    sb.Append($"[{i}:v]scale={metadataClasses[0].streams[0].width}:{metadataClasses[0].streams[0].height}:force_original_aspect_ratio=decrease,pad={metadataClasses[0].streams[0].width}:{metadataClasses[0].streams[0].height}:(ow-iw)/2:(oh-ih)/2[v{i}]; ");
+                sb.Append("[0:v][0:a]");
+                for (int i = 1; i < fileViewModels.Count; i++)
+                    sb.Append($"[v{i}][{i}:a]");
+                sb.Append($"concat=n={fileViewModels.Count}:v=1:a=1[outv][outa]\" -map \"[outv]\" -map \"[outa]\" {(outputExtension == ".mp4" ? "-vsync 2 " : string.Empty)}\"{output}\"");
+            }
 
-            var sb = new StringBuilder($"-i {folder}\\{fileWithoutExtension}{extension} ");
-            //-filter_complex "[0:v]setpts=<1/x>*PTS[v];[0:a]atempo=<x>[a]" -map "[v]" -map "[a]"
-            
-
-            sb.Append($"{output}");
             startInfo.Arguments = sb.ToString();
         }
 
-        public void FormatVideo()
+        public void MergeVideo()
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Formatting video..." });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Merging videos..." });
                 process = new Process
                 {
                     EnableRaisingEvents = true,
@@ -85,7 +111,7 @@ namespace VideoUtilities
                 Thread.Sleep(1000);
             }
             File.Delete(output);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage});
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
@@ -111,7 +137,6 @@ namespace VideoUtilities
 
             if (outLine.Data.Contains("Duration: "))
             {
-                duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
                 return;
             }
 
@@ -123,7 +148,7 @@ namespace VideoUtilities
             }
 
             // fire the process event
-            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
+            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)totalDuration.TotalSeconds) * 100;
             if (perc < 0)
             {
                 Console.WriteLine("weird perc {0}", perc);
@@ -143,8 +168,35 @@ namespace VideoUtilities
             bool isFinished() => outLine.Data.Contains("global headers:") && outLine.Data.Contains("muxing overhead:");
         }
 
+        public void GetMetadata(List<(string folder, string name, string extension)> files)
+        {
+            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+            for (int i = 0; i < files.Count; i++)
+            {
+                var info = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = Path.Combine(binaryPath, "ffprobe.exe"),
+                    CreateNoWindow = true,
+                    Arguments = $"-v quiet -print_format json -select_streams v:0 -show_entries stream=width,height -show_entries format=duration -sexagesimal \"{files[i].folder}\\{files[i].name}{files[i].extension}\""
+                };
+                var process = new Process { StartInfo = info };
+                process.Start();
+                process.WaitForExit();
+
+                var result = process.StandardOutput;
+                process.Dispose();
+                using (var reader = new JsonTextReader(result))
+                    metadataClasses.Add(new JsonSerializer().Deserialize<MetadataClass>(reader));
+            }
+        }
+
         protected override void Process_Exited(object sender, EventArgs e)
         {
+            CleanUp();
             if (finished || failed || cancelled)
                 return;
 
@@ -156,6 +208,16 @@ namespace VideoUtilities
 
             finished = true;
             OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
+        }
+
+        private void CleanUp()
+        {
+            if (!process.HasExited)
+                process.Close();
+
+            Thread.Sleep(1000);
+            if (!string.IsNullOrEmpty(tempFile))
+                File.Delete(tempFile);
         }
 
         protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);

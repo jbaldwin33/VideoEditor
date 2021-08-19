@@ -157,8 +157,8 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
             Task.Run(() => converter.ConvertVideo());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
         
         private void FlipCommandExecute()
