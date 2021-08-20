@@ -21,19 +21,19 @@
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <controls:DefaultStackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <StackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
       <CSVideoPlayer:VideoPlayerWPF  x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="250" Width="200"/>
-    </controls:DefaultStackPanel>
+    </StackPanel>
     <controls:LargeTextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Text="No file loaded." Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
-    <controls:DefaultStackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
+    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
       <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-    </controls:DefaultStackPanel>
+    </StackPanel>
     <!--<controls:DefaultStackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical">
       <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
       <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
     </controls:DefaultStackPanel>-->
-    <controls:DefaultStackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
       <controls:MediumButton Command="{Binding ReverseCommand}" Content="{Binding ReverseLabel}"/>
-    </controls:DefaultStackPanel>
+    </StackPanel>
   </Grid>
 </framework:ViewBaseControl>

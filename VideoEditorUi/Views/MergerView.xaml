@@ -21,16 +21,16 @@
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <controls:DefaultStackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right">
+    <StackPanel Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right">
       <controls:SmallButton Content="Move up" Command="{Binding MoveUpCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
       <controls:SmallButton Content="Move down" Command="{Binding MoveDownCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
       <controls:SmallButton Content="Remove" Command="{Binding RemoveCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
+    </StackPanel>
+    <StackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" HorizontalAlignment="Center" VerticalAlignment="Center">
       <ListView ItemsSource="{Binding FileCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
         <ListView.ItemsPanel>
           <ItemsPanelTemplate>
-            <controls:DefaultStackPanel Orientation="Vertical"/>
+            <StackPanel Orientation="Vertical"/>
           </ItemsPanelTemplate>
         </ListView.ItemsPanel>
         <ListView.Template>
@@ -43,20 +43,20 @@
           </ControlTemplate>
         </ListView.Template>
       </ListView>
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
+    </StackPanel>
+    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
       <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="2" Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" IsEnabled="{Binding MultipleExtensions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+    </StackPanel>
+    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Vertical" HorizontalAlignment="Center" IsEnabled="{Binding MultipleExtensions, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
       <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanChangeExtension, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
       <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding CanChangeExtension, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
+    </StackPanel>
+    <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
       <controls:LargeTextBox Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20"/>
       <controls:LargeButton Content="Select output folder" Command="{Binding SelectOutputFolderCommand}"/>
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+    </StackPanel>
+    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
       <controls:MediumButton Command="{Binding MergeCommand}" Content="{Binding MergeLabel}"/>
-    </controls:DefaultStackPanel>
+    </StackPanel>
   </Grid>
 </framework:ViewBaseControl>

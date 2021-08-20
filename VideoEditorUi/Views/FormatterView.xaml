@@ -21,20 +21,20 @@
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <controls:DefaultStackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <StackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
       <CSVideoPlayer:VideoPlayerWPF  x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="250" Width="200"/>
-    </controls:DefaultStackPanel>
+    </StackPanel>
     <controls:LargeTextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Text="No file loaded." Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
-    <controls:DefaultStackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
+    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
       <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="2" Grid.Column="1" Grid.RowSpan="2" Orientation="Vertical" HorizontalAlignment="Center">
+    </StackPanel>
+    <StackPanel Grid.Row="2" Grid.Column="1" Grid.RowSpan="2" Orientation="Vertical" HorizontalAlignment="Center">
       <controls:MediumTextBlock Text="Video speed"/>
       <Slider HorizontalAlignment="Center" Name="speedSlider" Width="170" Minimum="0.25" Maximum="2" TickPlacement="BottomRight" TickFrequency="0.25" IsSnapToTickEnabled="True"/>
       <Label Content="{Binding SpeedLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalContentAlignment="Center" Width="170" />
-    </controls:DefaultStackPanel>
-    <controls:DefaultStackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+    </StackPanel>
+    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
       <controls:MediumButton Command="{Binding FormatCommand}" Content="{Binding FormatLabel}" IsEnabled="{Binding CanFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-    </controls:DefaultStackPanel>
+    </StackPanel>
   </Grid>
 </framework:ViewBaseControl>
