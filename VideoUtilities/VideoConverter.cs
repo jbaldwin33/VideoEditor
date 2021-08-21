@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using MVVMFramework;
 
 namespace VideoUtilities
 {
@@ -65,7 +66,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Converting video..." });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.ConvertingLabel });
                 process = new Process
                 {
                     EnableRaisingEvents = true,

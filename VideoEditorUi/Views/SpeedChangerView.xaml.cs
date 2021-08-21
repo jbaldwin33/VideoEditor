@@ -7,15 +7,15 @@ namespace VideoEditorUi.Views
     /// <summary>
     /// Interaction logic for ConverterView.xaml
     /// </summary>
-    public partial class FormatterView : ViewBaseControl
+    public partial class SpeedChangerView : ViewBaseControl
     {
-        private readonly FormatterViewModel viewModel;
+        private readonly SpeedChangerViewModel viewModel;
 
-        public FormatterView() : base(Navigator.Instance.CurrentViewModel)
+        public SpeedChangerView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
             Utilities.UtilityClass.InitializePlayer(player);
-            viewModel = Navigator.Instance.CurrentViewModel as FormatterViewModel;
+            viewModel = Navigator.Instance.CurrentViewModel as SpeedChangerViewModel;
             viewModel.Player = player;
             viewModel.SpeedSlider = speedSlider;
             viewModel.SetEvents();

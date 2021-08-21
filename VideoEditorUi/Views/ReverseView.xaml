@@ -5,35 +5,29 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
              xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
-             xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
+             xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
   <Grid>
     <Grid.RowDefinitions>
-      <RowDefinition Height="4*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
+      <RowDefinition Height="1*"/>
       <RowDefinition Height="*"/>
     </Grid.RowDefinitions>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
-    <StackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
-      <CSVideoPlayer:VideoPlayerWPF  x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="250" Width="200"/>
-    </StackPanel>
-    <controls:LargeTextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Text="No file loaded." Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
-    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
-      <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-    </StackPanel>
-    <!--<controls:DefaultStackPanel Grid.Row="2" Grid.Column="0" Orientation="Vertical">
-      <CheckBox Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-      <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-    </controls:DefaultStackPanel>-->
-    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-      <controls:MediumButton Command="{Binding ReverseCommand}" Content="{Binding ReverseLabel}"/>
+    <cSVideoPlayer:VideoPlayerWPF Grid.Row="0" x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center"/>
+    <controls:LargeTextBlock Grid.Row="0" HorizontalAlignment="Center" Text="{Binding NoFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
+    <StackPanel Grid.Row="1" HorizontalAlignment="Center">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center">
+          <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center">
+          <controls:MediumButton Command="{Binding ReverseCommand}" Content="{Binding ReverseLabel}"/>
+        </StackPanel>
+      </Grid>
     </StackPanel>
   </Grid>
 </framework:ViewBaseControl>

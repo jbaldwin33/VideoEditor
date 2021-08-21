@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
+using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
@@ -56,8 +56,9 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand ReverseCommand => reverseCommand ?? (reverseCommand = new RelayCommand(ReverseCommandExecute, ReverseCommandCanExecute));
 
-        public string ReverseLabel => "Reverse";
-        public string SelectFileLabel => "Click to select a file...";
+        public string ReverseLabel => Translatables.ReverseLabel;
+        public string SelectFileLabel => Translatables.SelectFileLabel;
+        public string NoFileLabel => Translatables.NoFileSelected;
 
         public ReverseViewModel()
         {
@@ -86,7 +87,7 @@ namespace VideoEditorUi.ViewModels
 
         private void ReverseCommandExecute()
         {
-            var messageArgs = new MessageBoxEventArgs("Reversing a video uses a lot of computer resources and can be time consuming. If you are going to reverse a video, make sure of the following:\n  1) It is best to not have other big programs running.\n  2) Video files should not exceed 1 minute.\nAre you sure you want to continue?", "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var messageArgs = new MessageBoxEventArgs(Translatables.ReverseVideoMessage, MessageBoxEventArgs.MessageTypeEnum.Warning, MessageBoxButton.YesNo, MessageBoxImage.Warning);
             ShowMessage(messageArgs);
             if (messageArgs.Result == MessageBoxResult.No)
                 return;
@@ -105,7 +106,7 @@ namespace VideoEditorUi.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
             Task.Run(() => reverser.ReverseVideo());
@@ -124,20 +125,20 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"Operation cancelled. {e.Message}"
-                : "Video successfully reversed.";
-            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
+                ? $"{Translatables.OperationCancelled} {e.Message}"
+                : Translatables.VideoSuccessfullyReversed;
+            ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Reverser_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void Reverser_MessageHandler(object sender, MessageEventArgs e)
         {
-            var args = new MessageBoxEventArgs(e.Message, "Warning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Warning, MessageBoxButton.YesNo, MessageBoxImage.Warning);
             ShowMessage(args);
             e.Result = args.Result == MessageBoxResult.Yes;
         }
@@ -145,7 +146,7 @@ namespace VideoEditorUi.ViewModels
         private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Filename = "No file selected.";
+            Filename = Translatables.NoFileSelected;
             FileLoaded = false;
         }
     }

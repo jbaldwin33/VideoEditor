@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using MVVMFramework;
 
 namespace VideoUtilities
 {
@@ -69,10 +70,11 @@ namespace VideoUtilities
                 foreach (var (folder, filename, extension) in fileViewModels)
                     sb.Append($"-i \"{folder}\\{filename}{extension}\" ");
                 sb.Append("-f lavfi -i anullsrc -filter_complex \"");
-                for (int i = 1; i < fileViewModels.Count; i++)
-                    sb.Append($"[{i}:v]scale={metadataClasses[0].streams[0].width}:{metadataClasses[0].streams[0].height}:force_original_aspect_ratio=decrease,pad={metadataClasses[0].streams[0].width}:{metadataClasses[0].streams[0].height}:(ow-iw)/2:(oh-ih)/2[v{i}]; ");
-                sb.Append("[0:v][0:a]");
-                for (int i = 1; i < fileViewModels.Count; i++)
+                for (int i = 0; i < fileViewModels.Count; i++)
+                    sb.Append(
+                        $"[{i}:v]scale={metadataClasses.Max(m => m.streams[0].width)}:{metadataClasses.Max(m => m.streams[0].height)}:force_original_aspect_ratio=decrease,setsar=1," +
+                        $"pad={metadataClasses.Max(m => m.streams[0].width)}:{metadataClasses.Max(m => m.streams[0].height)}:-1:-1:color=black[v{i}]; ");
+                for (int i = 0; i < fileViewModels.Count; i++)
                     sb.Append($"[v{i}][{i}:a]");
                 sb.Append($"concat=n={fileViewModels.Count}:v=1:a=1[outv][outa]\" -map \"[outv]\" -map \"[outa]\" {(outputExtension == ".mp4" ? "-vsync 2 " : string.Empty)}\"{output}\"");
             }
@@ -84,7 +86,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Merging videos..." });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.MergingLabel });
                 process = new Process
                 {
                     EnableRaisingEvents = true,

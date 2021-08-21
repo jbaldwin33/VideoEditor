@@ -6,13 +6,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Media;
 using Microsoft.Win32;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using VideoUtilities.Enums;
+using MVVMFramework;
 using static VideoUtilities.Enums.Enums;
 
 namespace VideoEditorUi.ViewModels
@@ -124,8 +123,13 @@ namespace VideoEditorUi.ViewModels
 
         public RelayCommand SelectOutputFolderCommand => selectOutputFolderCommand ?? (selectOutputFolderCommand = new RelayCommand(SelectOutputFolderCommandExecute, () => true));
 
-        public string MergeLabel => "Merge";
-        public string SelectFileLabel => "Click to select a file...";
+        public string MergeLabel => Translatables.MergeLabel;
+        public string SelectFileLabel => Translatables.SelectFileLabel;
+        public string MoveUpLabel => Translatables.MoveUpLabel;
+        public string MoveDownLabel => Translatables.MoveDownLabel;
+        public string RemoveLabel => Translatables.RemoveLabel;
+        public string OutputFormatLabel => Translatables.OutputFormatLabel;
+        public string OutputFolderLabel => Translatables.OutputFolderLabel;
         private static readonly object _lock = new object();
 
         public MergerViewModel()
@@ -194,7 +198,7 @@ namespace VideoEditorUi.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
             Task.Run(() => merger.MergeVideo());
@@ -254,15 +258,15 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"Operation cancelled. {e.Message}"
-                : "Video successfully formatted.";
-            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
+                ? $"{Translatables.OperationCancelled} {e.Message}"
+                : Translatables.VideoSuccessfullyMerged;
+            ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Merger_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void CleanUp()

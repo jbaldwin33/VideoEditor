@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using MVVMFramework;
 
 namespace VideoUtilities
 {
@@ -67,7 +68,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Trimming video into sections..." });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.TrimmingSectionsLabel });
                 trimProcess = new Process
                 {
                     EnableRaisingEvents = true,
@@ -109,7 +110,7 @@ namespace VideoUtilities
 
             reverseStartInfo.Arguments = sb.ToString();
 
-            OnDownloadStarted(new DownloadStartedEventArgs { Label = "Reversing sections..." });
+            OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.ReversingSectionsLabel });
             reverseProcess = new Process
             {
                 EnableRaisingEvents = true,
@@ -133,7 +134,7 @@ namespace VideoUtilities
                 CreateNoWindow = true
             };
 
-            OnDownloadStarted(new DownloadStartedEventArgs { Label = "Combining sections..." });
+            OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.CombiningSectionsLabel });
             var tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
             using (var writeText = new StreamWriter(tempFile))
             {
@@ -167,7 +168,7 @@ namespace VideoUtilities
             var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
 
             if (usedMemoryPercentage > 95)
-                CancelOperation($"RAM usage exceeds {usedMemoryPercentage}%.");
+                CancelOperation($"{Translatables.RamUsageLabel} {usedMemoryPercentage:00}%.");
 
             OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
             // extract the percentage from process output
@@ -190,7 +191,7 @@ namespace VideoUtilities
                 duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
                 if (duration > TimeSpan.FromMinutes(1))
                 {
-                    var args = new MessageEventArgs { Message = "Video file exceeds 1 minute. If you continue it is possible your computer will run out of memory during the process and freeze. Do you still want to continue?" };
+                    var args = new MessageEventArgs { Message = Translatables.VideoTooBigMessage };
                     OnShowMessage(args);
                     if (!args.Result)
                         CancelOperation("");
@@ -207,10 +208,6 @@ namespace VideoUtilities
 
             // fire the process event
             var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
-            if (reverseProcess != null)
-            {
-
-            }
             if (perc < 0)
             {
                 Console.WriteLine("weird perc {0}", perc);

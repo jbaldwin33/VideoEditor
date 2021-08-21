@@ -1,4 +1,5 @@
 ﻿using System;
+using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 
@@ -24,7 +25,7 @@ namespace VideoEditorUi.ViewModels
 
         public RelayCommand CancelCommand => cancelCommand ?? (cancelCommand = new RelayCommand(CancelCommandExecute, () => true));
 
-        public string CancelLabel => "Cancel";
+        public string CancelLabel => Translatables.CancelLabel;
 
         public event EventHandler OnCancelledHandler;
 

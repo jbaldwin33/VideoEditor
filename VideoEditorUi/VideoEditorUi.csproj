@@ -53,6 +53,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>bin\Debug\CSVideoPlayer.dll</HintPath>
     </Reference>
+    <Reference Include="FFmpeg.AutoGen, Version=4.2.2.1, Culture=neutral, PublicKeyToken=9b7632533a381715, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\FFmpeg.AutoGen.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -91,7 +95,7 @@
     <Compile Include="ViewModels\MergerViewModel.cs" />
     <Compile Include="ViewModels\ReverseViewModel.cs" />
     <Compile Include="Utilities\UtilityClass.cs" />
-    <Compile Include="ViewModels\FormatterViewModel.cs" />
+    <Compile Include="ViewModels\SpeedChangerViewModel.cs" />
     <Compile Include="ViewModels\ConverterViewModel.cs" />
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\ProgressBarViewModel.cs" />
@@ -102,8 +106,8 @@
     <Compile Include="Views\ReverseView.xaml.cs">
       <DependentUpon>ReverseView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\FormatterView.xaml.cs">
-      <DependentUpon>FormatterView.xaml</DependentUpon>
+    <Compile Include="Views\SpeedChangerView.xaml.cs">
+      <DependentUpon>SpeedChangerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ConverterView.xaml.cs">
       <DependentUpon>ConverterView.xaml</DependentUpon>
@@ -126,7 +130,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\FormatterView.xaml">
+    <Page Include="Views\SpeedChangerView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using MVVMFramework;
 
 namespace VideoUtilities
 {
@@ -86,7 +87,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Splitting video..." });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SplittingLabel });
                 process = new Process
                 {
                     EnableRaisingEvents = true,
@@ -186,7 +187,7 @@ namespace VideoUtilities
 
         private void CombineSections()
         {
-            OnDownloadStarted(new DownloadStartedEventArgs { Label = "Combining sections into one video..." });
+            OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.CombiningSectionsLabel });
             tempfile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
             File.WriteAllLines(tempfile, filenamesWithExtra);
             combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";

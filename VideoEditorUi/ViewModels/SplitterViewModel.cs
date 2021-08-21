@@ -2,7 +2,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -11,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using CSVideoPlayer;
+using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
@@ -31,7 +31,7 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand endCommand;
         private RelayCommand splitCommand;
         private RelayCommand selectFileCommand;
-        private CSVideoPlayer.VideoPlayerWPF player;
+        private VideoPlayerWPF player;
         private Slider slider;
         private TimeSpan startTime;
         private TimeSpan endTime;
@@ -196,15 +196,23 @@ namespace VideoEditorUi.ViewModels
         }
 
         public Action<TimeSpan> PositionChanged;
-        public string PlayLabel => "Play";
-        public string SeekBackLabel => "Back (5 sec.)";
-        public string SeekForwardLabel => "Forward (5 sec.)";
-        public string PauseLabel => "Pause";
-        public string StopLabel => "Stop";
-        public string StartLabel => "Start time";
-        public string EndLabel => "End time";
-        public string SplitLabel => "Split";
 
+        #region  Labels
+
+        public string PlayLabel => Translatables.PlayLabel;
+        public string SeekBackLabel => Translatables.SeekBackLabel;
+        public string SeekForwardLabel => Translatables.SeekForwardLabel;
+        public string PauseLabel => Translatables.PauseLabel;
+        public string StopLabel => Translatables.StopLabel;
+        public string StartLabel => Translatables.StartTimeLabel;
+        public string EndLabel => Translatables.EndTimeLabel;
+        public string SplitLabel => Translatables.SplitLabel;
+        public string SelectFileLabel => Translatables.SelectFileLabel;
+        public string CombineSectionsLabel => Translatables.CombineSectionsQuestion;
+        public string OutputFormatLabel => Translatables.OutputFormatLabel;
+        public string ReEncodeQuestionLabel => Translatables.ReEncodeQuestion;
+        public string ReEncodeComment => Translatables.ReEncodeComment;
+        #endregion
         public RelayCommand SeekBackCommand => seekBackCommand ?? (seekBackCommand = new RelayCommand(SeekBackCommandExecute, () => FileLoaded));
         public RelayCommand SeekForwardCommand => seekForwardCommand ?? (seekForwardCommand = new RelayCommand(SeekForwardCommandExecute, () => FileLoaded));
         public RelayCommand PlayCommand => playCommand ?? (playCommand = new RelayCommand(PlayCommandExecute, () => true));
@@ -230,7 +238,7 @@ namespace VideoEditorUi.ViewModels
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             Times.CollectionChanged += Times_CollectionChanged;
-            
+
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
         }
@@ -239,7 +247,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            var args = new MessageBoxEventArgs("Do you want to delete this section?", "Confirmation", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var args = new MessageBoxEventArgs(Translatables.DeleteSectionConfirm, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
             if (args.Result == MessageBoxResult.Yes)
             {
@@ -283,7 +291,7 @@ namespace VideoEditorUi.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
             Task.Run(() => splitter.Split());
@@ -302,7 +310,7 @@ namespace VideoEditorUi.ViewModels
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
-                ShowMessage(new MessageBoxEventArgs("End time must be after the Start time. Please select the Start time again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                ShowMessage(new MessageBoxEventArgs(Translatables.EndTimeAfterStartTime, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
             EndTimeSet = true;
@@ -375,15 +383,15 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"Operation cancelled. {e.Message}"
-                : "Video successfully split.";
-            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
+                ? $"{Translatables.OperationCancelled} {e.Message}"
+                : Translatables.VideoSuccessfullySplit;
+            ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             CleanUp();
-            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void CleanUp()

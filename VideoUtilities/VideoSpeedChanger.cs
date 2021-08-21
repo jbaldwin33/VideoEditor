@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using MVVMFramework;
 
 namespace VideoUtilities
 {
-    public class VideoFormatter : BaseClass
+    public class VideoSpeedChanger : BaseClass
     {
         private readonly string output;
         private readonly ProcessStartInfo startInfo;
@@ -27,7 +24,7 @@ namespace VideoUtilities
         private bool failed;
         private string lastData;
 
-        public VideoFormatter(string folder, string fileWithoutExtension, string extension, double speed)
+        public VideoSpeedChanger(string folder, string fileWithoutExtension, string extension, double speed)
         {
             failed = false;
             cancelled = false;
@@ -46,19 +43,14 @@ namespace VideoUtilities
                 CreateNoWindow = true
             };
 
-            var sb = new StringBuilder($"-i {folder}\\{fileWithoutExtension}{extension} ");
-            //-filter_complex "[0:v]setpts=<1/x>*PTS[v];[0:a]atempo=<x>[a]" -map "[v]" -map "[a]"
-            sb.Append($"-filter_complex \"[0:v]setpts={1/speed}*PTS[v];[0:a]atempo={speed}[a]\" -map \"[v]\" -map \"[a]\" ");
-
-            sb.Append($"{output}");
-            startInfo.Arguments = sb.ToString();
+            startInfo.Arguments = $"-y -i {folder}\\{fileWithoutExtension}{extension} -filter_complex \"[0:v]setpts={1/speed}*PTS[v];[0:a]atempo={speed}[a]\" -map \"[v]\" -map \"[a]\" {output}";
         }
 
-        public void FormatVideo()
+        public void ChangeSpeed()
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = "Formatting video..." });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.ChangingLabel });
                 process = new Process
                 {
                     EnableRaisingEvents = true,

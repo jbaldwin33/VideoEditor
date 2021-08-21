@@ -4,13 +4,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
+using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class FormatterViewModel : ViewModel
+    public class SpeedChangerViewModel : ViewModel
     {
         private CSVideoPlayer.VideoPlayerWPF player;
         private bool changeSpeed;
@@ -25,7 +26,7 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand selectFileCommand;
         private RelayCommand formatCommand;
         private ProgressBarViewModel progressBarViewModel;
-        private VideoFormatter formatter;
+        private VideoSpeedChanger formatter;
 
         public CSVideoPlayer.VideoPlayerWPF Player
         {
@@ -90,10 +91,12 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, FormatCommandCanExecute));
 
-        public string FormatLabel => "Format";
-        public string SelectFileLabel => "Click to select a file...";
+        public string FormatLabel => Translatables.FormatLabel;
+        public string SelectFileLabel => Translatables.SelectFileLabel;
+        public string NoFileLabel => Translatables.NoFileSelected;
+        public string VideoSpeedLabel => Translatables.VideoSpeedLabel;
 
-        public FormatterViewModel()
+        public SpeedChangerViewModel()
         {
             SpeedLabel = "1x";
         }
@@ -126,7 +129,7 @@ namespace VideoEditorUi.ViewModels
 
         private void FormatCommandExecute()
         {
-            formatter = new VideoFormatter(sourceFolder, Filename, extension, CurrentSpeed);
+            formatter = new VideoSpeedChanger(sourceFolder, Filename, extension, CurrentSpeed);
             formatter.StartedDownload += Converter_DownloadStarted;
             formatter.ProgressDownload += Converter_ProgressDownload;
             formatter.FinishedDownload += Converter_FinishedDownload;
@@ -140,10 +143,10 @@ namespace VideoEditorUi.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => formatter.FormatVideo());
+            Task.Run(() => formatter.ChangeSpeed());
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -161,21 +164,21 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"Operation cancelled. {e.Message}"
-                : "Video successfully formatted.";
-            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
+                ? $"{Translatables.OperationCancelled} {e.Message}"
+                : Translatables.VideoSpeedSuccessfullyChanged;
+            ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Filename = "No file selected.";
+            Filename = Translatables.NoFileSelected;
             ChangeSpeed = false;
             CurrentSpeed = 1;
             Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);

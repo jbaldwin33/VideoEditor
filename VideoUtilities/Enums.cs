@@ -32,6 +32,5 @@ namespace VideoUtilities.Enums
             S180R,
             S270R
         }
-
     }
 }

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
-        xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
+        xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
         xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         mc:Ignorable="d"
         Height="580" Width="800">
@@ -14,10 +14,7 @@
       <RowDefinition Height="1*" />
       <RowDefinition Height="*" />
     </Grid.RowDefinitions>
-    <!--<controls:DefaultStackPanel x:Name="playerPanel" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-250,0,0">
-      <CSVideoPlayer:VideoPlayerWPF x:Name="player" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
-    </controls:DefaultStackPanel>-->
-    <CSVideoPlayer:VideoPlayerWPF x:Name="player" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
+    <cSVideoPlayer:VideoPlayerWPF x:Name="player" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" MediaOpened="Player_MediaOpened" MediaEnded="Player_MediaEnded"/>
     <StackPanel Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>
@@ -45,18 +42,18 @@
           </ItemsControl>
         </Grid>
         <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
-          <controls:MediumButton Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}"/>
-          <controls:ExtraSmallButton Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
-          <controls:MediumButton Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}"/>
-          <controls:ExtraSmallButton Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
-          <controls:ExtraSmallButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
-          <controls:LargeButton Command="{Binding SelectFileCommand}" Content="Click to select a file..." FontSize="12"/>
+          <controls:DefaultButton Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}"/>
+          <controls:DefaultButton Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
+          <controls:DefaultButton Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}"/>
+          <controls:DefaultButton Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
+          <controls:DefaultButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
+          <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" Width="200">
-          <CheckBox Margin="0,0,0,10" Content="Combine sections into one video?" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-          <CheckBox Margin="0,0,0,10" Content="Output to a different format?" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-          <ComboBox Margin="0,0,0,10" IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-          <CheckBox Content="Re-encode video?*" IsChecked="{Binding ReEncodeVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}"/>
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" Width="230">
+          <CheckBox Content="{Binding CombineSectionsLabel}" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <CheckBox Content="{Binding OutputFormatLabel}" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+          <CheckBox Content="{Binding ReEncodeQuestionLabel}" IsChecked="{Binding ReEncodeVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}"/>
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" >
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
@@ -67,7 +64,7 @@
           <controls:LargeTextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2">
-          <controls:LargeTextBlock  Height="140" Width="230" FontSize="13" TextWrapping="Wrap" Text="*Re-encoding is more time-consuming, but the start and end times will be more accurate and it will prevent any black frames at the beginning and end of the clips."></controls:LargeTextBlock>
+          <controls:LargeTextBlock  Height="140" Width="230" FontSize="13" TextWrapping="Wrap" Text="{Binding ReEncodeComment}"/>
         </StackPanel>
       </Grid>
     </StackPanel>

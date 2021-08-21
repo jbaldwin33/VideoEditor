@@ -9,15 +9,14 @@
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/MVVMFramework;component/Controls/ControlStyles.xaml" />
       </ResourceDictionary.MergedDictionaries>
-      <Style TargetType="Rectangle"/>
       <DataTemplate DataType="{x:Type viewModels:SplitterViewModel}">
         <views:SplitterView/>
       </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
         <views:ConverterView/>
       </DataTemplate>
-      <DataTemplate DataType="{x:Type viewModels:FormatterViewModel}">
-        <views:FormatterView/>
+      <DataTemplate DataType="{x:Type viewModels:SpeedChangerViewModel}">
+        <views:SpeedChangerView/>
       </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:ReverseViewModel}">
         <views:ReverseView/>

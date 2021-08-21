@@ -2,10 +2,12 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Security.RightsManagement;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using MVVMFramework;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.ViewModels;
 using VideoUtilities;
@@ -102,13 +104,13 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
         public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
 
-        public string SelectFileLabel => "Click to select a file...";
-        public string ConvertLabel => "Convert";
-        public string FlipLabel => "Flip";
-        public string RotateLabel => "Rotate";
+        public string SelectFileLabel => Translatables.SelectFileLabel;
+        public string ConvertLabel => Translatables.ConvertLabel;
+        public string FlipLabel => Translatables.FlipLabel;
+        public string RotateLabel => Translatables.RotateLabel;
+        public string OutputFormatLabel => Translatables.OutputFormatLabel;
+        public string NoFileLabel => Translatables.NoFileSelected;
         public StackPanel VideoStackPanel { get; set; }
-        
-
         public Action<double> SpeedChanged;
 
         public ConverterViewModel()
@@ -154,7 +156,7 @@ namespace VideoEditorUi.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
             Task.Run(() => converter.ConvertVideo());
@@ -225,22 +227,22 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"Operation cancelled. {e.Message}"
-                : "Video successfully converted.";
-            ShowMessage(new MessageBoxEventArgs(message, "Information", MessageBoxButton.OK, MessageBoxImage.Information));
+                ? $"{Translatables.OperationCancelled} {e.Message}"
+                : Translatables.VideoSuccessfullyConverted;
+            ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"An error has occurred. Please close and reopen the program. Check your task manager and make sure any remaining \"ffmpeg.exe\" tasks are ended.\n\n{e.Error}", "Error", MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             FormatType = FormatEnum.avi;
-            Filename = "No file selected.";
+            Filename = Translatables.NoFileSelected;
             OutputDifferentFormat = false;
             FileLoaded = false;
         }
