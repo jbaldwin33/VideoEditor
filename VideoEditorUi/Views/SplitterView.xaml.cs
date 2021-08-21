@@ -17,6 +17,8 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class SplitterView : ViewBaseControl
     {
+        private Thumb _thumb;
+        private Thumb thumb => _thumb ?? (slider.Template.FindName("PART_Track", slider) as Track)?.Thumb;
         private DispatcherTimer timer;
         private bool isDragging;
         private SplitterViewModel viewModel;
@@ -35,10 +37,18 @@ namespace VideoEditorUi.Views
             player.MediaOpened += Player_MediaOpened;
             player.MediaEnded += Player_MediaEnded;
             slider.ApplyTemplate();
-            var thumb = (slider.Template.FindName("PART_Track", slider) as Track).Thumb;
             thumb.MouseEnter += Thumb_MouseEnter;
         }
-        
+
+        public override void ViewBaseControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            player.MediaOpened -= Player_MediaOpened;
+            player.MediaEnded -= Player_MediaEnded;
+            timer.Tick -= timer_Tick;
+            thumb.MouseEnter -= Thumb_MouseEnter;
+            base.ViewBaseControl_Unloaded(sender, e);
+        }
+
         //private void CreatePlayer()
         //{
             
@@ -74,7 +84,7 @@ namespace VideoEditorUi.Views
             viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
         }
 
-        private void Player_MediaOpened(object sender, CSVideoPlayer.MediaOpenedEventArgs e)
+        private void Player_MediaOpened(object sender, MediaOpenedEventArgs e)
         {
             var ts = player.NaturalDuration();
             slider.Maximum = ts.TotalMilliseconds;

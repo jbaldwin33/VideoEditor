@@ -60,7 +60,7 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref slider, value);
         }
 
-        public CSVideoPlayer.VideoPlayerWPF Player
+        public VideoPlayerWPF Player
         {
             get => player;
             set => SetProperty(ref player, value);
@@ -241,6 +241,12 @@ namespace VideoEditorUi.ViewModels
 
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(Times, _lock);
+        }
+
+        public override void OnUnloaded()
+        {
+            Times.CollectionChanged -= Times_CollectionChanged;
+            base.OnUnloaded();
         }
 
         private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = Times.Count > 1;

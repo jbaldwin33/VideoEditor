@@ -101,10 +101,17 @@ namespace VideoEditorUi.ViewModels
             SpeedLabel = "1x";
         }
 
-        public void SetEvents()
+        public override void OnLoaded()
         {
             SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
             SpeedSlider.Value = 1;
+            base.OnLoaded();
+        }
+
+        public override void OnUnloaded()
+        {
+            SpeedSlider.ValueChanged -= SpeedSlider_ValueChanged;
+            base.OnUnloaded();
         }
 
         private bool FormatCommandCanExecute() => FileLoaded && CanFormat;

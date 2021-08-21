@@ -144,6 +144,12 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(FileViewModels, _lock);
         }
 
+        public override void OnUnloaded()
+        {
+            FileCollection.CollectionChanged -= FileCollection_CollectionChanged;
+            base.OnUnloaded();
+        }
+
         private void FileCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
             MultipleExtensions = FileViewModels.Any(f => f.extension != FileViewModels[0].extension);
