@@ -7,6 +7,7 @@ using Microsoft.Win32;
 using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
@@ -96,20 +97,20 @@ namespace VideoEditorUi.ViewModels
         public string NoFileLabel => Translatables.NoFileSelected;
         public string VideoSpeedLabel => Translatables.VideoSpeedLabel;
 
-        public SpeedChangerViewModel()
-        {
-            SpeedLabel = "1x";
-        }
+        public SpeedChangerViewModel() { }
 
         public override void OnLoaded()
         {
             SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
             SpeedSlider.Value = 1;
+            SpeedLabel = "1x";
             base.OnLoaded();
         }
 
         public override void OnUnloaded()
         {
+            UtilityClass.ClosePlayer(player);
+            FileLoaded = false;
             SpeedSlider.ValueChanged -= SpeedSlider_ValueChanged;
             base.OnUnloaded();
         }

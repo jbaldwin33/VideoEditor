@@ -23,7 +23,7 @@ namespace VideoUtilities
         private readonly string extension;
         private readonly bool outputDifferentFormat;
         private readonly string outputFormat;
-        private readonly ObservableCollection<(TimeSpan, TimeSpan)> times;
+        private readonly List<Tuple<TimeSpan, TimeSpan, string>> times;
         private readonly bool combineVideo;
         private readonly ProcessStartInfo startInfo;
         private readonly List<string> filenamesWithExtra = new List<string>();
@@ -38,7 +38,7 @@ namespace VideoUtilities
         private bool combineFinished;
         private string combinedFile;
 
-        public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, ObservableCollection<(TimeSpan, TimeSpan)> t, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
+        public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, List<Tuple<TimeSpan, TimeSpan, string>> t, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             cancelled = false;
             splitFinished = false;

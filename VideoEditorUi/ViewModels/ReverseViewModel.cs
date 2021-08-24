@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
@@ -63,6 +64,13 @@ namespace VideoEditorUi.ViewModels
         public ReverseViewModel()
         {
             
+        }
+
+        public override void OnUnloaded()
+        {
+            UtilityClass.ClosePlayer(player);
+            FileLoaded = false;
+            base.OnUnloaded();
         }
 
         private bool ReverseCommandCanExecute() => FileLoaded;

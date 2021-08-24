@@ -100,6 +100,9 @@
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\ProgressBarViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
+    <Compile Include="Views\ChapterTitleDialogView.xaml.cs">
+      <DependentUpon>ChapterTitleDialogView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\MergerView.xaml.cs">
       <DependentUpon>MergerView.xaml</DependentUpon>
     </Compile>
@@ -122,6 +125,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </ApplicationDefinition>
+    <Page Include="Views\ChapterTitleDialogView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\MergerView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

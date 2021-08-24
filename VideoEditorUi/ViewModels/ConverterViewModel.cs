@@ -2,7 +2,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.IO;
-using System.Security.RightsManagement;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,6 +9,7 @@ using System.Windows.Media;
 using MVVMFramework;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.ViewModels;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 using static VideoUtilities.Enums.Enums;
 
@@ -111,13 +111,22 @@ namespace VideoEditorUi.ViewModels
         public string OutputFormatLabel => Translatables.OutputFormatLabel;
         public string NoFileLabel => Translatables.NoFileSelected;
         public StackPanel VideoStackPanel { get; set; }
-        public Action<double> SpeedChanged;
 
-        public ConverterViewModel()
+        public ConverterViewModel() { }
+
+        public override void OnLoaded()
         {
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             FlipScale = 1;
+            base.OnLoaded();
+        }
+
+        public override void OnUnloaded()
+        {
+            UtilityClass.ClosePlayer(player);
+            FileLoaded = false;
+            base.OnUnloaded();
         }
 
         private bool ConvertCommandCanExecute() => FileLoaded;
@@ -177,9 +186,6 @@ namespace VideoEditorUi.ViewModels
             transformGroup.Children.Add(scaleTransform);
             VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
             VideoStackPanel.LayoutTransform = transformGroup;
-
-            //player.RotateNumber(RotateNumber);
-            //player.Flip(FlipScale);
         }
 
         private void RotateCommandExecute()
@@ -193,9 +199,6 @@ namespace VideoEditorUi.ViewModels
             transformGroup.Children.Add(scaleTransform);
             VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
             VideoStackPanel.LayoutTransform = transformGroup;
-
-            //player.Flip(FlipScale);
-            //player.RotateNumber(RotateNumber);
         }
 
         private ScaleRotate ConvertToEnum()

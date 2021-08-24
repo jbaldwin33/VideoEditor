@@ -132,7 +132,23 @@ namespace VideoEditorUi.ViewModels
         public string OutputFolderLabel => Translatables.OutputFolderLabel;
         private static readonly object _lock = new object();
 
-        public MergerViewModel()
+        public MergerViewModel() { }
+
+        public override void OnLoaded()
+        {
+            Initialize();
+            base.OnLoaded();
+        }
+
+        public override void OnUnloaded()
+        {
+            FileCollection.CollectionChanged -= FileCollection_CollectionChanged;
+            FileCollection.Clear();
+            FileViewModels.Clear();
+            base.OnUnloaded();
+        }
+
+        private void Initialize()
         {
             FileCollection = new ObservableCollection<string>();
             FileViewModels = new List<(string, string, string)>();
@@ -142,12 +158,6 @@ namespace VideoEditorUi.ViewModels
 
             BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(FileViewModels, _lock);
-        }
-
-        public override void OnUnloaded()
-        {
-            FileCollection.CollectionChanged -= FileCollection_CollectionChanged;
-            base.OnUnloaded();
         }
 
         private void FileCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -163,7 +173,7 @@ namespace VideoEditorUi.ViewModels
                 CanChangeExtension = true;
         }
 
-        private bool MergeCommandCanExecute() => FileCollection.Count > 1;
+        private bool MergeCommandCanExecute() => FileCollection?.Count > 1;
 
         private void SelectFileCommandExecute()
         {

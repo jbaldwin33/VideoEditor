@@ -7,15 +7,15 @@
         xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
         xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         mc:Ignorable="d"
-        Height="580" Width="800">
+        d:DesignHeight="480" d:DesignWidth="800">
 
   <Grid Margin="10">
     <Grid.RowDefinitions>
-      <RowDefinition Height="1*" />
-      <RowDefinition Height="*" />
+      <RowDefinition Height="1.5*" />
+      <RowDefinition Height="1.2*" />
     </Grid.RowDefinitions>
-    <cSVideoPlayer:VideoPlayerWPF x:Name="player" Height="250" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center"/>
-    <StackPanel Grid.Row="1">
+    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center"/>
+    <StackPanel Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
@@ -28,8 +28,8 @@
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Slider HorizontalAlignment="Left" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Name="grid" HorizontalAlignment="Left">
+        <Slider Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,35">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
@@ -49,22 +49,23 @@
           <controls:DefaultButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
           <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" Width="230">
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding AddChapters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}">
           <CheckBox Content="{Binding CombineSectionsLabel}" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           <CheckBox Content="{Binding OutputFormatLabel}" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
           <ComboBox IsEditable="False" IsReadOnly="True" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
           <CheckBox Content="{Binding ReEncodeQuestionLabel}" IsChecked="{Binding ReEncodeVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}"/>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" >
+        <StackPanel Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center">
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
-          <controls:ExtraSmallButton Command="{Binding SplitCommand}" Content="{Binding SplitLabel}"/>
+          <controls:ExtraSmallButton Command="{Binding SplitCommand}" Content="{Binding SplitLabel}" Visibility="{Binding AddChapters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
+          <controls:MediumButton Command="{Binding AddChapterCommand}" Content="{Binding AddChapterLabel}" Visibility="{Binding AddChapters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"/>
         </StackPanel>
-        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center">
           <controls:LargeTextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2">
-          <controls:LargeTextBlock  Height="140" Width="230" FontSize="13" TextWrapping="Wrap" Text="{Binding ReEncodeComment}"/>
+        <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2" Margin="-20,0,0,0">
+          <controls:LargeTextBlock  Height="140" Width="220" FontSize="13" TextWrapping="Wrap" Text="{Binding ReEncodeComment}"/>
         </StackPanel>
       </Grid>
     </StackPanel>

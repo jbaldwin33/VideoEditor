@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -48,27 +49,7 @@ namespace VideoEditorUi.Views
             thumb.MouseEnter -= Thumb_MouseEnter;
             base.ViewBaseControl_Unloaded(sender, e);
         }
-
-        //private void CreatePlayer()
-        //{
-            
-        //    //player.Dispose();
-        //    playerPanel.Children.Clear();
-        //    player = new VideoPlayerWPF
-        //    {
-        //        Name = "player",
-        //        Height = 250,
-        //        VerticalAlignment = VerticalAlignment.Top,
-        //        VerticalContentAlignment = VerticalAlignment.Center,
-        //        HorizontalAlignment = HorizontalAlignment.Center
-        //    };
-        //    playerPanel.Children.Add(player);
-        //    InitializePlayer(player);
-        //    viewModel.Player = player;
-        //    player.MediaOpened += Player_MediaOpened;
-        //    player.MediaEnded += Player_MediaEnded;
-        //}
-
+        
         private void timer_Tick(object sender, EventArgs e)
         {
             if (!isDragging)

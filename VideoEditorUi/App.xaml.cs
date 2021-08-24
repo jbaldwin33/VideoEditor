@@ -21,7 +21,7 @@ namespace VideoEditorUi
                 (typeof(ConverterViewModel), Translatables.Converter),
                 (typeof(SpeedChangerViewModel), Translatables.SpeedChanger),
                 (typeof(ReverseViewModel), Translatables.Reverser),
-                (typeof(MergerViewModel), Translatables.Merger)
+                (typeof(MergerViewModel), Translatables.Merger),
             };
             var window = new BaseWindowView(types) { Title = Translatables.VideoEditor };
             window.Show();

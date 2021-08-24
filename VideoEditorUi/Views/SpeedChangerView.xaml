@@ -7,34 +7,34 @@
              xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
              xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
-  <Grid>
+             d:DesignHeight="480" d:DesignWidth="800">
+  <Grid Margin="10">
     <Grid.RowDefinitions>
-      <RowDefinition Height="4*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
-      <RowDefinition Height="*"/>
+      <RowDefinition Height="1.5*" />
+      <RowDefinition Height="1.2*" />
     </Grid.RowDefinitions>
-    <Grid.ColumnDefinitions>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
-      <ColumnDefinition Width="*"/>
-    </Grid.ColumnDefinitions>
-    <StackPanel Grid.Row="0" Grid.Column="1" Name="stackPanel" Height="250" HorizontalAlignment="Center" VerticalAlignment="Center">
-      <CSVideoPlayer:VideoPlayerWPF  x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="250" Width="200"/>
-    </StackPanel>
-    <controls:LargeTextBlock Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" Text="{Binding NoFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
-    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
-      <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-    </StackPanel>
-    <StackPanel Grid.Row="2" Grid.Column="1" Grid.RowSpan="2" Orientation="Vertical" HorizontalAlignment="Center">
-      <controls:MediumTextBlock Text="{Binding VideoSpeedLabel}"/>
-      <Slider HorizontalAlignment="Center" Name="speedSlider" Width="170" Minimum="0.25" Maximum="2" TickPlacement="BottomRight" TickFrequency="0.25" IsSnapToTickEnabled="True"/>
-      <Label Content="{Binding SpeedLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalContentAlignment="Center" Width="170" />
-    </StackPanel>
-    <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-      <controls:MediumButton Command="{Binding FormatCommand}" Content="{Binding FormatLabel}" IsEnabled="{Binding CanFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    <CSVideoPlayer:VideoPlayerWPF x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" Height="250"/>
+    <controls:LargeTextBlock Grid.Row="0" HorizontalAlignment="Center" Text="{Binding NoFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
+    <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
+          <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.RowSpan="2" Orientation="Vertical" HorizontalAlignment="Center">
+          <controls:MediumTextBlock Text="{Binding VideoSpeedLabel}"/>
+          <Slider HorizontalAlignment="Center" Name="speedSlider" Width="170" Minimum="0.25" Maximum="2" TickPlacement="BottomRight" TickFrequency="0.25" IsSnapToTickEnabled="True"/>
+          <Label Content="{Binding SpeedLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalContentAlignment="Center" Width="170" />
+        </StackPanel>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+          <controls:MediumButton Command="{Binding FormatCommand}" Content="{Binding FormatLabel}" IsEnabled="{Binding CanFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>
+      </Grid>
     </StackPanel>
   </Grid>
 </framework:ViewBaseControl>
