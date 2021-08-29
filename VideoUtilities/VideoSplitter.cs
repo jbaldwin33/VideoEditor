@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -23,7 +22,6 @@ namespace VideoUtilities
         private readonly string extension;
         private readonly bool outputDifferentFormat;
         private readonly string outputFormat;
-        private readonly List<Tuple<TimeSpan, TimeSpan, string>> times;
         private readonly bool combineVideo;
         private readonly ProcessStartInfo startInfo;
         private readonly List<string> filenamesWithExtra = new List<string>();
@@ -38,14 +36,13 @@ namespace VideoUtilities
         private bool combineFinished;
         private string combinedFile;
 
-        public VideoSplitter(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> t, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
+        public VideoSplitter(string fullInputPath, IReadOnlyList<Tuple<TimeSpan, TimeSpan, string>> times, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             cancelled = false;
             splitFinished = false;
             sourceFolder = Path.GetDirectoryName(fullInputPath);
             sourceFileWithoutExtension = Path.GetFileName(fullInputPath);
             extension = Path.GetExtension(fullInputPath);
-            times = t;
             combineVideo = combine;
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;

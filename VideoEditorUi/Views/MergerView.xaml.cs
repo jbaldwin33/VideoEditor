@@ -1,7 +1,5 @@
-﻿using System.Windows;
-using MVVMFramework.ViewNavigator;
+﻿using MVVMFramework.ViewNavigator;
 using MVVMFramework.Views;
-using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views
 {

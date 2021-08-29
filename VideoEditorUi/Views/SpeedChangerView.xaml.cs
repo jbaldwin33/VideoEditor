@@ -9,13 +9,11 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class SpeedChangerView : ViewBaseControl
     {
-        private readonly SpeedChangerViewModel viewModel;
-
         public SpeedChangerView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
             Utilities.UtilityClass.InitializePlayer(player);
-            viewModel = Navigator.Instance.CurrentViewModel as SpeedChangerViewModel;
+            var viewModel = Navigator.Instance.CurrentViewModel as SpeedChangerViewModel;
             viewModel.Player = player;
             viewModel.SpeedSlider = speedSlider;
             viewModel.VideoStackPanel = stackPanel;

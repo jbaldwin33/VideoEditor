@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using static VideoUtilities.Enums.Enums;
+using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {

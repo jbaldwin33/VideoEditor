@@ -27,7 +27,7 @@ namespace VideoUtilities
         private bool failed;
         private string lastData;
         private string binaryPath;
-        private List<MetadataClass> metadataClasses = new List<MetadataClass>();
+        private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private TimeSpan totalDuration;
         private readonly string tempFile;
 

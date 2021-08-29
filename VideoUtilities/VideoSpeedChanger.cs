@@ -24,7 +24,7 @@ namespace VideoUtilities
         private bool failed;
         private string lastData;
 
-        public VideoSpeedChanger(string fullPath, double speed, Enums.Enums.ScaleRotate scaleRotate)
+        public VideoSpeedChanger(string fullPath, double speed, Enums.ScaleRotate scaleRotate)
         {
             failed = false;
             cancelled = false;
@@ -46,14 +46,14 @@ namespace VideoUtilities
             var filter = string.Empty;
             switch (scaleRotate)
             {
-                case Enums.Enums.ScaleRotate.NoSNoR: break;
-                case Enums.Enums.ScaleRotate.NoS90R: filter = ",transpose=1"; break;
-                case Enums.Enums.ScaleRotate.NoS180R: filter = ",vflip,hflip"; break;
-                case Enums.Enums.ScaleRotate.NoS270R: filter = ",transpose=2"; break;
-                case Enums.Enums.ScaleRotate.SNoR: filter = ",hflip"; break;
-                case Enums.Enums.ScaleRotate.S90R: filter = ",hflip,transpose=1"; break;
-                case Enums.Enums.ScaleRotate.S180R: filter = ",vflip"; break;
-                case Enums.Enums.ScaleRotate.S270R: filter = ",hflip,transpose=2"; break;
+                case Enums.ScaleRotate.NoSNoR: break;
+                case Enums.ScaleRotate.NoS90R: filter = ",transpose=1"; break;
+                case Enums.ScaleRotate.NoS180R: filter = ",vflip,hflip"; break;
+                case Enums.ScaleRotate.NoS270R: filter = ",transpose=2"; break;
+                case Enums.ScaleRotate.SNoR: filter = ",hflip"; break;
+                case Enums.ScaleRotate.S90R: filter = ",hflip,transpose=1"; break;
+                case Enums.ScaleRotate.S180R: filter = ",vflip"; break;
+                case Enums.ScaleRotate.S270R: filter = ",hflip,transpose=2"; break;
                 default: throw new ArgumentOutOfRangeException(nameof(scaleRotate), scaleRotate, null);
             }
 

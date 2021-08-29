@@ -20,7 +20,7 @@ namespace VideoUtilities
         public event ErrorEventHandler ErrorDownload;
         public event MessageEventHandler MessageHandler; 
         private Process trimProcess;
-        private ProcessStartInfo trimStartInfo;
+        private readonly ProcessStartInfo trimStartInfo;
         private Process reverseProcess;
         private ProcessStartInfo reverseStartInfo;
         private Process concatProcess;

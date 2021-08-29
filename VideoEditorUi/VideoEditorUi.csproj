@@ -91,13 +91,11 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Converters.cs" />
     <Compile Include="ViewModels\SizeReducerViewModel.cs" />
     <Compile Include="ViewModels\MergerViewModel.cs" />
     <Compile Include="ViewModels\ReverseViewModel.cs" />
     <Compile Include="Utilities\UtilityClass.cs" />
     <Compile Include="ViewModels\SpeedChangerViewModel.cs" />
-    <Compile Include="ViewModels\ConverterViewModel.cs" />
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\ProgressBarViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
@@ -115,9 +113,6 @@
     </Compile>
     <Compile Include="Views\SpeedChangerView.xaml.cs">
       <DependentUpon>SpeedChangerView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Views\ConverterView.xaml.cs">
-      <DependentUpon>ConverterView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ProgressBarView.xaml.cs">
       <DependentUpon>ProgressBarView.xaml</DependentUpon>
@@ -146,10 +141,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\SpeedChangerView.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Views\ConverterView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

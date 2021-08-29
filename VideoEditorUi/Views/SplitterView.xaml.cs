@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -19,10 +17,10 @@ namespace VideoEditorUi.Views
     public partial class SplitterView : ViewBaseControl
     {
         private Thumb _thumb;
-        private Thumb thumb => _thumb ?? (slider.Template.FindName("PART_Track", slider) as Track)?.Thumb;
-        private DispatcherTimer timer;
+        private Thumb thumb => _thumb ?? (_thumb = (slider.Template.FindName("PART_Track", slider) as Track)?.Thumb);
+        private readonly DispatcherTimer timer;
         private bool isDragging;
-        private SplitterViewModel viewModel;
+        private readonly SplitterViewModel viewModel;
 
         public SplitterView() : base(Navigator.Instance.CurrentViewModel)
         {

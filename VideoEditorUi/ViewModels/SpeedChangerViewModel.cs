@@ -9,7 +9,6 @@ using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
-using VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {

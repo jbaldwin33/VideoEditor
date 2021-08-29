@@ -17,7 +17,7 @@ using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Views;
 using VideoUtilities;
-using static VideoUtilities.Enums.Enums;
+using static VideoUtilities.Enums;
 using static VideoEditorUi.Utilities.UtilityClass;
 using Path = System.IO.Path;
 

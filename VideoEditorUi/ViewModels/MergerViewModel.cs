@@ -12,7 +12,7 @@ using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework;
-using static VideoUtilities.Enums.Enums;
+using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {

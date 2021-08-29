@@ -16,9 +16,6 @@ namespace VideoUtilities
         public event ErrorEventHandler ErrorDownload;
 
         private bool getFinished;
-        private readonly string sourceFolder;
-        private readonly string sourceFileWithoutExtension;
-        private readonly string extension;
         private readonly ProcessStartInfo getMetadataStartInfo;
         private ProcessStartInfo setMetadataStartInfo;
         private readonly List<string> filenames = new List<string>();
@@ -40,9 +37,9 @@ namespace VideoUtilities
         {
             cancelled = false;
             getFinished = false;
-            sourceFolder = Path.GetDirectoryName(fullInputPath);
-            sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
-            extension = Path.GetExtension(fullInputPath);
+            var sourceFolder = Path.GetDirectoryName(fullInputPath);
+            var sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
+            var extension = Path.GetExtension(fullInputPath);
 
             binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
             if (string.IsNullOrEmpty(binaryPath))
@@ -51,7 +48,7 @@ namespace VideoUtilities
             metadataFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_metadataFile.txt");
             filenames.Add(metadataFile);
             if (string.IsNullOrEmpty(importChapterFile))
-                CreateChapterFile(times);
+                CreateChapterFile(times, sourceFolder, sourceFileWithoutExtension);
             else
                 chapterFile = importChapterFile;
 
@@ -98,7 +95,7 @@ namespace VideoUtilities
             }
         }
 
-        private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times)
+        private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times, string sourceFolder, string sourceFileWithoutExtension)
         {
             chapterFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_chapters.txt");
             filenames.Add(chapterFile);
@@ -187,19 +184,7 @@ namespace VideoUtilities
             {
                 failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
-                return;
             }
-
-            if (!IsProcessing(outLine.Data))
-                return;
-
-            
-            // is it finished?
-            if (!IsFinished(outLine.Data))
-                return;
-
-            //if (!getFinished)
-            //    OnProgress(new ProgressEventArgs { Percentage = 100, Data = outLine.Data });
         }
 
         private void SetMetadataProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outLine)
@@ -272,7 +257,6 @@ namespace VideoUtilities
             getFinished = true;
             WriteToMetadata();
             SetMetadata();
-
         }
 
         private void SetMetadataProcess_Exited(object sender, EventArgs e)

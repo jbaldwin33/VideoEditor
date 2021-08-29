@@ -6,44 +6,6 @@ using MVVMFramework.ViewNavigator;
 
 namespace VideoEditorUi.ViewModels
 {
-    //public class ProgressBarViewModel2 : ViewModel
-    //{
-    //    public event EventHandler OnCancelledHandler;
-    //    private string progressLabel;
-    //    private decimal progressValue;
-    //    private RelayCommand cancelCommand;
-
-    //    public string ProgressLabel
-    //    {
-    //        get => progressLabel;
-    //        set => SetProperty(ref progressLabel, value);
-    //    }
-
-    //    public decimal ProgressValue
-    //    {
-    //        get => progressValue;
-    //        set => SetProperty(ref progressValue, value);
-    //    }
-
-    //    public RelayCommand CancelCommand => cancelCommand ?? (cancelCommand = new RelayCommand(CancelCommandExecute, () => true));
-
-    //    public string CancelLabel => Translatables.CancelLabel;
-
-    //    public ProgressBarViewModel2()
-    //    {
-
-    //    }
-
-    //    public void UpdateProgressValue(decimal value) => ProgressValue = value;
-    //    public void UpdateLabel(string label) => ProgressLabel = label;
-    //    private void OnCancelled() => OnCancelledHandler?.Invoke(this, EventArgs.Empty);
-    //    private void CancelCommandExecute()
-    //    {
-    //        OnCancelled();
-    //        Navigator.Instance.CloseChildWindow.Execute(true);
-    //    }
-    //}
-
     public class ProgressBarViewModel : ViewModel
     {
         public string CancelLabel => Translatables.CancelLabel;

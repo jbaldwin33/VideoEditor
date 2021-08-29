@@ -20,8 +20,8 @@ namespace VideoUtilities
         private bool cancelled;
         private bool failed;
         private string lastData;
-        private List<ProcessClass> processStuff = new List<ProcessClass>();
-        private List<ProcessClass> currentProcess = new List<ProcessClass>();
+        private readonly List<ProcessClass> processStuff = new List<ProcessClass>();
+        private readonly List<ProcessClass> currentProcess = new List<ProcessClass>();
         private int numberInProcess;
         private int numberFinished;
 

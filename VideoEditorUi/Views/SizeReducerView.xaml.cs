@@ -13,7 +13,6 @@ namespace VideoEditorUi.Views
         public SizeReducerView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
-
         }
     }
 }
