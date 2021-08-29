@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
 using static VideoUtilities.Enums.Enums;
 
 namespace VideoEditorUi.ViewModels
@@ -13,8 +13,8 @@ namespace VideoEditorUi.ViewModels
             Name = n;
         }
 
-        public static ObservableCollection<FormatTypeViewModel> CreateViewModels() =>
-            new ObservableCollection<FormatTypeViewModel>
+        public static List<FormatTypeViewModel> CreateViewModels() =>
+            new List<FormatTypeViewModel>
             {
                 new FormatTypeViewModel(FormatEnum.avi, ".avi"),
                 new FormatTypeViewModel(FormatEnum.m4a, ".m4a"),
@@ -26,5 +26,13 @@ namespace VideoEditorUi.ViewModels
                 new FormatTypeViewModel(FormatEnum.ts, ".ts"),
                 new FormatTypeViewModel(FormatEnum.wmv, ".wmv"),
             };
+
+        public static FormatEnum[] ChapterMarkerCompatibleFormats => new []
+        {
+            FormatEnum.mkv,
+            FormatEnum.mov,
+            FormatEnum.mp4,
+            FormatEnum.wmv
+        };
     }
 }

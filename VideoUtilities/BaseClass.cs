@@ -29,6 +29,7 @@ namespace VideoUtilities
 
     public class ProgressEventArgs : EventArgs
     {
+        public int ProcessIndex { get; set; }
         public decimal Percentage { get; set; }
         public string Data { get; set; }
         public string Error { get; set; }
@@ -41,6 +42,7 @@ namespace VideoUtilities
 
     public class FinishedEventArgs : EventArgs
     {
+        public int ProcessIndex { get; set; }
         public bool Cancelled { get; set; }
         public string Message { get; set; }
     }

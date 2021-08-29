@@ -38,26 +38,23 @@ namespace VideoUtilities
         private bool combineFinished;
         private string combinedFile;
 
-        public VideoSplitter(string sFolder, string sFileWithoutExtension, string ext, List<Tuple<TimeSpan, TimeSpan, string>> t, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
+        public VideoSplitter(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> t, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             cancelled = false;
             splitFinished = false;
-            sourceFolder = sFolder;
-            sourceFileWithoutExtension = sFileWithoutExtension;
-            extension = ext;
+            sourceFolder = Path.GetDirectoryName(fullInputPath);
+            sourceFileWithoutExtension = Path.GetFileName(fullInputPath);
+            extension = Path.GetExtension(fullInputPath);
             times = t;
             combineVideo = combine;
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;
 
-            var libsPath = "";
-            var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            if (directoryName != null)
-                libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
-            if (string.IsNullOrEmpty(libsPath))
+            var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+            if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
-            var args = $"-y -i \"{sourceFolder}\\{sourceFileWithoutExtension}{extension}\"";
+            var args = $"-y -i \"{fullInputPath}\"";
             var sb = new StringBuilder(args);
 
             for (int i = 0; i < times.Count; i++)
@@ -77,7 +74,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(libsPath, "ffmpeg.exe"),
+                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
                 CreateNoWindow = true,
                 Arguments = sb.ToString()
             };
@@ -119,8 +116,9 @@ namespace VideoUtilities
             Thread.Sleep(1000);
             if (!string.IsNullOrEmpty(tempfile))
                 File.Delete(tempfile);
+            if (!string.IsNullOrEmpty(combinedFile))
+                File.Delete(combinedFile);
             filenames.ForEach(File.Delete);
-            File.Delete(combinedFile);
             OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage});
         }
 

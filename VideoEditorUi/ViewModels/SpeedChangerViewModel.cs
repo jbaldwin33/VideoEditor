@@ -1,14 +1,15 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.Win32;
 using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
+using VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -18,12 +19,13 @@ namespace VideoEditorUi.ViewModels
         private bool changeSpeed;
         private double currentSpeed;
         private string speedLabel;
-        private string filename;
-        private string sourceFolder;
-        private string extension;
+        private string inputPath;
         private bool fileLoaded;
         private bool canFormat;
-        private decimal progressValue;
+        private int flipScale;
+        private int rotateNumber;
+        private RelayCommand flipCommand;
+        private RelayCommand rotateCommand;
         private RelayCommand selectFileCommand;
         private RelayCommand formatCommand;
         private ProgressBarViewModel progressBarViewModel;
@@ -58,10 +60,10 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref speedLabel, value);
         }
 
-        public string Filename
+        public string InputPath
         {
-            get => filename;
-            set => SetProperty(ref filename, value);
+            get => inputPath;
+            set => SetProperty(ref inputPath, value);
         }
 
         public bool FileLoaded
@@ -75,10 +77,16 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref canFormat, value);
         }
 
-        public decimal ProgressValue
+        public int FlipScale
         {
-            get => progressValue;
-            set => SetProperty(ref progressValue, value);
+            get => flipScale;
+            set => SetProperty(ref flipScale, value);
+        }
+
+        public int RotateNumber
+        {
+            get => rotateNumber;
+            set => SetProperty(ref rotateNumber, value);
         }
 
         public ProgressBarViewModel ProgressBarViewModel
@@ -88,19 +96,26 @@ namespace VideoEditorUi.ViewModels
         }
 
         public Slider SpeedSlider { get; set; }
+        public StackPanel VideoStackPanel { get; set; }
+
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, FormatCommandCanExecute));
+        public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
+        public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
 
         public string FormatLabel => Translatables.FormatLabel;
         public string SelectFileLabel => Translatables.SelectFileLabel;
         public string NoFileLabel => Translatables.NoFileSelected;
+        public string FlipLabel => Translatables.FlipLabel;
+        public string RotateLabel => Translatables.RotateLabel;
         public string VideoSpeedLabel => Translatables.VideoSpeedLabel;
 
         public SpeedChangerViewModel() { }
 
         public override void OnLoaded()
         {
+            FlipScale = 1;
             SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
             SpeedSlider.Value = 1;
             SpeedLabel = "1x";
@@ -128,16 +143,14 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
-            Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-            extension = Path.GetExtension(openFileDialog.FileName);
+            InputPath = openFileDialog.FileName;
             player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
         }
 
         private void FormatCommandExecute()
         {
-            formatter = new VideoSpeedChanger(sourceFolder, Filename, extension, CurrentSpeed);
+            formatter = new VideoSpeedChanger(InputPath, CurrentSpeed, ConvertToEnum());
             formatter.StartedDownload += Converter_DownloadStarted;
             formatter.ProgressDownload += Converter_ProgressDownload;
             formatter.FinishedDownload += Converter_FinishedDownload;
@@ -158,13 +171,59 @@ namespace VideoEditorUi.ViewModels
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
+        private void FlipCommandExecute()
+        {
+            if (FlipScale < 0)
+                FlipScale = 1;
+            else
+                FlipScale = -1;
+
+            var scaleTransform = new ScaleTransform { ScaleX = FlipScale };
+            var rotateTransform = new RotateTransform(RotateNumber * FlipScale);
+            var transformGroup = new TransformGroup();
+            transformGroup.Children.Add(rotateTransform);
+            transformGroup.Children.Add(scaleTransform);
+            VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
+            VideoStackPanel.LayoutTransform = transformGroup;
+        }
+
+        private void RotateCommandExecute()
+        {
+            RotateNumber = (RotateNumber + 90) % 360;
+
+            var scaleTransform = new ScaleTransform { ScaleX = FlipScale };
+            var rotateTransform = new RotateTransform(RotateNumber * FlipScale);
+            var transformGroup = new TransformGroup();
+            transformGroup.Children.Add(rotateTransform);
+            transformGroup.Children.Add(scaleTransform);
+            VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
+            VideoStackPanel.LayoutTransform = transformGroup;
+        }
+
+        private Enums.ScaleRotate ConvertToEnum()
+        {
+            var sr = (FlipScale, RotateNumber);
+            switch (sr)
+            {
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 0: return Enums.ScaleRotate.NoSNoR;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 90: return Enums.ScaleRotate.NoS90R;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 180: return Enums.ScaleRotate.NoS180R;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 270: return Enums.ScaleRotate.NoS270R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 0: return Enums.ScaleRotate.SNoR;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 90: return Enums.ScaleRotate.S90R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 180: return Enums.ScaleRotate.S180R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 270: return Enums.ScaleRotate.S270R;
+                default: throw new ArgumentOutOfRangeException(nameof(sr), sr, null);
+            }
+        }
+
         private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => CurrentSpeed = e.NewValue;
 
         private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
 
         private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue)
+            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
                 ProgressBarViewModel.UpdateProgressValue(e.Percentage);
         }
 
@@ -186,7 +245,6 @@ namespace VideoEditorUi.ViewModels
         private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Filename = Translatables.NoFileSelected;
             ChangeSpeed = false;
             CurrentSpeed = 1;
             Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);

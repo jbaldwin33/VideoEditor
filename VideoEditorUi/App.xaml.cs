@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Threading;
-using System.Windows;
+﻿using System.Windows;
 using MVVMFramework.Views;
 using MVVMFramework;
 using VideoEditorUi.ViewModels;
@@ -18,10 +16,11 @@ namespace VideoEditorUi
             var types = new[]
             {
                 (typeof(SplitterViewModel), Translatables.Splitter),
-                (typeof(ConverterViewModel), Translatables.Converter),
+                //(typeof(ConverterViewModel), Translatables.Converter),
                 (typeof(SpeedChangerViewModel), Translatables.SpeedChanger),
                 (typeof(ReverseViewModel), Translatables.Reverser),
                 (typeof(MergerViewModel), Translatables.Merger),
+                (typeof(SizeReducerViewModel), $"{Translatables.Converter}/{Translatables.ReduceSize}")
             };
             var window = new BaseWindowView(types) { Title = Translatables.VideoEditor };
             window.Show();

@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorUi", "VideoEdito
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoUtilities", "VideoUtilities\VideoUtilities.csproj", "{96A8755D-750E-40F7-9677-EB5AFEF558B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorTests", "VideoEditorTests\VideoEditorTests.csproj", "{A064ED28-3C3C-43AC-BA25-9D72194CFA0D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A064ED28-3C3C-43AC-BA25-9D72194CFA0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A064ED28-3C3C-43AC-BA25-9D72194CFA0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A064ED28-3C3C-43AC-BA25-9D72194CFA0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A064ED28-3C3C-43AC-BA25-9D72194CFA0D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

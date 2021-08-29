@@ -92,6 +92,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Converters.cs" />
+    <Compile Include="ViewModels\SizeReducerViewModel.cs" />
     <Compile Include="ViewModels\MergerViewModel.cs" />
     <Compile Include="ViewModels\ReverseViewModel.cs" />
     <Compile Include="Utilities\UtilityClass.cs" />
@@ -102,6 +103,9 @@
     <Compile Include="ViewModels\SplitterViewModel.cs" />
     <Compile Include="Views\ChapterTitleDialogView.xaml.cs">
       <DependentUpon>ChapterTitleDialogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SizeReducerView.xaml.cs">
+      <DependentUpon>SizeReducerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MergerView.xaml.cs">
       <DependentUpon>MergerView.xaml</DependentUpon>
@@ -128,6 +132,10 @@
     <Page Include="Views\ChapterTitleDialogView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SizeReducerView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\MergerView.xaml">
       <Generator>MSBuild:Compile</Generator>

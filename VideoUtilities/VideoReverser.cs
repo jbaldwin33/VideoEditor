@@ -35,12 +35,14 @@ namespace VideoUtilities
         private readonly string filenameWithoutExtension;
         private readonly string fileExtension;
         private readonly string binaryPath;
+        private string tempFile;
+        private string reversedFile;
 
-        public VideoReverser(string folder, string fileWithoutExtension, string extension)
+        public VideoReverser(string fullPath)
         {
-            sourceFolder = folder;
-            filenameWithoutExtension = fileWithoutExtension;
-            fileExtension = extension;
+            sourceFolder = Path.GetDirectoryName(fullPath);
+            filenameWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
+            fileExtension = Path.GetExtension(fullPath);
             failed = false;
             cancelled = false;
             binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
@@ -48,7 +50,7 @@ namespace VideoUtilities
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             //for trimming
-            output = $"{folder}\\{fileWithoutExtension}_temp%03d{extension}";
+            output = $"{sourceFolder}\\{filenameWithoutExtension}_temp%03d{fileExtension}";
             trimStartInfo = new ProcessStartInfo
             {
                 UseShellExecute = false,
@@ -57,7 +59,7 @@ namespace VideoUtilities
                 WindowStyle = ProcessWindowStyle.Hidden,
                 FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
                 CreateNoWindow = true,
-                Arguments = $"-i \"{folder}\\{fileWithoutExtension}{extension}\" -map 0 -segment_time 7 -reset_timestamps 1 -f segment \"{output}\""
+                Arguments = $"-y -i \"{fullPath}\" -map 0 -segment_time 7 -reset_timestamps 1 -f segment \"{output}\""
             };
 
         }
@@ -105,7 +107,7 @@ namespace VideoUtilities
             for (var i = 0; i < filesInDir.Count; i++)
             {
                 output = $"{sourceFolder}\\reversed_temp{i:000}{fileExtension}";
-                sb.Append($"-i \"{filesInDir[i].FullName}\" -vf reverse -af areverse -map {i} \"{output}\" ");
+                sb.Append($"-y -i \"{filesInDir[i].FullName}\" -vf reverse -af areverse -map {i} \"{output}\" ");
             }
 
             reverseStartInfo.Arguments = sb.ToString();
@@ -135,7 +137,7 @@ namespace VideoUtilities
             };
 
             OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.CombiningSectionsLabel });
-            var tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
+            tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
             using (var writeText = new StreamWriter(tempFile))
             {
                 var regex = new Regex("reversed_temp[0-9]{3}$");
@@ -145,8 +147,8 @@ namespace VideoUtilities
                     writeText.WriteLine($"file '{filesInDir[i].FullName}'");
             }
 
-            var reversedFile = $"{sourceFolder}\\{filenameWithoutExtension}_reversed{fileExtension}";
-            concatStartInfo.Arguments = $"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{reversedFile}\"";
+            reversedFile = $"{sourceFolder}\\{filenameWithoutExtension}_reversed{fileExtension}";
+            concatStartInfo.Arguments = $"-y -safe 0 -f concat -i \"{tempFile}\" -c copy \"{reversedFile}\"";
             concatProcess = new Process
             {
                 EnableRaisingEvents = true,
@@ -168,7 +170,7 @@ namespace VideoUtilities
             var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
 
             if (usedMemoryPercentage > 95)
-                CancelOperation($"{Translatables.RamUsageLabel} {usedMemoryPercentage:00}%.");
+                CancelOperation(string.Format(Translatables.RamUsageLabel, $"{usedMemoryPercentage:00}"));
 
             OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
             // extract the percentage from process output
@@ -194,7 +196,7 @@ namespace VideoUtilities
                     var args = new MessageEventArgs { Message = Translatables.VideoTooBigMessage };
                     OnShowMessage(args);
                     if (!args.Result)
-                        CancelOperation("");
+                        CancelOperation(string.Empty);
                 }
                 return;
             }
@@ -307,6 +309,10 @@ namespace VideoUtilities
                 concatProcess.Kill();
                 Thread.Sleep(1000);
             }
+            if (!string.IsNullOrEmpty(tempFile))
+                File.Delete(tempFile);
+            if (!string.IsNullOrEmpty(reversedFile))
+                File.Delete(reversedFile);
 
             OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
             CleanUp();

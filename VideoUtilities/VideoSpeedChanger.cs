@@ -24,7 +24,7 @@ namespace VideoUtilities
         private bool failed;
         private string lastData;
 
-        public VideoSpeedChanger(string folder, string fileWithoutExtension, string extension, double speed)
+        public VideoSpeedChanger(string fullPath, double speed, Enums.Enums.ScaleRotate scaleRotate)
         {
             failed = false;
             cancelled = false;
@@ -32,7 +32,7 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
-            output = $"{folder}\\{fileWithoutExtension}_formatted{extension}";
+            output = $"{Path.GetDirectoryName(fullPath)}\\{Path.GetFileNameWithoutExtension(fullPath)}_formatted{Path.GetExtension(fullPath)}";
             startInfo = new ProcessStartInfo
             {
                 UseShellExecute = false,
@@ -43,7 +43,21 @@ namespace VideoUtilities
                 CreateNoWindow = true
             };
 
-            startInfo.Arguments = $"-y -i {folder}\\{fileWithoutExtension}{extension} -filter_complex \"[0:v]setpts={1/speed}*PTS[v];[0:a]atempo={speed}[a]\" -map \"[v]\" -map \"[a]\" {output}";
+            var filter = string.Empty;
+            switch (scaleRotate)
+            {
+                case Enums.Enums.ScaleRotate.NoSNoR: break;
+                case Enums.Enums.ScaleRotate.NoS90R: filter = ",transpose=1"; break;
+                case Enums.Enums.ScaleRotate.NoS180R: filter = ",vflip,hflip"; break;
+                case Enums.Enums.ScaleRotate.NoS270R: filter = ",transpose=2"; break;
+                case Enums.Enums.ScaleRotate.SNoR: filter = ",hflip"; break;
+                case Enums.Enums.ScaleRotate.S90R: filter = ",hflip,transpose=1"; break;
+                case Enums.Enums.ScaleRotate.S180R: filter = ",vflip"; break;
+                case Enums.Enums.ScaleRotate.S270R: filter = ",hflip,transpose=2"; break;
+                default: throw new ArgumentOutOfRangeException(nameof(scaleRotate), scaleRotate, null);
+            }
+
+            startInfo.Arguments = $"-y -i \"{fullPath}\" -filter_complex \"[0:v]setpts={1 / speed}*PTS{filter}[v];[0:a]atempo={speed}[a]\" -map \"[v]\" -map \"[a]\" \"{output}\"";
         }
 
         public void ChangeSpeed()
@@ -76,8 +90,9 @@ namespace VideoUtilities
                 process.Kill();
                 Thread.Sleep(1000);
             }
-            File.Delete(output);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage});
+            if (!string.IsNullOrEmpty(output))
+                File.Delete(output);
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)

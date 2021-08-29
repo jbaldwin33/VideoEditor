@@ -9,15 +9,14 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class ConverterView : ViewBaseControl
     {
-        private readonly ConverterViewModel viewModel;
+        //private readonly ConverterViewModel viewModel;
 
         public ConverterView() : base(Navigator.Instance.CurrentViewModel)
         {
-            InitializeComponent();
-            Utilities.UtilityClass.InitializePlayer(player);
-            viewModel = Navigator.Instance.CurrentViewModel as ConverterViewModel;
-            viewModel.Player = player;
-            viewModel.VideoStackPanel = stackPanel;
+            //InitializeComponent();
+            //Utilities.UtilityClass.InitializePlayer(player);
+            //viewModel = Navigator.Instance.CurrentViewModel as ConverterViewModel;
+            //viewModel.Player = player;
         }
     }
 }

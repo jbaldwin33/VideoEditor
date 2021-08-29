@@ -18,6 +18,8 @@ namespace VideoEditorUi.Views
             viewModel = Navigator.Instance.CurrentViewModel as SpeedChangerViewModel;
             viewModel.Player = player;
             viewModel.SpeedSlider = speedSlider;
+            viewModel.VideoStackPanel = stackPanel;
+
         }
     }
 }

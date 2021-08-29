@@ -19,7 +19,6 @@ namespace VideoEditorUi.ViewModels
     public class MergerViewModel : ViewModel
     {
         private string outputPath;
-        private decimal progressValue;
         private RelayCommand selectFileCommand;
         private RelayCommand mergeCommand;
         private RelayCommand moveUpCommand;
@@ -35,19 +34,13 @@ namespace VideoEditorUi.ViewModels
         private bool canChangeExtension;
         private bool outputDifferentFormat;
         private bool multipleExtensions;
-        private ObservableCollection<FormatTypeViewModel> formats;
+        private List<FormatTypeViewModel> formats;
         private FormatEnum formatType;
 
         public string OutputPath
         {
             get => outputPath;
             set => SetProperty(ref outputPath, value);
-        }
-
-        public decimal ProgressValue
-        {
-            get => progressValue;
-            set => SetProperty(ref progressValue, value);
         }
 
         public ProgressBarViewModel ProgressBarViewModel
@@ -102,7 +95,7 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref multipleExtensions, value);
         }
 
-        public ObservableCollection<FormatTypeViewModel> Formats
+        public List<FormatTypeViewModel> Formats
         {
             get => formats;
             set => SetProperty(ref formats, value);
@@ -128,7 +121,7 @@ namespace VideoEditorUi.ViewModels
         public string MoveUpLabel => Translatables.MoveUpLabel;
         public string MoveDownLabel => Translatables.MoveDownLabel;
         public string RemoveLabel => Translatables.RemoveLabel;
-        public string OutputFormatLabel => Translatables.OutputFormatLabel;
+        public string OutputFormatLabel => Translatables.OutputFormatQuestion;
         public string OutputFolderLabel => Translatables.OutputFolderLabel;
         private static readonly object _lock = new object();
 
@@ -181,13 +174,15 @@ namespace VideoEditorUi.ViewModels
             {
                 Filter = "All Video Files|*.wmv;*.avi;*.mpg;*.mpeg;*.mp4;*.mov;*.m4a;*.mkv;*.ts;*.WMV;*.AVI;*.MPG;*.MPEG;*.MP4;*.MOV;*.M4A;*.MKV;*.TS",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
+                Multiselect = true
             };
 
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            FileViewModels.Add(CreateFileViewModel(openFileDialog.FileName));
-            FileCollection.Add(openFileDialog.SafeFileName);
+            FileViewModels.AddRange(openFileDialog.FileNames.Select(CreateFileViewModel));
+            foreach (var file in openFileDialog.SafeFileNames)
+                FileCollection.Add(file);
         }
 
         private (string folder, string filename, string extension) CreateFileViewModel(string filename)
@@ -266,7 +261,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Merger_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue)
+            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
                 ProgressBarViewModel.UpdateProgressValue(e.Percentage);
         }
 

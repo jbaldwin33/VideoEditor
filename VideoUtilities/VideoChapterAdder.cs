@@ -19,46 +19,41 @@ namespace VideoUtilities
         private readonly string sourceFolder;
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
-        private readonly List<Tuple<TimeSpan, TimeSpan, string>> times;
         private readonly ProcessStartInfo getMetadataStartInfo;
         private ProcessStartInfo setMetadataStartInfo;
         private readonly List<string> filenames = new List<string>();
         private decimal percentage;
         private bool cancelled;
-        private TimeSpan newDur = TimeSpan.Zero;
+        private TimeSpan duration;
         private Process getMetadataProcess;
         private Process setMetadataProcess;
         private string lastData;
         private bool failed;
-        private bool combineFinished;
         private readonly string metadataFile;
-        private readonly string chapterFile;
+        private string chapterFile;
         private readonly string inputPath;
         private readonly string outputPath;
-        private readonly string libsPath;
+        private readonly string binaryPath;
+        private bool setFinished;
 
-        public VideoChapterAdder(string sFolder, string sFileWithoutExtension, string ext, List<Tuple<TimeSpan, TimeSpan, string>> t)
+        public VideoChapterAdder(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
         {
             cancelled = false;
             getFinished = false;
-            sourceFolder = sFolder;
-            sourceFileWithoutExtension = sFileWithoutExtension;
-            extension = ext;
-            times = t;
+            sourceFolder = Path.GetDirectoryName(fullInputPath);
+            sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
+            extension = Path.GetExtension(fullInputPath);
 
-            var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            if (directoryName != null)
-                libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
-            if (string.IsNullOrEmpty(libsPath))
+            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+            if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             metadataFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_metadataFile.txt");
-            chapterFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_chapters.txt");
-            filenames.AddRange(new[] { metadataFile, chapterFile });
-            //create chapter file
-            using (var sw = new StreamWriter(chapterFile))
-                foreach (var (startTime, _, title) in times)
-                    sw.WriteLine($"{startTime},{title}");
+            filenames.Add(metadataFile);
+            if (string.IsNullOrEmpty(importChapterFile))
+                CreateChapterFile(times);
+            else
+                chapterFile = importChapterFile;
 
             inputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}{extension}");
             outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
@@ -68,9 +63,9 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(libsPath, "ffmpeg.exe"),
+                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
                 CreateNoWindow = true,
-                Arguments = $"-i \"{inputPath}\" -f ffmetadata \"{metadataFile}\""
+                Arguments = $"-y -i \"{inputPath}\" -f ffmetadata \"{metadataFile}\""
             };
         }
 
@@ -92,13 +87,24 @@ namespace VideoUtilities
             catch (Exception ex)
             {
                 failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = ex.Message });
+                OnDownloadError(new ProgressEventArgs { Error = $"{ex.Message}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
+                //if error occurs keep chapter file so it doesn't have to be redone
+                filenames.Remove(chapterFile);
             }
 
-            while (getFinished == false || combineFinished == false)
+            while (getFinished == false || setFinished == false)
             {
                 Thread.Sleep(100); // wait while process exits;
             }
+        }
+
+        private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times)
+        {
+            chapterFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_chapters.txt");
+            filenames.Add(chapterFile);
+            using (var sw = new StreamWriter(chapterFile))
+                foreach (var (startTime, _, title) in times)
+                    sw.WriteLine($"{startTime},{title}");
         }
 
         private void WriteToMetadata()
@@ -115,12 +121,12 @@ namespace VideoUtilities
                         var split = line.Split(separators);
                         chapters.Add(new Chapter(line, split));
                     }
-                    for (int i = 0; i < chapters.Count - 1; i++)
+                    for (int i = 0; i < chapters.Count; i++)
                     {
                         sw.WriteLine("[CHAPTER]");
                         sw.WriteLine("TIMEBASE=1/1000");
                         sw.WriteLine($"START={chapters[i].Timestamp}");
-                        sw.WriteLine($"END={chapters[i + 1].Timestamp - 1}");
+                        sw.WriteLine($"END={(i + 1 >= chapters.Count ? chapters[i].Timestamp : chapters[i + 1].Timestamp - 1)}");
                         sw.WriteLine($"title={chapters[i].Title}");
                     }
                 }
@@ -137,9 +143,9 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(libsPath, "ffmpeg.exe"),
+                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
                 CreateNoWindow = true,
-                Arguments = $"-i \"{inputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\""
+                Arguments = $"-y -i \"{inputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\""
             };
             
             setMetadataProcess = new Process
@@ -172,7 +178,7 @@ namespace VideoUtilities
             if (cancelled)
                 return;
 
-            OnProgress(new ProgressEventArgs { Percentage = getFinished ? 0 : percentage, Data = getFinished ? string.Empty : outLine.Data });
+            //OnProgress(new ProgressEventArgs { Percentage = getFinished ? 0 : 100, Data = getFinished ? string.Empty : outLine.Data });
             if (string.IsNullOrEmpty(outLine.Data) || getFinished || IsFinished(outLine.Data))
                 return;
 
@@ -187,6 +193,44 @@ namespace VideoUtilities
             if (!IsProcessing(outLine.Data))
                 return;
 
+            
+            // is it finished?
+            if (!IsFinished(outLine.Data))
+                return;
+
+            //if (!getFinished)
+            //    OnProgress(new ProgressEventArgs { Percentage = 100, Data = outLine.Data });
+        }
+
+        private void SetMetadataProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outLine)
+        {
+            if (cancelled)
+                return;
+
+            OnProgress(new ProgressEventArgs { Percentage = setFinished ? 0 : percentage, Data = setFinished ? string.Empty : outLine.Data });
+            if (string.IsNullOrEmpty(outLine.Data) || setFinished || IsFinished(outLine.Data))
+                return;
+
+            lastData = outLine.Data;
+            if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
+            {
+                failed = true;
+                OnDownloadError(new ProgressEventArgs { Error = $"{outLine.Data}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
+                //if error occurs keep chapter file so it doesn't have to be redone
+                filenames.Remove(chapterFile);
+                return;
+            }
+
+            if (!outLine.Data.Contains("Duration: ") && !IsProcessing(outLine.Data))
+                return;
+
+            if (outLine.Data.Contains("Duration: "))
+            {
+                if (duration == TimeSpan.Zero)
+                    duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
+                return;
+            }
+
             var currentTime = TimeSpan.Zero;
             if (IsProcessing(outLine.Data))
             {
@@ -195,7 +239,7 @@ namespace VideoUtilities
             }
 
             // fire the process event
-            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)newDur.TotalSeconds) * 100;
+            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
             if (perc < 0)
             {
                 Console.WriteLine($"weird percentage {perc}");
@@ -208,27 +252,8 @@ namespace VideoUtilities
             if (perc < 100 && !IsFinished(outLine.Data))
                 return;
 
-            if (perc >= 100 && !getFinished)
+            if (perc >= 100 && !setFinished)
                 OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
-        }
-
-        private void SetMetadataProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outLine)
-        {
-            if (cancelled)
-                return;
-
-            if (string.IsNullOrEmpty(outLine.Data) || combineFinished || IsFinished(outLine.Data))
-            {
-                OnProgress(new ProgressEventArgs { Percentage = 100, Data = outLine.Data });
-                return;
-            }
-
-            lastData = outLine.Data;
-            if (!outLine.Data.Contains("ERROR") && !outLine.Data.Contains("Invalid"))
-                return;
-
-            failed = true;
-            OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
         }
 
         private static bool IsProcessing(string data) => data.Contains("frame=") && data.Contains("fps=") && data.Contains("time=");
@@ -252,15 +277,19 @@ namespace VideoUtilities
 
         private void SetMetadataProcess_Exited(object sender, EventArgs e)
         {
-            if (getMetadataProcess.ExitCode != 0 || failed || cancelled)
+            if (setMetadataProcess.ExitCode != 0 || failed || cancelled)
             {
-                if (getMetadataProcess.ExitCode != 0 && !cancelled)
-                    OnDownloadError(new ProgressEventArgs { Error = lastData });
+                if (setMetadataProcess.ExitCode != 0 && !cancelled)
+                {
+                    OnDownloadError(new ProgressEventArgs { Error = $"{lastData}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
+                    //if error occurs keep chapter file so it doesn't have to be redone
+                    filenames.Remove(chapterFile);
+                }
                 CleanUp();
                 return;
             }
 
-            combineFinished = true;
+            setFinished = true;
             FinishedDownload?.Invoke(this, new FinishedEventArgs { Cancelled = cancelled });
             CleanUp();
         }
@@ -316,7 +345,7 @@ namespace VideoUtilities
         {
             var hrs = int.Parse(split[0]);
             var mins = int.Parse(split[1]);
-            var secs = int.Parse(split[2]);
+            var secs = (int)decimal.Parse(split[2]);
             Title = split[3];
 
             Minutes = (hrs * 60) + mins;

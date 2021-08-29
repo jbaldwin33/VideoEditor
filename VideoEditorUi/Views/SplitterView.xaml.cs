@@ -23,13 +23,11 @@ namespace VideoEditorUi.Views
         private DispatcherTimer timer;
         private bool isDragging;
         private SplitterViewModel viewModel;
-        //private VideoPlayerWPF player;
 
         public SplitterView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
             viewModel = Navigator.Instance.CurrentViewModel as SplitterViewModel;
-            //viewModel.CreateNewPlayer = CreatePlayer;
             viewModel.Slider = slider;
             timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             timer.Tick += timer_Tick;

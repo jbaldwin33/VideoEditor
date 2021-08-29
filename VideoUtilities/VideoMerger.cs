@@ -23,7 +23,6 @@ namespace VideoUtilities
         private Process process;
         private bool finished;
         private decimal percentage;
-        private TimeSpan duration;
         private bool cancelled;
         private bool failed;
         private string lastData;
@@ -112,8 +111,10 @@ namespace VideoUtilities
                 process.Kill();
                 Thread.Sleep(1000);
             }
-            File.Delete(output);
+            if (!string.IsNullOrEmpty(output))
+                File.Delete(output);
             OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
+            CleanUp();
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)

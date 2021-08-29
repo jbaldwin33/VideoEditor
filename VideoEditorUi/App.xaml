@@ -12,9 +12,9 @@
       <DataTemplate DataType="{x:Type viewModels:SplitterViewModel}">
         <views:SplitterView/>
       </DataTemplate>
-      <DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
+      <!--<DataTemplate DataType="{x:Type viewModels:ConverterViewModel}">
         <views:ConverterView/>
-      </DataTemplate>
+      </DataTemplate>-->
       <DataTemplate DataType="{x:Type viewModels:SpeedChangerViewModel}">
         <views:SpeedChangerView/>
       </DataTemplate>
@@ -23,6 +23,9 @@
       </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:MergerViewModel}">
         <views:MergerView/>
+      </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:SizeReducerViewModel}">
+        <views:SizeReducerView/>
       </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
         <views:ProgressBarView/>

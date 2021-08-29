@@ -14,11 +14,11 @@ namespace VideoEditorUi.Utilities
     {
         public static void InitializePlayer(VideoPlayerWPF player)
         {
-            var libsPath = "";
-            var directoryName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-            if (directoryName != null)
-                libsPath = Path.Combine(directoryName, "Binaries", "CSPlugins", "FFmpeg", IntPtr.Size == 8 ? "x64" : "x86");
-            player.Init(libsPath, "UserName", "RegKey");
+            var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+            if (string.IsNullOrEmpty(binaryPath))
+                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
+
+            player.Init(binaryPath, "UserName", "RegKey");
         }
 
         public static async void GetDetails(VideoPlayerWPF player, string name) => player.mediaProperties = await player.GetDeatils(name);

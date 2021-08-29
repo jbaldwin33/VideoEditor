@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
@@ -14,11 +13,8 @@ namespace VideoEditorUi.ViewModels
     public class ReverseViewModel : ViewModel
     {
         private CSVideoPlayer.VideoPlayerWPF player;
-        private string filename;
-        private string sourceFolder;
-        private string extension;
+        private string inputPath;
         private bool fileLoaded;
-        private decimal progressValue;
         private RelayCommand selectFileCommand;
         private RelayCommand reverseCommand;
         private ProgressBarViewModel progressBarViewModel;
@@ -30,22 +26,16 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref player, value);
         }
         
-        public string Filename
+        public string InputPath
         {
-            get => filename;
-            set => SetProperty(ref filename, value);
+            get => inputPath;
+            set => SetProperty(ref inputPath, value);
         }
 
         public bool FileLoaded
         {
             get => fileLoaded;
             set => SetProperty(ref fileLoaded, value);
-        }
-
-        public decimal ProgressValue
-        {
-            get => progressValue;
-            set => SetProperty(ref progressValue, value);
         }
 
         public ProgressBarViewModel ProgressBarViewModel
@@ -86,9 +76,7 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            sourceFolder = Path.GetDirectoryName(openFileDialog.FileName);
-            Filename = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-            extension = Path.GetExtension(openFileDialog.FileName);
+            InputPath = openFileDialog.FileName;
             player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
         }
@@ -99,7 +87,7 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(messageArgs);
             if (messageArgs.Result == MessageBoxResult.No)
                 return;
-            reverser = new VideoReverser(sourceFolder, Filename, extension);
+            reverser = new VideoReverser(InputPath);
             reverser.StartedDownload += Reverser_DownloadStarted;
             reverser.ProgressDownload += Reverser_ProgressDownload;
             reverser.FinishedDownload += Reverser_FinishedDownload;
@@ -125,7 +113,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Reverser_ProgressDownload(object sender, ProgressEventArgs e)
         {
-            if (e.Percentage > ProgressValue)
+            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
                 ProgressBarViewModel.UpdateProgressValue(e.Percentage);
         }
 
@@ -154,7 +142,7 @@ namespace VideoEditorUi.ViewModels
         private void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Filename = Translatables.NoFileSelected;
+            InputPath = string.Empty;
             FileLoaded = false;
         }
     }
