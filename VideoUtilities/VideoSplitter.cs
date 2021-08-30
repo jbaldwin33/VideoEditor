@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -24,10 +25,8 @@ namespace VideoUtilities
         private readonly string outputFormat;
         private readonly bool combineVideo;
         private readonly ProcessStartInfo startInfo;
-        private readonly List<string> filenamesWithExtra = new List<string>();
         private readonly List<string> filenames = new List<string>();
         private string tempfile;
-        private decimal percentage;
         private bool cancelled;
         private TimeSpan newDur = TimeSpan.Zero;
         private Process process;
@@ -35,13 +34,17 @@ namespace VideoUtilities
         private bool failed;
         private bool combineFinished;
         private string combinedFile;
+        private readonly List<ProcessClass> currentProcess = new List<ProcessClass>();
+        private readonly List<ProcessClass> processStuff = new List<ProcessClass>();
+        private int numberFinished;
+        private int numberInProcess;
 
         public VideoSplitter(string fullInputPath, IReadOnlyList<Tuple<TimeSpan, TimeSpan, string>> times, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             cancelled = false;
             splitFinished = false;
             sourceFolder = Path.GetDirectoryName(fullInputPath);
-            sourceFileWithoutExtension = Path.GetFileName(fullInputPath);
+            sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
             extension = Path.GetExtension(fullInputPath);
             combineVideo = combine;
             outputDifferentFormat = outputDiffFormat;
@@ -56,9 +59,8 @@ namespace VideoUtilities
                 sb.Append($"{(reEncodeVideo ? string.Empty : " -codec copy")} -ss {times[i].Item1.TotalSeconds} -to {times[i].Item2.TotalSeconds} \"{output}\"");
 
                 filenames.Add(output);
-                filenamesWithExtra.Add($"file '{output}'");
 
-                newDur += times[i].Item2 - times[i].Item1;
+                processStuff[0].Duration += times[i].Item2 - times[i].Item1;
             }
             // setup the process that will fire youtube-dl
             startInfo = new ProcessStartInfo
@@ -119,8 +121,8 @@ namespace VideoUtilities
         {
             if (cancelled)
                 return;
-
-            OnProgress(new ProgressEventArgs { Percentage = splitFinished ? 0 : percentage, Data = splitFinished ? string.Empty : outLine.Data });
+            var index = processStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
+            OnProgress(new ProgressEventArgs { Percentage = splitFinished ? 100 : processStuff[index].Percentage, Data = splitFinished ? string.Empty : outLine.Data });
             if (string.IsNullOrEmpty(outLine.Data) || splitFinished || IsFinished(outLine.Data))
                 return;
 
@@ -135,29 +137,20 @@ namespace VideoUtilities
             if (!IsProcessing(outLine.Data))
                 return;
 
-            var currentTime = TimeSpan.Zero;
             if (IsProcessing(outLine.Data))
             {
                 var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                currentTime = TimeSpan.Parse(strSub);
+                processStuff[index].CurrentTime = TimeSpan.Parse(strSub);
             }
 
-            // fire the process event
-            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)newDur.TotalSeconds) * 100;
-            if (perc < 0)
-            {
-                Console.WriteLine($"weird percentage {perc}");
-                return;
-            }
-            percentage = perc;
-            OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
+            OnProgress(new ProgressEventArgs { Percentage = processStuff[index].Percentage, Data = outLine.Data });
 
             // is it finished?
-            if (perc < 100 && !IsFinished(outLine.Data))
+            if (processStuff[index].Percentage < 100 && !IsFinished(outLine.Data))
                 return;
 
-            if (perc >= 100 && !splitFinished)
-                OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
+            if (processStuff[index].Percentage >= 100 && !splitFinished)
+                OnProgress(new ProgressEventArgs { Percentage = processStuff[index].Percentage, Data = outLine.Data });
         }
 
         private void CleanUp()
@@ -180,7 +173,7 @@ namespace VideoUtilities
         {
             OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.CombiningSectionsLabel });
             tempfile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
-            File.WriteAllLines(tempfile, filenamesWithExtra);
+            File.WriteAllLines(tempfile, filenames.Select(file => $"file '{file}'"));
             combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";
             startInfo.Arguments = $"-safe 0 -f concat -i \"{tempfile}\" -c copy \"{combinedFile}\"";
             process = new Process
