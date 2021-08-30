@@ -47,10 +47,6 @@ namespace VideoUtilities
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;
 
-            var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
-            if (string.IsNullOrEmpty(binaryPath))
-                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
-
             var args = $"-y -i \"{fullInputPath}\"";
             var sb = new StringBuilder(args);
 
@@ -71,7 +67,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true,
                 Arguments = sb.ToString()
             };

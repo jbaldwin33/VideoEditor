@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using CSVideoPlayer;
 using MVVMFramework;
 using MVVMFramework.ViewModels;
@@ -36,6 +34,7 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand addChapterCommand;
         private RelayCommand selectFileCommand;
         private RelayCommand importCommand;
+        private RelayCommand rectCommand;
         private VideoPlayerWPF player;
         private Slider slider;
         private TimeSpan startTime;
@@ -48,7 +47,7 @@ namespace VideoEditorUi.ViewModels
         private bool reEncodeVideo;
         private string inputPath;
         private ObservableCollection<ChapterMarkerViewModel> chapterMarkers;
-        private ObservableCollection<Rectangle> rectCollection;
+        private ObservableCollection<RectClass> rectCollection;
         private List<FormatTypeViewModel> formats;
         private FormatEnum formatType;
         private bool canCombine;
@@ -135,7 +134,7 @@ namespace VideoEditorUi.ViewModels
         }
 
 
-        public ObservableCollection<Rectangle> RectCollection
+        public ObservableCollection<RectClass> RectCollection
         {
             get => rectCollection;
             set => SetProperty(ref rectCollection, value);
@@ -239,6 +238,8 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand ImportCommand => importCommand ?? (importCommand = new RelayCommand(ImportCommandExecute, () => FileLoaded));
 
+        public RelayCommand RectCommand => rectCommand ?? (rectCommand = new RelayCommand(RectCommandExecute, () => true));
+
         private VideoSplitter splitter;
         private VideoChapterAdder chapterAdder;
         private string importedFile;
@@ -270,7 +271,7 @@ namespace VideoEditorUi.ViewModels
             CurrentTimeString = "00:00:00:000";
             PositionChanged = time => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
             ChapterMarkers = new ObservableCollection<ChapterMarkerViewModel>();
-            RectCollection = new ObservableCollection<Rectangle>();
+            RectCollection = new ObservableCollection<RectClass>();
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             ChapterMarkers.CollectionChanged += Times_CollectionChanged;
@@ -280,19 +281,6 @@ namespace VideoEditorUi.ViewModels
         }
 
         private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = ChapterMarkers.Count > 1;
-
-        private void Rect_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            var args = new MessageBoxEventArgs(Translatables.DeleteSectionConfirm, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            ShowMessage(args);
-            if (args.Result == MessageBoxResult.Yes)
-            {
-                var rect = sender as Rectangle;
-                var index = RectCollection.IndexOf(rect);
-                RectCollection.Remove(rect);
-                ChapterMarkers.RemoveAt(index);
-            }
-        }
 
         private void PlayCommandExecute() => player.Play();
         private void SeekBackCommandExecute()
@@ -407,7 +395,6 @@ namespace VideoEditorUi.ViewModels
             InputPath = openFileDialog.FileName;
             GetDetails(player, openFileDialog.FileName);
             player.Open(new Uri(openFileDialog.FileName));
-            player.UpdateLayout();
             FileLoaded = true;
             ResetAll();
 
@@ -438,17 +425,31 @@ namespace VideoEditorUi.ViewModels
             TimesImported = true;
         }
 
+        private void RectCommandExecute(object obj)
+        {
+            var rect = obj as RectClass;
+            var args = new MessageBoxEventArgs(Translatables.DeleteSectionConfirm, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            ShowMessage(args);
+            if (args.Result == MessageBoxResult.Yes)
+            {
+                var index = RectCollection.IndexOf(rect);
+                RectCollection.Remove(rect);
+                ChapterMarkers.RemoveAt(index);
+            }
+        }
+
         private void AddRectangle()
         {
-            Application.Current.Dispatcher.Invoke(() => RectCollection.Add(new Rectangle()));
-            var rect = RectCollection[RectCollection.Count - 1];
-            rect.MouseDown += Rect_MouseDown;
-            rect.Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, slider.Maximum), 0, 0, 0);
-            rect.Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, slider.Maximum);
-            rect.Height = 5;
-            rect.HorizontalAlignment = HorizontalAlignment.Left;
-            rect.Fill = new SolidColorBrush(Colors.Red);
-
+            var rect = new RectClass
+            {
+                RectCommand = RectCommand,
+                Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, slider.Maximum), 0, 0, 0),
+                Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, slider.Maximum),
+                Height = 5,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Fill = new SolidColorBrush(Colors.Red)
+            };
+            RectCollection.Add(rect);
             double mapToRange(double toConvert, double maxRange1, double maxRange2) => toConvert * (maxRange1 / maxRange2);
         }
 
@@ -507,6 +508,16 @@ namespace VideoEditorUi.ViewModels
             FormatType = FormatEnum.avi;
             ClearAllRectangles();
         }
+    }
+
+    public class RectClass
+    {
+        public Thickness Margin { get; set; }
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public HorizontalAlignment HorizontalAlignment { get; set; }
+        public SolidColorBrush Fill { get; set; }
+        public RelayCommand RectCommand { get; set; }
     }
 
     public class ChapterMarkerViewModel : ViewModel

@@ -26,7 +26,6 @@ namespace VideoUtilities
         private bool cancelled;
         private bool failed;
         private string lastData;
-        private string binaryPath;
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private TimeSpan totalDuration;
         private readonly string tempFile;
@@ -35,10 +34,7 @@ namespace VideoUtilities
         {
             failed = false;
             cancelled = false;
-            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
-            if (string.IsNullOrEmpty(binaryPath))
-                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
-            
+
             GetMetadata(fileViewModels);
             foreach (var meta in metadataClasses)
                 totalDuration += meta.format.duration;
@@ -57,7 +53,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true
             };
             var sb = new StringBuilder("-y ");
@@ -173,7 +169,6 @@ namespace VideoUtilities
 
         public void GetMetadata(List<(string folder, string name, string extension)> files)
         {
-            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
             for (int i = 0; i < files.Count; i++)
             {
                 var info = new ProcessStartInfo
@@ -182,7 +177,7 @@ namespace VideoUtilities
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    FileName = Path.Combine(binaryPath, "ffprobe.exe"),
+                    FileName = Path.Combine(GetBinaryPath(), "ffprobe.exe"),
                     CreateNoWindow = true,
                     Arguments = $"-v quiet -print_format json -select_streams v:0 -show_entries stream=width,height -show_entries format=duration -sexagesimal \"{files[i].folder}\\{files[i].name}{files[i].extension}\""
                 };

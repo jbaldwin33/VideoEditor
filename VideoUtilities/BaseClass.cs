@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+using System.Reflection;
 
 namespace VideoUtilities
 {
@@ -10,6 +12,9 @@ namespace VideoUtilities
         public delegate void StartedDownloadEventHandler(object sender, DownloadStartedEventArgs e);
         public delegate void ErrorEventHandler(object sender, ProgressEventArgs e);
         public delegate void MessageEventHandler(object sender, MessageEventArgs e);
+
+        private string path;
+        public string GetBinaryPath() => !string.IsNullOrEmpty(path) ? path : path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
 
         public virtual void CancelOperation(string cancelMessage) => throw new NotImplementedException();
         protected virtual void OnDownloadFinished(FinishedEventArgs e) => throw new NotImplementedException();

@@ -30,7 +30,6 @@ namespace VideoUtilities
         private string chapterFile;
         private readonly string inputPath;
         private readonly string outputPath;
-        private readonly string binaryPath;
         private bool setFinished;
 
         public VideoChapterAdder(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
@@ -40,10 +39,6 @@ namespace VideoUtilities
             var sourceFolder = Path.GetDirectoryName(fullInputPath);
             var sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
             var extension = Path.GetExtension(fullInputPath);
-
-            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
-            if (string.IsNullOrEmpty(binaryPath))
-                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             metadataFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_metadataFile.txt");
             filenames.Add(metadataFile);
@@ -60,7 +55,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true,
                 Arguments = $"-y -i \"{inputPath}\" -f ffmetadata \"{metadataFile}\""
             };
@@ -140,7 +135,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true,
                 Arguments = $"-y -i \"{inputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\""
             };

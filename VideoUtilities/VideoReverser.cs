@@ -34,7 +34,6 @@ namespace VideoUtilities
         private readonly string sourceFolder;
         private readonly string filenameWithoutExtension;
         private readonly string fileExtension;
-        private readonly string binaryPath;
         private string tempFile;
         private string reversedFile;
 
@@ -45,9 +44,6 @@ namespace VideoUtilities
             fileExtension = Path.GetExtension(fullPath);
             failed = false;
             cancelled = false;
-            binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
-            if (string.IsNullOrEmpty(binaryPath))
-                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             //for trimming
             output = $"{sourceFolder}\\{filenameWithoutExtension}_temp%03d{fileExtension}";
@@ -57,7 +53,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true,
                 Arguments = $"-y -i \"{fullPath}\" -map 0 -segment_time 7 -reset_timestamps 1 -f segment \"{output}\""
             };
@@ -96,7 +92,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true
             };
             //get files
@@ -132,7 +128,7 @@ namespace VideoUtilities
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                 CreateNoWindow = true
             };
 

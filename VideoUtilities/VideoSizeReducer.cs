@@ -29,9 +29,6 @@ namespace VideoUtilities
         {
             failed = false;
             cancelled = false;
-            var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
-            if (string.IsNullOrEmpty(binaryPath))
-                throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
 
             foreach (var (folder, filename, extension) in fileViewModels)
             {
@@ -45,7 +42,7 @@ namespace VideoUtilities
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = Path.Combine(binaryPath, "ffmpeg.exe"),
+                        FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                         CreateNoWindow = true,
                         Arguments = $"-y -i \"{folder}\\{filename}{extension}\" -vcodec libx264 -crf 28 \"{output}\""
                     }
