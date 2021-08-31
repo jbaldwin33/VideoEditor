@@ -306,7 +306,8 @@ namespace VideoEditorUi.ViewModels
             splitter.ProgressDownload += Splitter_ProgressDownload;
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
-            ProgressBarViewModel = new ProgressBarViewModel();
+            splitter.SplitFinished += Splitter_SplitFinished;
+            ProgressBarViewModel = new ProgressBarViewModel(ChapterMarkers.Count);
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
                 try
@@ -474,7 +475,7 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_ProgressDownload(object sender, ProgressEventArgs e)
         {
             if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
-                ProgressBarViewModel.UpdateProgressValue(e.Percentage);
+                ProgressBarViewModel.UpdateProgressValue(e.Percentage, e.ProcessIndex);
         }
 
         private void Splitter_FinishedDownload(object sender, FinishedEventArgs e)
@@ -492,6 +493,25 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+        }
+
+        private void Splitter_SplitFinished(object sender, EventArgs e)
+        {
+            Navigator.Instance.CloseChildWindow.Execute(false);
+            ProgressBarViewModel = new ProgressBarViewModel();
+            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
+            {
+                try
+                {
+                    splitter.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
+            Task.Run(() => splitter.CombineSections());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         private void CleanUp()

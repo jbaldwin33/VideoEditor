@@ -81,16 +81,16 @@ namespace VideoUtilities
         public override void CancelOperation(string cancelMessage)
         {
             cancelled = true;
-            for (var i = 0; i < currentProcess.Count; i++)
+            foreach (var stuff in currentProcess)
             {
-                if (!currentProcess[i].Process.HasExited)
+                if (!stuff.Process.HasExited)
                 {
-                    currentProcess[i].Process.Kill();
+                    stuff.Process.Kill();
                     Thread.Sleep(1000);
                 }
 
-                if (!string.IsNullOrEmpty(currentProcess[i].Output))
-                    File.Delete(currentProcess[i].Output);
+                if (!string.IsNullOrEmpty(stuff.Output))
+                    File.Delete(stuff.Output);
             }
 
             OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
