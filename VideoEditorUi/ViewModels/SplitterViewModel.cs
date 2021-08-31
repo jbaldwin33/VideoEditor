@@ -301,7 +301,7 @@ namespace VideoEditorUi.ViewModels
         private void StopCommandExecute() => player.Stop();
         private void SplitCommandExecute()
         {
-            splitter = new VideoSplitter(InputPath, ChapterMarkers.Select(t => new Tuple<TimeSpan, TimeSpan, string>(t.StartTime, t.EndTime, t.Title)).ToList(), CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
+            splitter = new VideoSplitter(InputPath, ChapterMarkers.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
             splitter.StartedDownload += Splitter_StartedDownload;
             splitter.ProgressDownload += Splitter_ProgressDownload;
             splitter.FinishedDownload += Splitter_FinishedDownload;
@@ -319,7 +319,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => splitter.Split());
+            Task.Run(() => splitter.DoWork(Translatables.SplittingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 

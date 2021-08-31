@@ -11,7 +11,7 @@ using MVVMFramework;
 
 namespace VideoUtilities
 {
-    public class VideoReverser : BaseClass
+    public class VideoReverser : BaseClass<object>
     {
         private string output;
         public event ProgressEventHandler ProgressDownload;
@@ -25,25 +25,21 @@ namespace VideoUtilities
         private ProcessStartInfo reverseStartInfo;
         private Process concatProcess;
         private ProcessStartInfo concatStartInfo;
-        private bool finished;
         private decimal percentage;
         private TimeSpan duration;
-        private bool cancelled;
-        private bool failed;
-        private string lastData;
         private readonly string sourceFolder;
         private readonly string filenameWithoutExtension;
         private readonly string fileExtension;
         private string tempFile;
         private string reversedFile;
 
-        public VideoReverser(string fullPath)
+        public VideoReverser(string fullPath) : base(null)
         {
             sourceFolder = Path.GetDirectoryName(fullPath);
             filenameWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
             fileExtension = Path.GetExtension(fullPath);
-            failed = false;
-            cancelled = false;
+            Failed = false;
+            Cancelled = false;
 
             //for trimming
             output = $"{sourceFolder}\\{filenameWithoutExtension}_temp%03d{fileExtension}";
@@ -73,13 +69,13 @@ namespace VideoUtilities
                     StartInfo = trimStartInfo
                 };
                 trimProcess.Exited += Process_Exited;
-                trimProcess.ErrorDataReceived += OutputHandler;
+                //trimProcess.ErrorDataReceived += OutputHandler;
                 trimProcess.Start();
                 trimProcess.BeginErrorReadLine();
             }
             catch (Exception ex)
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
@@ -115,7 +111,7 @@ namespace VideoUtilities
                 StartInfo = reverseStartInfo
             };
             reverseProcess.Exited += ReverseProcess_Exited;
-            reverseProcess.ErrorDataReceived += OutputHandler;
+            //reverseProcess.ErrorDataReceived += OutputHandler;
             reverseProcess.Start();
             reverseProcess.BeginErrorReadLine();
         }
@@ -156,140 +152,142 @@ namespace VideoUtilities
             concatProcess.BeginErrorReadLine();
         }
 
-        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        {
-            if (cancelled)
-                return;
-            var info = new ComputerInfo();
-            var availableMemory = info.AvailablePhysicalMemory / (1024f * 1024f * 1024f);
-            var totalMemory = info.TotalPhysicalMemory / (1024f * 1024f * 1024f);
-            var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
+        //private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        //{
+        //    if (Cancelled)
+        //        return;
+        //    var info = new ComputerInfo();
+        //    var availableMemory = info.AvailablePhysicalMemory / (1024f * 1024f * 1024f);
+        //    var totalMemory = info.TotalPhysicalMemory / (1024f * 1024f * 1024f);
+        //    var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
 
-            if (usedMemoryPercentage > 95)
-                CancelOperation(string.Format(Translatables.RamUsageLabel, $"{usedMemoryPercentage:00}"));
+        //    if (usedMemoryPercentage > 95)
+        //        CancelOperation(string.Format(Translatables.RamUsageLabel, $"{usedMemoryPercentage:00}"));
 
-            OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
-            // extract the percentage from process output
-            if (string.IsNullOrEmpty(outLine.Data) || finished || IsFinished(outLine.Data))
-                return;
+        //    OnProgress(new ProgressEventArgs { Percentage = Finished ? 0 : percentage, Data = Finished ? string.Empty : outLine.Data });
+        //    // extract the percentage from process output
+        //    if (string.IsNullOrEmpty(outLine.Data) || Finished || IsFinished(outLine.Data))
+        //        return;
 
-            lastData = outLine.Data;
-            if (outLine.Data.Contains("ERROR"))
-            {
-                failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
-                return;
-            }
+        //    LastData = outLine.Data;
+        //    if (outLine.Data.Contains("ERROR"))
+        //    {
+        //        Failed = true;
+        //        OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
+        //        return;
+        //    }
 
-            if (!outLine.Data.Contains("Duration: ") && !isConverting())
-                return;
+        //    if (!outLine.Data.Contains("Duration: ") && !isConverting())
+        //        return;
 
-            if (outLine.Data.Contains("Duration: "))
-            {
-                duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
-                if (duration > TimeSpan.FromMinutes(1))
-                {
-                    var args = new MessageEventArgs { Message = Translatables.VideoTooBigMessage };
-                    OnShowMessage(args);
-                    if (!args.Result)
-                        CancelOperation(string.Empty);
-                }
-                return;
-            }
+        //    if (outLine.Data.Contains("Duration: "))
+        //    {
+        //        duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
+        //        if (duration > TimeSpan.FromMinutes(1))
+        //        {
+        //            var args = new MessageEventArgs { Message = Translatables.VideoTooBigMessage };
+        //            OnShowMessage(args);
+        //            if (!args.Result)
+        //                CancelOperation(string.Empty);
+        //        }
+        //        return;
+        //    }
 
-            var currentTime = TimeSpan.Zero;
-            if (isConverting())
-            {
-                var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                currentTime = TimeSpan.Parse(strSub);
-            }
+        //    var currentTime = TimeSpan.Zero;
+        //    if (isConverting())
+        //    {
+        //        var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+        //        currentTime = TimeSpan.Parse(strSub);
+        //    }
 
-            // fire the process event
-            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
-            if (perc < 0)
-            {
-                Console.WriteLine("weird perc {0}", perc);
-                return;
-            }
-            percentage = perc;
-            OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
+        //    // fire the process event
+        //    var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
+        //    if (perc < 0)
+        //    {
+        //        Console.WriteLine("weird perc {0}", perc);
+        //        return;
+        //    }
+        //    percentage = perc;
+        //    OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
 
-            // is it finished?
-            if (perc < 100 && !IsFinished(outLine.Data))
-                return;
+        //    // is it finished?
+        //    if (perc < 100 && !IsFinished(outLine.Data))
+        //        return;
 
-            if (perc >= 100 && !finished)
-                OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
+        //    if (perc >= 100 && !Finished)
+        //        OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
 
-            bool isConverting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
-        }
+        //    bool isConverting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
+        //}
 
         private void ConcatProcess_OutputHandler(object sender, DataReceivedEventArgs outLine)
         {
-            if (cancelled)
-                return;
+            //if (Cancelled)
+            //    return;
 
-            if (string.IsNullOrEmpty(outLine.Data) || finished || IsFinished(outLine.Data))
-            {
-                OnProgress(new ProgressEventArgs { Percentage = 100, Data = outLine.Data });
-                return;
-            }
+            //if (string.IsNullOrEmpty(outLine.Data) || Finished || IsFinished(outLine.Data))
+            //{
+            //    OnProgress(new ProgressEventArgs { Percentage = 100, Data = outLine.Data });
+            //    return;
+            //}
 
-            lastData = outLine.Data;
-            if (!outLine.Data.Contains("ERROR") && !outLine.Data.Contains("Invalid"))
-                return;
+            //LastData = outLine.Data;
+            //if (!outLine.Data.Contains("ERROR") && !outLine.Data.Contains("Invalid"))
+            //    return;
 
-            failed = true;
-            OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
+            //Failed = true;
+            //OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
         }
 
-        protected override void Process_Exited(object sender, EventArgs e)
-        {
-            if (finished || failed || cancelled)
-                return;
+        //protected override void Process_Exited(object sender, EventArgs e)
+        //{
+        //    if (Finished || Failed || Cancelled)
+        //        return;
 
-            if (trimProcess.ExitCode != 0 && !cancelled)
-            {
-                OnDownloadError(new ProgressEventArgs { Error = lastData });
-                return;
-            }
+        //    if (trimProcess.ExitCode != 0 && !Cancelled)
+        //    {
+        //        OnDownloadError(new ProgressEventArgs { Error = LastData });
+        //        return;
+        //    }
 
-            ReverseSections();
-        }
+        //    ReverseSections();
+        //}
 
         protected void ReverseProcess_Exited(object sender, EventArgs e)
         {
-            if (finished || failed || cancelled)
-                return;
+            //if (Finished || Failed || Cancelled)
+            //    return;
 
-            if (reverseProcess.ExitCode != 0 && !cancelled)
-            {
-                OnDownloadError(new ProgressEventArgs { Error = lastData });
-                return;
-            }
+            //if (reverseProcess.ExitCode != 0 && !Cancelled)
+            //{
+            //    OnDownloadError(new ProgressEventArgs { Error = LastData });
+            //    return;
+            //}
 
-            ConcatSections();
+            //ConcatSections();
         }
 
         protected void ConcatProcess_Exited(object sender, EventArgs e)
         {
-            if (finished || failed || cancelled)
-                return;
+            //if (Finished || Failed || Cancelled)
+            //    return;
 
-            if (concatProcess.ExitCode != 0 && !cancelled)
-            {
-                OnDownloadError(new ProgressEventArgs { Error = lastData });
-                return;
-            }
+            //if (concatProcess.ExitCode != 0 && !Cancelled)
+            //{
+            //    OnDownloadError(new ProgressEventArgs { Error = LastData });
+            //    return;
+            //}
 
-            finished = true;
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
-            CleanUp();
+            //Finished = true;
+            //OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
+            //CleanUp();
         }
 
         public override void CancelOperation(string cancelMessage)
         {
-            cancelled = true;
+            //todo
+            base.CancelOperation(cancelMessage);
+            Cancelled = true;
             if (trimProcess != null && !trimProcess.HasExited)
             {
                 trimProcess.Kill();
@@ -310,7 +308,7 @@ namespace VideoUtilities
             if (!string.IsNullOrEmpty(reversedFile))
                 File.Delete(reversedFile);
 
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
             CleanUp();
         }
 
@@ -339,7 +337,7 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(error.Data))
                 return;
 
-            failed = true;
+            Failed = true;
             OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
 

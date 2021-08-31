@@ -4,14 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using MVVMFramework;
 
 namespace VideoUtilities
 {
-    public class VideoMerger : BaseClass
+    public class VideoMerger : BaseClass<object>
     {
         private readonly string output;
         private readonly ProcessStartInfo startInfo;
@@ -21,19 +20,15 @@ namespace VideoUtilities
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
         private Process process;
-        private bool finished;
         private decimal percentage;
-        private bool cancelled;
-        private bool failed;
-        private string lastData;
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private TimeSpan totalDuration;
         private readonly string tempFile;
 
-        public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outputPath, string outputExtension)
+        public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outputPath, string outputExtension) : base(null)
         {
-            failed = false;
-            cancelled = false;
+            Failed = false;
+            Cancelled = false;
 
             GetMetadata(fileViewModels);
             foreach (var meta in metadataClasses)
@@ -94,39 +89,33 @@ namespace VideoUtilities
             }
             catch (Exception ex)
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
 
         public override void CancelOperation(string cancelMessage)
         {
-            cancelled = true;
-            if (!process.HasExited)
-            {
-                process.Kill();
-                Thread.Sleep(1000);
-            }
-            if (!string.IsNullOrEmpty(output))
-                File.Delete(output);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
+            base.CancelOperation(cancelMessage);
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
             CleanUp();
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
-            if (cancelled)
+            if (Cancelled)
                 return;
 
-            OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
+            var index = ProcessStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
+            OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Finished ? 0 : percentage, Data = ProcessStuff[index].Finished ? string.Empty : outLine.Data });
             // extract the percentage from process output
-            if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
+            if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished || isFinished())
                 return;
 
-            lastData = outLine.Data;
+            LastData = outLine.Data;
             if (outLine.Data.Contains("ERROR"))
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
                 return;
             }
@@ -160,7 +149,7 @@ namespace VideoUtilities
             if (perc < 100 && !isFinished())
                 return;
 
-            if (perc >= 100 && !finished)
+            if (perc >= 100 && !ProcessStuff[index].Finished)
                 OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
 
             bool isConverting() => outLine.Data.Contains("frame=") && outLine.Data.Contains("fps=") && outLine.Data.Contains("time=");
@@ -192,21 +181,21 @@ namespace VideoUtilities
             }
         }
 
-        protected override void Process_Exited(object sender, EventArgs e)
-        {
-            CleanUp();
-            if (finished || failed || cancelled)
-                return;
+        //protected override void Process_Exited(object sender, EventArgs e)
+        //{
+        //    CleanUp();
+        //    if (ProcessStuff[index].Finished || Failed || Cancelled)
+        //        return;
 
-            if (process.ExitCode != 0 && !cancelled)
-            {
-                OnDownloadError(new ProgressEventArgs { Error = lastData });
-                return;
-            }
+        //    if (process.ExitCode != 0 && !Cancelled)
+        //    {
+        //        OnDownloadError(new ProgressEventArgs { Error = LastData });
+        //        return;
+        //    }
 
-            finished = true;
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
-        }
+        //    ProcessStuff[index].Finished = true;
+        //    OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
+        //}
 
         private void CleanUp()
         {
@@ -231,7 +220,7 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(error.Data))
                 return;
 
-            failed = true;
+            Failed = true;
             OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }

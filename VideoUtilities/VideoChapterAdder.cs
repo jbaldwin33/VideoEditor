@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using MVVMFramework;
 
 namespace VideoUtilities
 {
-    public class VideoChapterAdder : BaseClass
+    public class VideoChapterAdder : BaseClass<object>
     {
         public event ProgressEventHandler ProgressDownload;
         public event FinishedDownloadEventHandler FinishedDownload;
@@ -20,21 +19,18 @@ namespace VideoUtilities
         private ProcessStartInfo setMetadataStartInfo;
         private readonly List<string> filenames = new List<string>();
         private decimal percentage;
-        private bool cancelled;
         private TimeSpan duration;
         private Process getMetadataProcess;
         private Process setMetadataProcess;
-        private string lastData;
-        private bool failed;
         private readonly string metadataFile;
         private string chapterFile;
         private readonly string inputPath;
         private readonly string outputPath;
         private bool setFinished;
 
-        public VideoChapterAdder(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
+        public VideoChapterAdder(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null) : base(null)
         {
-            cancelled = false;
+            Cancelled = false;
             getFinished = false;
             var sourceFolder = Path.GetDirectoryName(fullInputPath);
             var sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
@@ -78,7 +74,7 @@ namespace VideoUtilities
             }
             catch (Exception ex)
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = $"{ex.Message}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
                 //if error occurs keep chapter file so it doesn't have to be redone
                 filenames.Remove(chapterFile);
@@ -154,7 +150,9 @@ namespace VideoUtilities
 
         public override void CancelOperation(string cancelMessage)
         {
-            cancelled = true;
+            //todo
+            base.CancelOperation(cancelMessage);
+            Cancelled = true;
             if (!getMetadataProcess.HasExited)
                 getMetadataProcess.Kill();
             if (!setMetadataProcess.HasExited)
@@ -162,39 +160,39 @@ namespace VideoUtilities
 
             Thread.Sleep(1000);
             filenames.ForEach(File.Delete);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
         }
 
         private void GetMetadataOutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
-            if (cancelled)
+            if (Cancelled)
                 return;
 
             //OnProgress(new ProgressEventArgs { Percentage = getFinished ? 0 : 100, Data = getFinished ? string.Empty : outLine.Data });
             if (string.IsNullOrEmpty(outLine.Data) || getFinished || IsFinished(outLine.Data))
                 return;
 
-            lastData = outLine.Data;
+            LastData = outLine.Data;
             if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
             }
         }
 
         private void SetMetadataProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outLine)
         {
-            if (cancelled)
+            if (Cancelled)
                 return;
 
             OnProgress(new ProgressEventArgs { Percentage = setFinished ? 0 : percentage, Data = setFinished ? string.Empty : outLine.Data });
             if (string.IsNullOrEmpty(outLine.Data) || setFinished || IsFinished(outLine.Data))
                 return;
 
-            lastData = outLine.Data;
+            LastData = outLine.Data;
             if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = $"{outLine.Data}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
                 //if error occurs keep chapter file so it doesn't have to be redone
                 filenames.Remove(chapterFile);
@@ -235,16 +233,13 @@ namespace VideoUtilities
             if (perc >= 100 && !setFinished)
                 OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
         }
-
-        private static bool IsProcessing(string data) => data.Contains("frame=") && data.Contains("fps=") && data.Contains("time=");
-        private static bool IsFinished(string data) => data.Contains("global headers:") && data.Contains("muxing overhead:");
-
-        protected override void Process_Exited(object sender, EventArgs e)
+        
+        protected new void Process_Exited(object sender, EventArgs e)
         {
-            if (getMetadataProcess.ExitCode != 0 || failed || cancelled)
+            if (getMetadataProcess.ExitCode != 0 || Failed || Cancelled)
             {
-                if (getMetadataProcess.ExitCode != 0 && !cancelled)
-                    OnDownloadError(new ProgressEventArgs { Error = lastData });
+                if (getMetadataProcess.ExitCode != 0 && !Cancelled)
+                    OnDownloadError(new ProgressEventArgs { Error = LastData });
                 CleanUp();
                 return;
             }
@@ -256,11 +251,11 @@ namespace VideoUtilities
 
         private void SetMetadataProcess_Exited(object sender, EventArgs e)
         {
-            if (setMetadataProcess.ExitCode != 0 || failed || cancelled)
+            if (setMetadataProcess.ExitCode != 0 || Failed || Cancelled)
             {
-                if (setMetadataProcess.ExitCode != 0 && !cancelled)
+                if (setMetadataProcess.ExitCode != 0 && !Cancelled)
                 {
-                    OnDownloadError(new ProgressEventArgs { Error = $"{lastData}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
+                    OnDownloadError(new ProgressEventArgs { Error = $"{LastData}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
                     //if error occurs keep chapter file so it doesn't have to be redone
                     filenames.Remove(chapterFile);
                 }
@@ -269,7 +264,7 @@ namespace VideoUtilities
             }
 
             setFinished = true;
-            FinishedDownload?.Invoke(this, new FinishedEventArgs { Cancelled = cancelled });
+            FinishedDownload?.Invoke(this, new FinishedEventArgs { Cancelled = Cancelled });
             CleanUp();
         }
 
@@ -301,7 +296,7 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(error.Data))
                 return;
 
-            failed = true;
+            Failed = true;
             OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }

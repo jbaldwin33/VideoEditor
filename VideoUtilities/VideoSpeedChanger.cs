@@ -7,7 +7,7 @@ using MVVMFramework;
 
 namespace VideoUtilities
 {
-    public class VideoSpeedChanger : BaseClass
+    public class VideoSpeedChanger : BaseClass<object>
     {
         private readonly string output;
         private readonly ProcessStartInfo startInfo;
@@ -20,14 +20,11 @@ namespace VideoUtilities
         private bool finished;
         private decimal percentage;
         private TimeSpan duration;
-        private bool cancelled;
-        private bool failed;
-        private string lastData;
 
-        public VideoSpeedChanger(string fullPath, double speed, Enums.ScaleRotate scaleRotate)
+        public VideoSpeedChanger(string fullPath, double speed, Enums.ScaleRotate scaleRotate) : base(null)
         {
-            failed = false;
-            cancelled = false;
+            Failed = false;
+            Cancelled = false;
 
             output = $"{Path.GetDirectoryName(fullPath)}\\{Path.GetFileNameWithoutExtension(fullPath)}_formatted{Path.GetExtension(fullPath)}";
             startInfo = new ProcessStartInfo
@@ -74,27 +71,20 @@ namespace VideoUtilities
             }
             catch (Exception ex)
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
 
         public override void CancelOperation(string cancelMessage)
         {
-            cancelled = true;
-            if (!process.HasExited)
-            {
-                process.Kill();
-                Thread.Sleep(1000);
-            }
-            if (!string.IsNullOrEmpty(output))
-                File.Delete(output);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled, Message = cancelMessage });
+            base.CancelOperation(cancelMessage);
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
         }
 
         private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
-            if (cancelled)
+            if (Cancelled)
                 return;
 
             OnProgress(new ProgressEventArgs { Percentage = finished ? 0 : percentage, Data = finished ? string.Empty : outLine.Data });
@@ -102,10 +92,10 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(outLine.Data) || finished || isFinished())
                 return;
 
-            lastData = outLine.Data;
+            LastData = outLine.Data;
             if (outLine.Data.Contains("ERROR"))
             {
-                failed = true;
+                Failed = true;
                 OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
                 return;
             }
@@ -147,20 +137,20 @@ namespace VideoUtilities
             bool isFinished() => outLine.Data.Contains("global headers:") && outLine.Data.Contains("muxing overhead:");
         }
 
-        protected override void Process_Exited(object sender, EventArgs e)
-        {
-            if (finished || failed || cancelled)
-                return;
+        //protected override void Process_Exited(object sender, EventArgs e)
+        //{
+        //    if (finished || Failed || Cancelled)
+        //        return;
 
-            if (process.ExitCode != 0 && !cancelled)
-            {
-                OnDownloadError(new ProgressEventArgs { Error = lastData });
-                return;
-            }
+        //    if (process.ExitCode != 0 && !Cancelled)
+        //    {
+        //        OnDownloadError(new ProgressEventArgs { Error = LastData });
+        //        return;
+        //    }
 
-            finished = true;
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = cancelled });
-        }
+        //    finished = true;
+        //    OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
+        //}
 
         protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
@@ -175,7 +165,7 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(error.Data))
                 return;
 
-            failed = true;
+            Failed = true;
             OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }
