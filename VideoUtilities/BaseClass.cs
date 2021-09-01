@@ -60,34 +60,6 @@ namespace VideoUtilities
             }
         }
 
-        protected void AddProcess(string args, string output, bool keepOutput)
-        {
-            var process = new Process
-            {
-                EnableRaisingEvents = true,
-                StartInfo = new ProcessStartInfo
-                {
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
-                    CreateNoWindow = true,
-                    Arguments = args
-                }
-            };
-            process.Exited += Process_Exited;
-            process.ErrorDataReceived += OutputHandler;
-            var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
-            var stuff = new ProcessClass(false, process, output, TimeSpan.Zero, duration);
-            lock (_lock) { ProcessStuff.Insert(0, stuff); }
-            if (keepOutput)
-                keepOutputList.Add(ProcessStuff.IndexOf(stuff));
-            CurrentProcess.Add(stuff);
-            process.Start();
-            process.BeginErrorReadLine();
-        }
-
         protected void DoSetup(Action callback)
         {
             DoAfterExit = callback;
@@ -114,6 +86,34 @@ namespace VideoUtilities
                 ProcessStuff.Add(new ProcessClass(false, process, output, TimeSpan.Zero, GetDuration(obj)));
                 i++;
             }
+        }
+
+        protected void AddProcess(string args, string output, bool keepOutput)
+        {
+            var process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
+                    CreateNoWindow = true,
+                    Arguments = args
+                }
+            };
+            process.Exited += Process_Exited;
+            process.ErrorDataReceived += OutputHandler;
+            var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
+            var stuff = new ProcessClass(false, process, output, TimeSpan.Zero, duration);
+            lock (_lock) { ProcessStuff.Insert(0, stuff); }
+            if (keepOutput)
+                keepOutputList.Add(ProcessStuff.IndexOf(stuff));
+            CurrentProcess.Add(stuff);
+            process.Start();
+            process.BeginErrorReadLine();
         }
 
         protected virtual string CreateArguments(T obj, int index, string output) => throw new NotImplementedException();

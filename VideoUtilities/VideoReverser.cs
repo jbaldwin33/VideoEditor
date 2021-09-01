@@ -310,7 +310,7 @@ namespace VideoUtilities
             CleanUp();
         }
 
-        private void CleanUp()
+        protected override void CleanUp()
         {
             Thread.Sleep(1000);
             var regex = new Regex("_temp[0-9]{3}$");
@@ -318,9 +318,6 @@ namespace VideoUtilities
             var filesInDir = hdDirectoryInWhichToSearch.GetFiles().Where(file => regex.IsMatch(Path.GetFileNameWithoutExtension(file.Name)) || file.Name.Contains("temp_section_filenames")).ToList();
             filesInDir.Select(f => f.FullName).ToList().ForEach(File.Delete);
         }
-
-        private bool IsFinished(string data) => data.Contains("global headers:") && data.Contains("muxing overhead:");
-
 
         protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
