@@ -25,7 +25,7 @@ namespace VideoEditorUi.ViewModels
             get => player;
             set => SetProperty(ref player, value);
         }
-        
+
         public string InputPath
         {
             get => inputPath;
@@ -53,7 +53,7 @@ namespace VideoEditorUi.ViewModels
 
         public ReverseViewModel()
         {
-            
+
         }
 
         public override void OnUnloaded()
@@ -93,6 +93,8 @@ namespace VideoEditorUi.ViewModels
             reverser.FinishedDownload += Reverser_FinishedDownload;
             reverser.ErrorDownload += Reverser_ErrorDownload;
             reverser.MessageHandler += Reverser_MessageHandler;
+            reverser.TrimFinished += Reverser_TrimFinished;
+            reverser.ReverseFinished += Reverser_ReverseFinished;
             ProgressBarViewModel = new ProgressBarViewModel();
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
@@ -105,7 +107,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => reverser.ReverseVideo());
+            Task.Run(() => reverser.TrimSections());
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -114,12 +116,13 @@ namespace VideoEditorUi.ViewModels
         private void Reverser_ProgressDownload(object sender, ProgressEventArgs e)
         {
             if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
-                ProgressBarViewModel.UpdateProgressValue(e.Percentage);
+                ProgressBarViewModel.UpdateProgressValue(e.Percentage, e.ProcessIndex);
         }
 
         private void Reverser_FinishedDownload(object sender, FinishedEventArgs e)
         {
             CleanUp();
+            UtilityClass.ClosePlayer(player);
             var message = e.Cancelled
                 ? $"{Translatables.OperationCancelled} {e.Message}"
                 : Translatables.VideoSuccessfullyReversed;
@@ -137,6 +140,44 @@ namespace VideoEditorUi.ViewModels
             var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Warning, MessageBoxButton.YesNo, MessageBoxImage.Warning);
             ShowMessage(args);
             e.Result = args.Result == MessageBoxResult.Yes;
+        }
+
+        private void Reverser_TrimFinished(object sender, int count)
+        {
+            Navigator.Instance.CloseChildWindow.Execute(false);
+            ProgressBarViewModel = new ProgressBarViewModel(count);
+            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
+            {
+                try
+                {
+                    reverser.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
+            Task.Run(() => reverser.DoWork(Translatables.ReversingSectionsLabel));
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+        }
+
+        private void Reverser_ReverseFinished(object sender, EventArgs e)
+        {
+            Navigator.Instance.CloseChildWindow.Execute(false);
+            ProgressBarViewModel = new ProgressBarViewModel();
+            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
+            {
+                try
+                {
+                    reverser.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
+            Task.Run(() => reverser.ConcatSections());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         private void CleanUp()

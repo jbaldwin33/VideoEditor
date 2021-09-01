@@ -229,6 +229,7 @@ namespace VideoEditorUi.ViewModels
         private void Converter_FinishedDownload(object sender, FinishedEventArgs e)
         {
             CleanUp();
+            UtilityClass.ClosePlayer(player);
             var message = e.Cancelled
                 ? $"{Translatables.OperationCancelled} {e.Message}"
                 : Translatables.VideoSpeedSuccessfullyChanged;

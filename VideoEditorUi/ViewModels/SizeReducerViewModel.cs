@@ -11,6 +11,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 using static VideoUtilities.Enums;
 

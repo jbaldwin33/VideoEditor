@@ -20,7 +20,7 @@ namespace VideoUtilities
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
 
-        public VideoChapterAdder(string fullPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null) : base(new[] { fullPath })
+        public VideoChapterAdder(string fullPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
         {
             Cancelled = false;
             fullInputPath = fullPath;
@@ -32,7 +32,7 @@ namespace VideoUtilities
                 CreateChapterFile(times, sourceFolder, sourceFileWithoutExtension);
             else
                 chapterFile = importChapterFile;
-
+            SetList(new[] { fullPath });
             DoSetup(() =>
             {
                 WriteToMetadata();
@@ -46,7 +46,7 @@ namespace VideoUtilities
             => $"-y -i \"{obj}\" -f ffmetadata \"{metadataFile}\"";
 
         protected override TimeSpan? GetDuration(string obj) => null;
-        
+
         private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times, string sourceFolder, string sourceFileWithoutExtension)
         {
             chapterFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_chapters.txt");
@@ -88,7 +88,7 @@ namespace VideoUtilities
                 OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SettingMetadataMessage });
                 var outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
                 var args = $"-y -i \"{fullInputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\"";
-                AddProcess(args, outputPath, true);
+                AddProcess(args, outputPath, null, true);
             }
             catch (Exception ex)
             {
@@ -102,7 +102,7 @@ namespace VideoUtilities
             base.CancelOperation(cancelMessage);
             OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
         }
-        
+
         protected override void CleanUp()
         {
             foreach (var stuff in ProcessStuff)
@@ -129,7 +129,6 @@ namespace VideoUtilities
         protected override void OnDownloadFinished(FinishedEventArgs e)
         {
             FinishedDownload?.Invoke(this, e);
-            CleanUp();
             if (!e.Cancelled)
                 if (!string.IsNullOrEmpty(chapterFile))
                     File.Delete(chapterFile);
@@ -137,11 +136,7 @@ namespace VideoUtilities
 
         protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
-        protected override void OnDownloadError(ProgressEventArgs e)
-        {
-            ErrorDownload?.Invoke(this, e);
-            CleanUp();
-        }
+        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
     }
 
     public class Chapter

@@ -11,11 +11,12 @@ namespace VideoUtilities
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
 
-        public VideoSizeReducer(IEnumerable<(string Folder, string Filename, string Extension)> fileViewModels, string outPath) : base(fileViewModels)
+        public VideoSizeReducer(IEnumerable<(string Folder, string Filename, string Extension)> fileViewModels, string outPath)
         {
             Failed = false;
             Cancelled = false;
             outputPath = outPath;
+            SetList(fileViewModels);
             DoSetup(null);
         }
 

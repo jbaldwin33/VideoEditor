@@ -24,8 +24,9 @@ namespace VideoUtilities
         private string tempFile;
         private string fullInputPath;
         private readonly bool doReEncode;
+        private object _lock = new object();
 
-        public VideoSplitter(string fullPath, List<(TimeSpan, TimeSpan, string)> times, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo) : base(times)
+        public VideoSplitter(string fullPath, List<(TimeSpan, TimeSpan, string)> times, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             Cancelled = false;
             fullInputPath = fullPath;
@@ -36,6 +37,7 @@ namespace VideoUtilities
             combineVideo = combine;
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;
+            SetList(times);
             DoSetup(() => OnSplitFinished(EventArgs.Empty));
         }
 
@@ -43,7 +45,7 @@ namespace VideoUtilities
         protected override string CreateArguments((TimeSpan StartTime, TimeSpan EndTime, string Title) obj, int index, string output) =>
             $"-y -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {obj.StartTime.TotalSeconds} -to {obj.EndTime.TotalSeconds} \"{output}\"";
 
-        protected override TimeSpan? GetDuration((TimeSpan StartTime, TimeSpan EndTime, string Title) obj) => obj.EndTime- obj.StartTime;
+        protected override TimeSpan? GetDuration((TimeSpan StartTime, TimeSpan EndTime, string Title) obj) => obj.EndTime - obj.StartTime;
 
         public void CombineSections()
         {
@@ -54,7 +56,8 @@ namespace VideoUtilities
                 File.WriteAllLines(tempFile, ProcessStuff.Select(x => $"file '{x.Output}'"));
                 var combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";
                 var args = $"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{combinedFile}\"";
-                AddProcess(args, combinedFile, true);
+                var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
+                AddProcess(args, combinedFile, duration, true);
             }
             catch (Exception ex)
             {
@@ -81,7 +84,7 @@ namespace VideoUtilities
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
-        
+
         private void OnSplitFinished(EventArgs e)
         {
             if (combineVideo)
@@ -92,20 +95,24 @@ namespace VideoUtilities
 
         protected override void CleanUp()
         {
-            foreach (var stuff in ProcessStuff)
+            lock (_lock)
             {
-                if (!stuff.Process.HasExited)
+                foreach (var stuff in ProcessStuff)
                 {
-                    stuff.Process.Close();
-                    Thread.Sleep(1000);
+                    if (!stuff.Process.HasExited)
+                    {
+                        stuff.Process.Close();
+                        Thread.Sleep(1000);
+                    }
+
+                    if (!combineVideo && !Cancelled)
+                        continue;
+
+                    if (!string.IsNullOrEmpty(stuff.Output))
+                        File.Delete(stuff.Output);
                 }
-
-                if (!combineVideo && !Cancelled)
-                    continue;
-
-                if (!string.IsNullOrEmpty(stuff.Output))
-                    File.Delete(stuff.Output);
             }
+
             Thread.Sleep(1000);
             if (!string.IsNullOrEmpty(tempFile))
                 File.Delete(tempFile);
@@ -113,18 +120,10 @@ namespace VideoUtilities
 
         protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
-        protected override void OnDownloadFinished(FinishedEventArgs e)
-        {
-            FinishedDownload?.Invoke(this, e);
-            CleanUp();
-        }
+        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
 
         protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
-        protected override void OnDownloadError(ProgressEventArgs e)
-        {
-            ErrorDownload?.Invoke(this, e);
-            CleanUp();
-        }
+        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
     }
 }

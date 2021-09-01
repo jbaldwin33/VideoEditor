@@ -22,7 +22,7 @@ namespace VideoUtilities
         private readonly string outputExtension;
         private readonly List<(string sourceFolder, string filename, string extension)> files;
 
-        public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outPath, string outExt) : base(new[] { "" })
+        public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outPath, string outExt)
         {
             Failed = false;
             Cancelled = false;
@@ -37,7 +37,7 @@ namespace VideoUtilities
             using (var writeText = new StreamWriter(tempFile))
                 for (var i = 0; i < fileViewModels.Count; i++)
                     writeText.WriteLine($"file '{fileViewModels[i].sourceFolder}\\{fileViewModels[i].filename}{fileViewModels[i].extension}'");
-
+            SetList(new[] { "" });
             DoSetup(null);
         }
 

@@ -13,12 +13,13 @@ namespace VideoUtilities
         private readonly Enums.ScaleRotate scaleRotate;
         private readonly double newSpeed;
 
-        public VideoSpeedChanger(string fullPath, double speed, Enums.ScaleRotate sr) : base(new[] { fullPath })
+        public VideoSpeedChanger(string fullPath, double speed, Enums.ScaleRotate sr)
         {
             Failed = false;
             Cancelled = false;
             scaleRotate = sr;
             newSpeed = speed;
+            SetList(new[] { fullPath });
             DoSetup(null);
         }
 
@@ -45,7 +46,11 @@ namespace VideoUtilities
         }
 
         protected override TimeSpan? GetDuration(string obj) => null;
-        
+        protected override void CleanUp()
+        {
+            
+        }
+
         public override void CancelOperation(string cancelMessage)
         {
             base.CancelOperation(cancelMessage);

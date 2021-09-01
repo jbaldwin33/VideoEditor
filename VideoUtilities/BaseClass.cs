@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.VisualBasic.Devices;
+using MVVMFramework;
 
 namespace VideoUtilities
 {
@@ -28,7 +30,7 @@ namespace VideoUtilities
         private List<int> keepOutputList = new List<int>();
         private object _lock = new object();
 
-        protected BaseClass(IEnumerable<T> list)
+        protected void SetList(IEnumerable<T> list)
         {
             ObjectList = list;
         }
@@ -88,7 +90,7 @@ namespace VideoUtilities
             }
         }
 
-        protected void AddProcess(string args, string output, bool keepOutput)
+        protected void AddProcess(string args, string output, TimeSpan? duration, bool keepOutput)
         {
             var process = new Process
             {
@@ -106,7 +108,6 @@ namespace VideoUtilities
             };
             process.Exited += Process_Exited;
             process.ErrorDataReceived += OutputHandler;
-            var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
             var stuff = new ProcessClass(false, process, output, TimeSpan.Zero, duration);
             lock (_lock) { ProcessStuff.Insert(0, stuff); }
             if (keepOutput)
@@ -122,10 +123,18 @@ namespace VideoUtilities
 
         public string GetBinaryPath() => !string.IsNullOrEmpty(path) ? path : path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
 
-        private void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        protected void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             if (Cancelled)
                 return;
+
+            var info = new ComputerInfo();
+            var availableMemory = info.AvailablePhysicalMemory / (1024f * 1024f * 1024f);
+            var totalMemory = info.TotalPhysicalMemory / (1024f * 1024f * 1024f);
+            var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
+
+            if (usedMemoryPercentage > 95)
+                CancelOperation(string.Format(Translatables.RamUsageLabel, $"{usedMemoryPercentage:00}"));
 
             var index = ProcessStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Finished ? 0 : ProcessStuff[index].Percentage, Data = ProcessStuff[index].Finished ? string.Empty : outLine.Data });
@@ -147,7 +156,17 @@ namespace VideoUtilities
             if (outLine.Data.Contains("Duration: "))
             {
                 if (ProcessStuff[index].Duration == null)
+                {
                     ProcessStuff[index].Duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
+                    //if (ProcessStuff[index].Duration > TimeSpan.FromMinutes(1))
+                    //{
+                    //    var args = new MessageEventArgs { Message = Translatables.VideoTooBigMessage };
+                    //    OnShowMessage(args);
+                    //    if (!args.Result)
+                    //        CancelOperation(string.Empty);
+                    //}
+                }
+
                 return;
             }
 
@@ -206,24 +225,29 @@ namespace VideoUtilities
         public virtual void CancelOperation(string cancelMessage)
         {
             Cancelled = true;
-            foreach (var process in CurrentProcess)
+            lock (_lock)
             {
-                if (!process.Process.HasExited)
+                foreach (var process in CurrentProcess)
                 {
-                    process.Process.Kill();
-                    Thread.Sleep(1000);
-                }
+                    if (!process.Process.HasExited)
+                    {
+                        process.Process.Kill();
+                        Thread.Sleep(1000);
+                    }
 
-                if (!string.IsNullOrEmpty(process.Output))
-                    File.Delete(process.Output);
+                    if (!string.IsNullOrEmpty(process.Output))
+                        File.Delete(process.Output);
+                }
             }
         }
 
-        protected virtual void OnDownloadFinished(FinishedEventArgs e) => throw new NotImplementedException();
+        protected virtual void OnDownloadFinished(FinishedEventArgs e) => CleanUp();
+
         protected virtual void OnDownloadStarted(DownloadStartedEventArgs e) => throw new NotImplementedException();
         protected virtual void OnProgress(ProgressEventArgs e) => throw new NotImplementedException();
-        protected virtual void OnDownloadError(ProgressEventArgs e) => throw new NotImplementedException();
-        protected virtual void OnShowMessage(MessageEventArgs e) => throw new NotImplementedException();
+
+        protected virtual void OnDownloadError(ProgressEventArgs e) => CleanUp();
+
         protected virtual void CleanUp() => throw new NotImplementedException();
     }
 

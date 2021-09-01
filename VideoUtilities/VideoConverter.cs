@@ -11,11 +11,12 @@ namespace VideoUtilities
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
 
-        public VideoConverter(IEnumerable<(string folder, string filename, string extension)> fileViewModels, string outExt) : base(fileViewModels)
+        public VideoConverter(IEnumerable<(string folder, string filename, string extension)> fileViewModels, string outExt)
         {
             Failed = false;
             Cancelled = false;
             outExtension = outExt;
+            SetList(fileViewModels);
             DoSetup(null);
         }
 
