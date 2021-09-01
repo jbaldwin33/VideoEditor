@@ -350,7 +350,7 @@ namespace VideoEditorUi.ViewModels
                         ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                     }
                 };
-            Task.Run(() => chapterAdder.AddChapters());
+            Task.Run(() => chapterAdder.DoWork(Translatables.GettingMetadataMessage));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 

@@ -165,7 +165,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => sizeReducer.ReduceSize());
+            Task.Run(() => sizeReducer.DoWork(Translatables.ReducingSizeLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -188,7 +188,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => converter.ConvertVideo());
+            Task.Run(() => converter.DoWork(Translatables.ConvertingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
         private void RemoveExecute() => FileCollection.Remove(SelectedFile);

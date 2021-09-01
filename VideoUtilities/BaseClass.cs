@@ -5,8 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using Microsoft.VisualBasic;
-using MVVMFramework;
 
 namespace VideoUtilities
 {
@@ -28,7 +26,7 @@ namespace VideoUtilities
         protected IEnumerable<T> ObjectList;
         private string path;
         private List<int> keepOutputList = new List<int>();
-        private bool invoked;
+        private object _lock = new object();
 
         protected BaseClass(IEnumerable<T> list)
         {
@@ -39,17 +37,19 @@ namespace VideoUtilities
         {
             try
             {
-                for (var i = 0; i < ProcessStuff.Count; i++)
+                lock (_lock)
                 {
-                    CurrentProcess.Add(ProcessStuff[i]);
-
-                    OnDownloadStarted(new DownloadStartedEventArgs { Label = label });
-                    NumberInProcess++;
-                    ProcessStuff[i].Process.Start();
-                    ProcessStuff[i].Process.BeginErrorReadLine();
-                    while (NumberInProcess >= 2)
+                    foreach (var stuff in ProcessStuff)
                     {
-                        Thread.Sleep(200);
+                        CurrentProcess.Add(stuff);
+                        OnDownloadStarted(new DownloadStartedEventArgs { Label = label });
+                        NumberInProcess++;
+                        stuff.Process.Start();
+                        stuff.Process.BeginErrorReadLine();
+                        while (NumberInProcess >= 2)
+                        {
+                            Thread.Sleep(200);
+                        }
                     }
                 }
             }
@@ -80,7 +80,7 @@ namespace VideoUtilities
             process.ErrorDataReceived += OutputHandler;
             var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
             var stuff = new ProcessClass(false, process, output, TimeSpan.Zero, duration);
-            ProcessStuff.Insert(0, stuff);
+            lock (_lock) { ProcessStuff.Insert(0, stuff); }
             if (keepOutput)
                 keepOutputList.Add(ProcessStuff.IndexOf(stuff));
             CurrentProcess.Add(stuff);
@@ -189,10 +189,11 @@ namespace VideoUtilities
                 return;
 
             ProcessStuff[index].Finished = true;
-            if (!invoked)
+            if (DoAfterExit != null)
             {
-                invoked = true;
-                DoAfterExit?.Invoke();
+                var action = DoAfterExit;
+                DoAfterExit = null;
+                action?.Invoke();
             }
             else
                 OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
@@ -223,8 +224,6 @@ namespace VideoUtilities
         protected virtual void OnProgress(ProgressEventArgs e) => throw new NotImplementedException();
         protected virtual void OnDownloadError(ProgressEventArgs e) => throw new NotImplementedException();
         protected virtual void OnShowMessage(MessageEventArgs e) => throw new NotImplementedException();
-        //protected virtual void Process_Exited(object sender, EventArgs e) => throw new NotImplementedException();
-        protected virtual void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error) => throw new NotImplementedException();
         protected virtual void CleanUp() => throw new NotImplementedException();
     }
 
@@ -262,7 +261,7 @@ namespace VideoUtilities
         public TimeSpan CurrentTime { get; set; }
         public TimeSpan? Duration { get; set; }
 
-        public decimal Percentage => Convert.ToDecimal((float)CurrentTime.TotalSeconds / (float)Duration.Value.TotalSeconds) * 100;
+        public decimal Percentage => Convert.ToDecimal((float)CurrentTime.TotalSeconds / (float)(Duration?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds)) * 100;
 
         public ProcessClass(bool finished, Process process, string output, TimeSpan currentTime, TimeSpan? duration)
         {

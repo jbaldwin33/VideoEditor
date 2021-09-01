@@ -1,9 +1,7 @@
-﻿using Microsoft.VisualBasic.Devices;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -331,15 +329,6 @@ namespace VideoUtilities
         protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
         protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
-
-        protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
-        {
-            if (string.IsNullOrEmpty(error.Data))
-                return;
-
-            Failed = true;
-            OnDownloadError(new ProgressEventArgs { Error = error.Data });
-        }
 
         protected override void OnShowMessage(MessageEventArgs e) => MessageHandler?.Invoke(this, e);
     }

@@ -197,7 +197,7 @@ namespace VideoUtilities
         //    OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
         //}
 
-        private void CleanUp()
+        protected override void CleanUp()
         {
             if (!process.HasExited)
                 process.Close();
@@ -214,14 +214,5 @@ namespace VideoUtilities
         protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
         protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
-
-        protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
-        {
-            if (string.IsNullOrEmpty(error.Data))
-                return;
-
-            Failed = true;
-            OnDownloadError(new ProgressEventArgs { Error = error.Data });
-        }
     }
 }

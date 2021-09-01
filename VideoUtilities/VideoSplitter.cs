@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -46,28 +45,6 @@ namespace VideoUtilities
 
         protected override TimeSpan? GetDuration((TimeSpan StartTime, TimeSpan EndTime, string Title) obj) => obj.EndTime- obj.StartTime;
 
-        //public void Split()
-        //{
-        //    try
-        //    {
-        //        foreach (var stuff in ProcessStuff)
-        //        {
-        //            CurrentProcess.Add(stuff);
-
-        //            OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SplittingLabel });
-        //            NumberInProcess++;
-        //            stuff.Process.Start();
-        //            stuff.Process.BeginErrorReadLine();
-        //            while (NumberInProcess >= 2) { Thread.Sleep(200); }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Failed = true;
-        //        OnDownloadError(new ProgressEventArgs { Error = ex.Message });
-        //    }
-        //}
-
         public void CombineSections()
         {
             try
@@ -105,62 +82,6 @@ namespace VideoUtilities
             }
         }
         
-        //private void CombineProcessOutputHandler(object sender, DataReceivedEventArgs outLine)
-        //{
-        //    if (Cancelled)
-        //        return;
-
-        //    var index = ProcessStuff.FindIndex(p => p.Process.Id == (sender as Process).Id);
-        //    OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
-        //    if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished || IsFinished(outLine.Data))
-        //        return;
-
-        //    LastData = outLine.Data;
-        //    if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
-        //    {
-        //        Failed = true;
-        //        OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
-        //        return;
-        //    }
-
-        //    if (!IsProcessing(outLine.Data))
-        //        return;
-
-        //    if (IsProcessing(outLine.Data))
-        //    {
-        //        var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-        //        ProcessStuff[index].CurrentTime = TimeSpan.Parse(strSub);
-        //    }
-
-        //    OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
-
-        //    // is it finished?
-        //    if (ProcessStuff[index].Percentage < 100 && !IsFinished(outLine.Data))
-        //        return;
-
-        //    if (ProcessStuff[index].Percentage >= 100 && !ProcessStuff[index].Finished)
-        //        OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
-        //}
-        
-        //private void CombineProcess_Exited(object sender, EventArgs e)
-        //{
-        //    var processClass = ProcessStuff.First(p => p.Process.Id == (sender as Process).Id);
-        //    var index = ProcessStuff.FindIndex(p => p.Process.Id == processClass.Process.Id);
-        //    if (Failed || Cancelled)
-        //        return;
-
-        //    CurrentProcess.Remove(processClass);
-        //    ProcessStuff[index].Output = string.Empty; //so that we don't delete the merged output in CleanUp
-        //    if (processClass.Process.ExitCode != 0 && !Cancelled)
-        //    {
-        //        OnDownloadError(new ProgressEventArgs { Error = LastData });
-        //        return;
-        //    }
-        //    OnProgress(new ProgressEventArgs { Percentage = 100 });
-        //    ProcessStuff[index].Finished = true;
-        //    OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
-            
-        //}
         private void OnSplitFinished(EventArgs e)
         {
             if (combineVideo)
@@ -171,7 +92,7 @@ namespace VideoUtilities
 
         protected override void CleanUp()
         {
-            foreach (var stuff in CurrentProcess)
+            foreach (var stuff in ProcessStuff)
             {
                 if (!stuff.Process.HasExited)
                 {
@@ -204,15 +125,6 @@ namespace VideoUtilities
         {
             ErrorDownload?.Invoke(this, e);
             CleanUp();
-        }
-
-        protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
-        {
-            if (string.IsNullOrEmpty(error.Data))
-                return;
-
-            Failed = true;
-            OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }
 }

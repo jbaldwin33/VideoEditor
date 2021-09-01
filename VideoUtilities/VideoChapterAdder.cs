@@ -1,95 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using MVVMFramework;
 
 namespace VideoUtilities
 {
-    public class VideoChapterAdder : BaseClass<object>
+    public class VideoChapterAdder : BaseClass<string>
     {
         public event ProgressEventHandler ProgressDownload;
         public event FinishedDownloadEventHandler FinishedDownload;
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
 
-        private bool getFinished;
-        private readonly ProcessStartInfo getMetadataStartInfo;
-        private ProcessStartInfo setMetadataStartInfo;
-        private readonly List<string> filenames = new List<string>();
-        private decimal percentage;
-        private TimeSpan duration;
-        private Process getMetadataProcess;
-        private Process setMetadataProcess;
         private readonly string metadataFile;
         private string chapterFile;
-        private readonly string inputPath;
-        private readonly string outputPath;
-        private bool setFinished;
+        private readonly string fullInputPath;
+        private readonly string sourceFolder;
+        private readonly string sourceFileWithoutExtension;
+        private readonly string extension;
 
-        public VideoChapterAdder(string fullInputPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null) : base(null)
+        public VideoChapterAdder(string fullPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null) : base(new[] { fullPath })
         {
             Cancelled = false;
-            getFinished = false;
-            var sourceFolder = Path.GetDirectoryName(fullInputPath);
-            var sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
-            var extension = Path.GetExtension(fullInputPath);
-
+            fullInputPath = fullPath;
+            sourceFolder = Path.GetDirectoryName(fullInputPath);
+            sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
+            extension = Path.GetExtension(fullInputPath);
             metadataFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_metadataFile.txt");
-            filenames.Add(metadataFile);
             if (string.IsNullOrEmpty(importChapterFile))
                 CreateChapterFile(times, sourceFolder, sourceFileWithoutExtension);
             else
                 chapterFile = importChapterFile;
 
-            inputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}{extension}");
-            outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
-            getMetadataStartInfo = new ProcessStartInfo
+            DoSetup(() =>
             {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
-                CreateNoWindow = true,
-                Arguments = $"-y -i \"{inputPath}\" -f ffmetadata \"{metadataFile}\""
-            };
+                WriteToMetadata();
+                SetMetadata();
+            });
         }
 
-        public void AddChapters()
-        {
-            try
-            {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.GettingMetadataMessage });
-                getMetadataProcess = new Process
-                {
-                    EnableRaisingEvents = true,
-                    StartInfo = getMetadataStartInfo
-                };
-                getMetadataProcess.Exited += Process_Exited;
-                getMetadataProcess.ErrorDataReceived += GetMetadataOutputHandler;
-                getMetadataProcess.Start();
-                getMetadataProcess.BeginErrorReadLine();
-            }
-            catch (Exception ex)
-            {
-                Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = $"{ex.Message}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
-                //if error occurs keep chapter file so it doesn't have to be redone
-                filenames.Remove(chapterFile);
-            }
+        protected override string CreateOutput(string obj, int index) => metadataFile;
 
-            while (getFinished == false || setFinished == false)
-            {
-                Thread.Sleep(100); // wait while process exits;
-            }
-        }
+        protected override string CreateArguments(string obj, int index, string output)
+            => $"-y -i \"{obj}\" -f ffmetadata \"{metadataFile}\"";
 
+        protected override TimeSpan? GetDuration(string obj) => null;
+        
         private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times, string sourceFolder, string sourceFileWithoutExtension)
         {
             chapterFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_chapters.txt");
-            filenames.Add(chapterFile);
             using (var sw = new StreamWriter(chapterFile))
                 foreach (var (startTime, _, title) in times)
                     sw.WriteLine($"{startTime},{title}");
@@ -102,7 +62,7 @@ namespace VideoUtilities
                 using (var sr = new StreamReader(chapterFile))
                 {
                     string line;
-                    var separators = new [] { ':', ',' };
+                    var separators = new[] { ':', ',' };
                     var chapters = new List<Chapter>();
                     while ((line = sr.ReadLine()) != null)
                     {
@@ -123,165 +83,57 @@ namespace VideoUtilities
 
         private void SetMetadata()
         {
-            OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SettingMetadataMessage });
-
-            setMetadataStartInfo = new ProcessStartInfo
+            try
             {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
-                CreateNoWindow = true,
-                Arguments = $"-y -i \"{inputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\""
-            };
-            
-            setMetadataProcess = new Process
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SettingMetadataMessage });
+                var outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
+                var args = $"-y -i \"{fullInputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\"";
+                AddProcess(args, outputPath, true);
+            }
+            catch (Exception ex)
             {
-                EnableRaisingEvents = true,
-                StartInfo = setMetadataStartInfo
-            };
-            setMetadataProcess.Exited += SetMetadataProcess_Exited;
-            setMetadataProcess.ErrorDataReceived += SetMetadataProcess_ErrorDataReceived;
-
-            setMetadataProcess.Start();
-            setMetadataProcess.BeginErrorReadLine();
+                Failed = true;
+                OnDownloadError(new ProgressEventArgs { Error = ex.Message });
+            }
         }
 
         public override void CancelOperation(string cancelMessage)
         {
-            //todo
             base.CancelOperation(cancelMessage);
-            Cancelled = true;
-            if (!getMetadataProcess.HasExited)
-                getMetadataProcess.Kill();
-            if (!setMetadataProcess.HasExited)
-                setMetadataProcess.Kill();
-
-            Thread.Sleep(1000);
-            filenames.ForEach(File.Delete);
             OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
         }
-
-        private void GetMetadataOutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        {
-            if (Cancelled)
-                return;
-
-            //OnProgress(new ProgressEventArgs { Percentage = getFinished ? 0 : 100, Data = getFinished ? string.Empty : outLine.Data });
-            if (string.IsNullOrEmpty(outLine.Data) || getFinished || IsFinished(outLine.Data))
-                return;
-
-            LastData = outLine.Data;
-            if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
-            {
-                Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
-            }
-        }
-
-        private void SetMetadataProcess_ErrorDataReceived(object sender, DataReceivedEventArgs outLine)
-        {
-            if (Cancelled)
-                return;
-
-            OnProgress(new ProgressEventArgs { Percentage = setFinished ? 0 : percentage, Data = setFinished ? string.Empty : outLine.Data });
-            if (string.IsNullOrEmpty(outLine.Data) || setFinished || IsFinished(outLine.Data))
-                return;
-
-            LastData = outLine.Data;
-            if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
-            {
-                Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = $"{outLine.Data}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
-                //if error occurs keep chapter file so it doesn't have to be redone
-                filenames.Remove(chapterFile);
-                return;
-            }
-
-            if (!outLine.Data.Contains("Duration: ") && !IsProcessing(outLine.Data))
-                return;
-
-            if (outLine.Data.Contains("Duration: "))
-            {
-                if (duration == TimeSpan.Zero)
-                    duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
-                return;
-            }
-
-            var currentTime = TimeSpan.Zero;
-            if (IsProcessing(outLine.Data))
-            {
-                var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                currentTime = TimeSpan.Parse(strSub);
-            }
-
-            // fire the process event
-            var perc = Convert.ToDecimal((float)currentTime.TotalSeconds / (float)duration.TotalSeconds) * 100;
-            if (perc < 0)
-            {
-                Console.WriteLine($"weird percentage {perc}");
-                return;
-            }
-            percentage = perc;
-            OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
-
-            // is it finished?
-            if (perc < 100 && !IsFinished(outLine.Data))
-                return;
-
-            if (perc >= 100 && !setFinished)
-                OnProgress(new ProgressEventArgs { Percentage = percentage, Data = outLine.Data });
-        }
         
-        protected new void Process_Exited(object sender, EventArgs e)
+        protected override void CleanUp()
         {
-            if (getMetadataProcess.ExitCode != 0 || Failed || Cancelled)
+            foreach (var stuff in ProcessStuff)
             {
-                if (getMetadataProcess.ExitCode != 0 && !Cancelled)
-                    OnDownloadError(new ProgressEventArgs { Error = LastData });
-                CleanUp();
-                return;
-            }
-
-            getFinished = true;
-            WriteToMetadata();
-            SetMetadata();
-        }
-
-        private void SetMetadataProcess_Exited(object sender, EventArgs e)
-        {
-            if (setMetadataProcess.ExitCode != 0 || Failed || Cancelled)
-            {
-                if (setMetadataProcess.ExitCode != 0 && !Cancelled)
+                if (!stuff.Process.HasExited)
                 {
-                    OnDownloadError(new ProgressEventArgs { Error = $"{LastData}\n{string.Format(Translatables.ChapterAdderTryAgain, chapterFile)}" });
-                    //if error occurs keep chapter file so it doesn't have to be redone
-                    filenames.Remove(chapterFile);
+                    stuff.Process.Close();
+                    Thread.Sleep(1000);
                 }
-                CleanUp();
-                return;
+
+                if (!Cancelled)
+                    continue;
+
+                if (!string.IsNullOrEmpty(stuff.Output))
+                    File.Delete(stuff.Output);
             }
-
-            setFinished = true;
-            FinishedDownload?.Invoke(this, new FinishedEventArgs { Cancelled = Cancelled });
-            CleanUp();
-        }
-
-        private void CleanUp()
-        {
-            if (!getMetadataProcess.HasExited)
-                getMetadataProcess.Close();
-            if (!setMetadataProcess.HasExited)
-                setMetadataProcess.Close();
-
             Thread.Sleep(1000);
-            filenames.ForEach(File.Delete);
+            if (!string.IsNullOrEmpty(metadataFile))
+                File.Delete(metadataFile);
         }
 
         protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
-        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
+        protected override void OnDownloadFinished(FinishedEventArgs e)
+        {
+            FinishedDownload?.Invoke(this, e);
+            CleanUp();
+            if (!e.Cancelled)
+                if (!string.IsNullOrEmpty(chapterFile))
+                    File.Delete(chapterFile);
+        }
 
         protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
 
@@ -289,15 +141,6 @@ namespace VideoUtilities
         {
             ErrorDownload?.Invoke(this, e);
             CleanUp();
-        }
-
-        protected override void ErrorDataReceived(object sendingProcess, DataReceivedEventArgs error)
-        {
-            if (string.IsNullOrEmpty(error.Data))
-                return;
-
-            Failed = true;
-            OnDownloadError(new ProgressEventArgs { Error = error.Data });
         }
     }
 
