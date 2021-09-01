@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Microsoft.VisualBasic;
 using MVVMFramework;
 
 namespace VideoUtilities
@@ -26,6 +27,8 @@ namespace VideoUtilities
         protected int NumberInProcess;
         protected IEnumerable<T> ObjectList;
         private string path;
+        private List<int> keepOutputList = new List<int>();
+        private bool invoked;
 
         protected BaseClass(IEnumerable<T> list)
         {
@@ -44,7 +47,10 @@ namespace VideoUtilities
                     NumberInProcess++;
                     ProcessStuff[i].Process.Start();
                     ProcessStuff[i].Process.BeginErrorReadLine();
-                    while (NumberInProcess >= 2) { Thread.Sleep(200); }
+                    while (NumberInProcess >= 2)
+                    {
+                        Thread.Sleep(200);
+                    }
                 }
             }
             catch (Exception ex)
@@ -54,9 +60,32 @@ namespace VideoUtilities
             }
         }
 
-        public void DoSecondWork(string label)
+        protected void AddProcess(string args, string output, bool keepOutput)
         {
-
+            var process = new Process
+            {
+                EnableRaisingEvents = true,
+                StartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
+                    CreateNoWindow = true,
+                    Arguments = args
+                }
+            };
+            process.Exited += Process_Exited;
+            process.ErrorDataReceived += OutputHandler;
+            var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
+            var stuff = new ProcessClass(false, process, output, TimeSpan.Zero, duration);
+            ProcessStuff.Insert(0, stuff);
+            if (keepOutput)
+                keepOutputList.Add(ProcessStuff.IndexOf(stuff));
+            CurrentProcess.Add(stuff);
+            process.Start();
+            process.BeginErrorReadLine();
         }
 
         protected void DoSetup(Action callback)
@@ -145,6 +174,8 @@ namespace VideoUtilities
 
             CurrentProcess.Remove(processClass);
             NumberInProcess--;
+            foreach (var toKeep in keepOutputList)
+                ProcessStuff[toKeep].Output = string.Empty;
 
             if (processClass.Process.ExitCode != 0 && !Cancelled)
             {
@@ -158,13 +189,13 @@ namespace VideoUtilities
                 return;
 
             ProcessStuff[index].Finished = true;
-            if (DoAfterExit != null)
-                DoAfterExit.Invoke();
-            else
+            if (!invoked)
             {
-                OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
-                CleanUp();
+                invoked = true;
+                DoAfterExit?.Invoke();
             }
+            else
+                OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
         }
 
         protected static bool IsProcessing(string data) => data.Contains("frame=") && data.Contains("fps=") && data.Contains("time=");

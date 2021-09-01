@@ -76,28 +76,8 @@ namespace VideoUtilities
                 tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
                 File.WriteAllLines(tempFile, ProcessStuff.Select(x => $"file '{x.Output}'"));
                 var combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";
-                var process = new Process
-                {
-                    EnableRaisingEvents = true,
-                    StartInfo = new ProcessStartInfo
-                    {
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
-                        CreateNoWindow = true,
-                        Arguments = $"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{combinedFile}\""
-                    }
-                };
-                process.Exited += CombineProcess_Exited;
-                process.ErrorDataReceived += CombineProcessOutputHandler;
-                var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
-                var stuff = new ProcessClass(false, process, combinedFile, TimeSpan.Zero, duration);
-                ProcessStuff.Add(stuff);
-                CurrentProcess.Add(stuff);
-                process.Start();
-                process.BeginErrorReadLine();
+                var args = $"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{combinedFile}\"";
+                AddProcess(args, combinedFile, true);
             }
             catch (Exception ex)
             {
@@ -125,71 +105,68 @@ namespace VideoUtilities
             }
         }
         
-        private void CombineProcessOutputHandler(object sender, DataReceivedEventArgs outLine)
-        {
-            if (Cancelled)
-                return;
+        //private void CombineProcessOutputHandler(object sender, DataReceivedEventArgs outLine)
+        //{
+        //    if (Cancelled)
+        //        return;
 
-            var index = ProcessStuff.FindIndex(p => p.Process.Id == (sender as Process).Id);
-            OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
-            if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished || IsFinished(outLine.Data))
-                return;
+        //    var index = ProcessStuff.FindIndex(p => p.Process.Id == (sender as Process).Id);
+        //    OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
+        //    if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished || IsFinished(outLine.Data))
+        //        return;
 
-            LastData = outLine.Data;
-            if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
-            {
-                Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
-                return;
-            }
+        //    LastData = outLine.Data;
+        //    if (outLine.Data.Contains("ERROR") || outLine.Data.Contains("Invalid"))
+        //    {
+        //        Failed = true;
+        //        OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
+        //        return;
+        //    }
 
-            if (!IsProcessing(outLine.Data))
-                return;
+        //    if (!IsProcessing(outLine.Data))
+        //        return;
 
-            if (IsProcessing(outLine.Data))
-            {
-                var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                ProcessStuff[index].CurrentTime = TimeSpan.Parse(strSub);
-            }
+        //    if (IsProcessing(outLine.Data))
+        //    {
+        //        var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
+        //        ProcessStuff[index].CurrentTime = TimeSpan.Parse(strSub);
+        //    }
 
-            OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
+        //    OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
 
-            // is it finished?
-            if (ProcessStuff[index].Percentage < 100 && !IsFinished(outLine.Data))
-                return;
+        //    // is it finished?
+        //    if (ProcessStuff[index].Percentage < 100 && !IsFinished(outLine.Data))
+        //        return;
 
-            if (ProcessStuff[index].Percentage >= 100 && !ProcessStuff[index].Finished)
-                OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
-        }
+        //    if (ProcessStuff[index].Percentage >= 100 && !ProcessStuff[index].Finished)
+        //        OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
+        //}
         
-        private void CombineProcess_Exited(object sender, EventArgs e)
-        {
-            var processClass = ProcessStuff.First(p => p.Process.Id == (sender as Process).Id);
-            var index = ProcessStuff.FindIndex(p => p.Process.Id == processClass.Process.Id);
-            if (Failed || Cancelled)
-                return;
+        //private void CombineProcess_Exited(object sender, EventArgs e)
+        //{
+        //    var processClass = ProcessStuff.First(p => p.Process.Id == (sender as Process).Id);
+        //    var index = ProcessStuff.FindIndex(p => p.Process.Id == processClass.Process.Id);
+        //    if (Failed || Cancelled)
+        //        return;
 
-            CurrentProcess.Remove(processClass);
-            ProcessStuff[index].Output = string.Empty; //so that we don't delete the merged output in CleanUp
-            if (processClass.Process.ExitCode != 0 && !Cancelled)
-            {
-                OnDownloadError(new ProgressEventArgs { Error = LastData });
-                return;
-            }
-            OnProgress(new ProgressEventArgs { Percentage = 100 });
-            ProcessStuff[index].Finished = true;
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
+        //    CurrentProcess.Remove(processClass);
+        //    ProcessStuff[index].Output = string.Empty; //so that we don't delete the merged output in CleanUp
+        //    if (processClass.Process.ExitCode != 0 && !Cancelled)
+        //    {
+        //        OnDownloadError(new ProgressEventArgs { Error = LastData });
+        //        return;
+        //    }
+        //    OnProgress(new ProgressEventArgs { Percentage = 100 });
+        //    ProcessStuff[index].Finished = true;
+        //    OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
             
-        }
+        //}
         private void OnSplitFinished(EventArgs e)
         {
             if (combineVideo)
                 SplitFinished?.Invoke(this, e);
             else
-            {
                 OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
-                CleanUp();
-            }
         }
 
         protected override void CleanUp()
