@@ -166,7 +166,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => formatter.ChangeSpeed());
+            Task.Run(() => formatter.DoWork(Translatables.ChangingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 

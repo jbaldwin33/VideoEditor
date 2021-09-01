@@ -212,7 +212,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => merger.MergeVideo());
+            Task.Run(() => merger.DoWork(Translatables.MergingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
