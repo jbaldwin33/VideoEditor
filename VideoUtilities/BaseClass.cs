@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
 using MVVMFramework;
+using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
 {
@@ -17,6 +18,11 @@ namespace VideoUtilities
         public delegate void StartedDownloadEventHandler(object sender, DownloadStartedEventArgs e);
         public delegate void ErrorEventHandler(object sender, ProgressEventArgs e);
         public delegate void MessageEventHandler(object sender, MessageEventArgs e);
+        public event ProgressEventHandler ProgressDownload;
+        public event FinishedDownloadEventHandler FinishedDownload;
+        public event StartedDownloadEventHandler StartedDownload;
+        public event ErrorEventHandler ErrorDownload;
+        public event MessageEventHandler MessageHandler;
         protected Action DoAfterExit { get; set; }
         protected bool Cancelled;
         protected string LastData;
@@ -29,6 +35,7 @@ namespace VideoUtilities
         private string path;
         private List<int> keepOutputList = new List<int>();
         private object _lock = new object();
+        private object _lock2 = new object();
 
         protected void SetList(IEnumerable<T> list)
         {
@@ -80,7 +87,7 @@ namespace VideoUtilities
                         WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                         CreateNoWindow = true,
-                        Arguments = CreateArguments(obj, i, output)
+                        Arguments = CreateArguments(obj, i, ref output)
                     }
                 };
                 process.Exited += Process_Exited;
@@ -117,13 +124,13 @@ namespace VideoUtilities
             process.BeginErrorReadLine();
         }
 
-        protected virtual string CreateArguments(T obj, int index, string output) => throw new NotImplementedException();
+        protected virtual string CreateArguments(T obj, int index, ref string output) => throw new NotImplementedException();
         protected virtual string CreateOutput(T obj, int index) => throw new NotImplementedException();
         protected virtual TimeSpan? GetDuration(T obj) => throw new NotImplementedException();
 
         public string GetBinaryPath() => !string.IsNullOrEmpty(path) ? path : path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
 
-        protected void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        protected virtual void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             if (Cancelled)
                 return;
@@ -156,16 +163,7 @@ namespace VideoUtilities
             if (outLine.Data.Contains("Duration: "))
             {
                 if (ProcessStuff[index].Duration == null)
-                {
                     ProcessStuff[index].Duration = TimeSpan.Parse(outLine.Data.Split(new[] { "Duration: " }, StringSplitOptions.None)[1].Substring(0, 11));
-                    //if (ProcessStuff[index].Duration > TimeSpan.FromMinutes(1))
-                    //{
-                    //    var args = new MessageEventArgs { Message = Translatables.VideoTooBigMessage };
-                    //    OnShowMessage(args);
-                    //    if (!args.Result)
-                    //        CancelOperation(string.Empty);
-                    //}
-                }
 
                 return;
             }
@@ -218,6 +216,24 @@ namespace VideoUtilities
                 OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
         }
 
+        protected void CloseProcess(Process p, bool kill)
+        {
+            try
+            {
+                if (p.HasExited) 
+                    return;
+                if (kill)
+                    p.Kill();
+                else
+                    p.Close();
+                Thread.Sleep(1000);
+            }
+            catch (InvalidOperationException)
+            {
+
+            }
+        }
+
         protected static bool IsProcessing(string data) => data.Contains("frame=") && data.Contains("fps=") && data.Contains("time=");
         protected static bool IsFinished(string data) => data.Contains("global headers:") && data.Contains("muxing overhead:");
 
@@ -225,30 +241,34 @@ namespace VideoUtilities
         public virtual void CancelOperation(string cancelMessage)
         {
             Cancelled = true;
-            lock (_lock)
+            lock (_lock2)
             {
                 foreach (var process in CurrentProcess)
                 {
-                    if (!process.Process.HasExited)
-                    {
-                        process.Process.Kill();
-                        Thread.Sleep(1000);
-                    }
-
+                    CloseProcess(process.Process, true);
                     if (!string.IsNullOrEmpty(process.Output))
                         File.Delete(process.Output);
                 }
             }
         }
 
-        protected virtual void OnDownloadFinished(FinishedEventArgs e) => CleanUp();
+        protected virtual void OnDownloadFinished(FinishedEventArgs e)
+        {
+            FinishedDownload?.Invoke(this, e);
+            CleanUp();
+        }
 
-        protected virtual void OnDownloadStarted(DownloadStartedEventArgs e) => throw new NotImplementedException();
-        protected virtual void OnProgress(ProgressEventArgs e) => throw new NotImplementedException();
+        protected virtual void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
+        protected virtual void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
 
-        protected virtual void OnDownloadError(ProgressEventArgs e) => CleanUp();
+        protected virtual void OnDownloadError(ProgressEventArgs e)
+        {
+            ErrorDownload?.Invoke(this, e);
+            CleanUp();
+        }
 
         protected virtual void CleanUp() => throw new NotImplementedException();
+        protected virtual void ShowMessage(MessageEventArgs e) => MessageHandler?.Invoke(this, e);
     }
 
     public class MessageEventArgs : EventArgs

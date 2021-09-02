@@ -92,7 +92,7 @@ namespace VideoEditorUi.ViewModels
             reverser.ProgressDownload += Reverser_ProgressDownload;
             reverser.FinishedDownload += Reverser_FinishedDownload;
             reverser.ErrorDownload += Reverser_ErrorDownload;
-            reverser.MessageHandler += Reverser_MessageHandler;
+            reverser.MessageHandler += LibraryMessageHandler;
             reverser.TrimFinished += Reverser_TrimFinished;
             reverser.ReverseFinished += Reverser_ReverseFinished;
             ProgressBarViewModel = new ProgressBarViewModel();
@@ -135,13 +135,6 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
-        private void Reverser_MessageHandler(object sender, MessageEventArgs e)
-        {
-            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Warning, MessageBoxButton.YesNo, MessageBoxImage.Warning);
-            ShowMessage(args);
-            e.Result = args.Result == MessageBoxResult.Yes;
-        }
-
         private void Reverser_TrimFinished(object sender, int count)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
@@ -178,6 +171,13 @@ namespace VideoEditorUi.ViewModels
             };
             Task.Run(() => reverser.ConcatSections());
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+        }
+
+        private void LibraryMessageHandler(object sender, MessageEventArgs e)
+        {
+            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            ShowMessage(args);
+            e.Result = args.Result == MessageBoxResult.Yes;
         }
 
         private void CleanUp()

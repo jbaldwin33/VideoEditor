@@ -8,11 +8,7 @@ namespace VideoUtilities
 {
     public class VideoChapterAdder : BaseClass<string>
     {
-        public event ProgressEventHandler ProgressDownload;
-        public event FinishedDownloadEventHandler FinishedDownload;
-        public event StartedDownloadEventHandler StartedDownload;
-        public event ErrorEventHandler ErrorDownload;
-
+        public event EventHandler GetMetadataFinished;
         private readonly string metadataFile;
         private string chapterFile;
         private readonly string fullInputPath;
@@ -33,16 +29,20 @@ namespace VideoUtilities
             else
                 chapterFile = importChapterFile;
             SetList(new[] { fullPath });
+        }
+
+        public void Setup()
+        {
             DoSetup(() =>
             {
                 WriteToMetadata();
-                SetMetadata();
+                OnGetMetadataFinished();
             });
         }
 
         protected override string CreateOutput(string obj, int index) => metadataFile;
 
-        protected override string CreateArguments(string obj, int index, string output)
+        protected override string CreateArguments(string obj, int index, ref string output)
             => $"-y -i \"{obj}\" -f ffmetadata \"{metadataFile}\"";
 
         protected override TimeSpan? GetDuration(string obj) => null;
@@ -53,6 +53,59 @@ namespace VideoUtilities
             using (var sw = new StreamWriter(chapterFile))
                 foreach (var (startTime, _, title) in times)
                     sw.WriteLine($"{startTime},{title}");
+        }
+
+        public void SetMetadata()
+        {
+            try
+            {
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SettingMetadataMessage });
+                var outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
+                var overwrite = false;
+                if (File.Exists(outputPath))
+                {
+                    var args2 = new MessageEventArgs
+                    {
+                        Message = $"The file {Path.GetFileName(outputPath)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
+                    };
+                    ShowMessage(args2);
+                    overwrite = args2.Result;
+                    if (!overwrite)
+                    {
+                        var filename = Path.GetFileNameWithoutExtension(outputPath);
+                        outputPath = $"{Path.GetDirectoryName(outputPath)}\\{filename}[0]{Path.GetExtension(outputPath)}";
+                    }
+                }
+                var args = $"{(overwrite ? "-y" : string.Empty)} -i \"{fullInputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\"";
+                AddProcess(args, outputPath, null, true);
+            }
+            catch (Exception ex)
+            {
+                Failed = true;
+                OnDownloadError(new ProgressEventArgs { Error = ex.Message });
+            }
+        }
+
+        public override void CancelOperation(string cancelMessage)
+        {
+            base.CancelOperation(cancelMessage);
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
+        }
+
+        protected override void CleanUp()
+        {
+            foreach (var stuff in ProcessStuff)
+            {
+                CloseProcess(stuff.Process, false);
+                if (!Cancelled)
+                    continue;
+
+                if (!string.IsNullOrEmpty(stuff.Output))
+                    File.Delete(stuff.Output);
+            }
+            Thread.Sleep(1000);
+            if (!string.IsNullOrEmpty(metadataFile))
+                File.Delete(metadataFile);
         }
 
         private void WriteToMetadata()
@@ -81,62 +134,7 @@ namespace VideoUtilities
             }
         }
 
-        private void SetMetadata()
-        {
-            try
-            {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SettingMetadataMessage });
-                var outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
-                var args = $"-y -i \"{fullInputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\"";
-                AddProcess(args, outputPath, null, true);
-            }
-            catch (Exception ex)
-            {
-                Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = ex.Message });
-            }
-        }
-
-        public override void CancelOperation(string cancelMessage)
-        {
-            base.CancelOperation(cancelMessage);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
-        }
-
-        protected override void CleanUp()
-        {
-            foreach (var stuff in ProcessStuff)
-            {
-                if (!stuff.Process.HasExited)
-                {
-                    stuff.Process.Close();
-                    Thread.Sleep(1000);
-                }
-
-                if (!Cancelled)
-                    continue;
-
-                if (!string.IsNullOrEmpty(stuff.Output))
-                    File.Delete(stuff.Output);
-            }
-            Thread.Sleep(1000);
-            if (!string.IsNullOrEmpty(metadataFile))
-                File.Delete(metadataFile);
-        }
-
-        protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
-
-        protected override void OnDownloadFinished(FinishedEventArgs e)
-        {
-            FinishedDownload?.Invoke(this, e);
-            if (!e.Cancelled)
-                if (!string.IsNullOrEmpty(chapterFile))
-                    File.Delete(chapterFile);
-        }
-
-        protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
+        private void OnGetMetadataFinished() => GetMetadataFinished?.Invoke(this, EventArgs.Empty);
     }
 
     public class Chapter

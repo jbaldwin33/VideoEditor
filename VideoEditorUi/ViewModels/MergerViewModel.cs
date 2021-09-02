@@ -200,6 +200,7 @@ namespace VideoEditorUi.ViewModels
             merger.ProgressDownload += Merger_ProgressDownload;
             merger.FinishedDownload += Merger_FinishedDownload;
             merger.ErrorDownload += Merger_ErrorDownload;
+            merger.MessageHandler += LibraryMessageHandler;
             ProgressBarViewModel = new ProgressBarViewModel();
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
@@ -212,6 +213,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
+            merger.Setup();
             Task.Run(() => merger.DoWork(Translatables.MergingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
@@ -278,6 +280,13 @@ namespace VideoEditorUi.ViewModels
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+        }
+
+        private void LibraryMessageHandler(object sender, MessageEventArgs e)
+        {
+            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            ShowMessage(args);
+            e.Result = args.Result == MessageBoxResult.Yes;
         }
 
         private void CleanUp()

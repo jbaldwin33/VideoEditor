@@ -223,6 +223,7 @@ namespace VideoEditorUi.ViewModels
         public string AddChapterLabel => Translatables.AddChapter;
         public string ConfirmLabel => Translatables.Confirm;
         public string ImportLabel => Translatables.ImportLabel;
+        public string AddChaptersLabel => Translatables.AddChaptersMessage;
 
         #endregion
 
@@ -307,6 +308,7 @@ namespace VideoEditorUi.ViewModels
             splitter.FinishedDownload += Splitter_FinishedDownload;
             splitter.ErrorDownload += Splitter_ErrorDownload;
             splitter.SplitFinished += Splitter_SplitFinished;
+            splitter.MessageHandler += LibraryMessageHandler;
             ProgressBarViewModel = new ProgressBarViewModel(ChapterMarkers.Count);
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
@@ -319,6 +321,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
+            splitter.Setup();
             Task.Run(() => splitter.DoWork(Translatables.SplittingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
@@ -338,6 +341,8 @@ namespace VideoEditorUi.ViewModels
             chapterAdder.ProgressDownload += Splitter_ProgressDownload;
             chapterAdder.FinishedDownload += Splitter_FinishedDownload;
             chapterAdder.ErrorDownload += Splitter_ErrorDownload;
+            chapterAdder.MessageHandler += LibraryMessageHandler;
+            chapterAdder.GetMetadataFinished += Adder_GetMetadataFinished;
             ProgressBarViewModel = new ProgressBarViewModel();
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
                 {
@@ -350,6 +355,7 @@ namespace VideoEditorUi.ViewModels
                         ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                     }
                 };
+            chapterAdder.Setup();
             Task.Run(() => chapterAdder.DoWork(Translatables.GettingMetadataMessage));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
@@ -399,12 +405,12 @@ namespace VideoEditorUi.ViewModels
             FileLoaded = true;
             ResetAll();
 
-            var args = new MessageBoxEventArgs(Translatables.AddChaptersMessage, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            ShowMessage(args);
+            //var args = new MessageBoxEventArgs(Translatables.AddChaptersMessage, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            //ShowMessage(args);
             var chaptersCompatible = canAddChapters();
-            if (args.Result == MessageBoxResult.Yes && !chaptersCompatible)
-                ShowMessage(new MessageBoxEventArgs($"Chapter markers are only compatible with the following formats: {string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))}", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));//todo
-            AddChapters = args.Result == MessageBoxResult.Yes && chaptersCompatible;
+            //if (args.Result == MessageBoxResult.Yes && !chaptersCompatible)
+            //    ShowMessage(new MessageBoxEventArgs($"Chapter markers are only compatible with the following formats: {string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))}", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));//todo
+            AddChapters &= chaptersCompatible;
 
             bool canAddChapters() => FormatTypeViewModel.ChapterMarkerCompatibleFormats.Contains((FormatEnum)Enum.Parse(typeof(FormatEnum), Path.GetExtension(openFileDialog.FileName).Substring(1)));
         }
@@ -512,6 +518,32 @@ namespace VideoEditorUi.ViewModels
             };
             Task.Run(() => splitter.CombineSections());
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+        }
+
+        private void Adder_GetMetadataFinished(object sender, EventArgs e)
+        {
+            Navigator.Instance.CloseChildWindow.Execute(false);
+            ProgressBarViewModel = new ProgressBarViewModel();
+            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
+            {
+                try
+                {
+                    chapterAdder.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
+            Task.Run(() => chapterAdder.SetMetadata());
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+        }
+
+        private void LibraryMessageHandler(object sender, MessageEventArgs e)
+        {
+            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            ShowMessage(args);
+            e.Result = args.Result == MessageBoxResult.Yes;
         }
 
         private void CleanUp()

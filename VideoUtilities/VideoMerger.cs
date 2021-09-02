@@ -11,10 +11,6 @@ namespace VideoUtilities
 {
     public class VideoMerger : BaseClass<string>
     {
-        public event ProgressEventHandler ProgressDownload;
-        public event FinishedDownloadEventHandler FinishedDownload;
-        public event StartedDownloadEventHandler StartedDownload;
-        public event ErrorEventHandler ErrorDownload;
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private readonly TimeSpan totalDuration;
         private readonly string tempFile;
@@ -38,15 +34,33 @@ namespace VideoUtilities
                 for (var i = 0; i < fileViewModels.Count; i++)
                     writeText.WriteLine($"file '{fileViewModels[i].sourceFolder}\\{fileViewModels[i].filename}{fileViewModels[i].extension}'");
             SetList(new[] { "" });
-            DoSetup(null);
         }
+
+        public void Setup() => DoSetup(null);
 
         protected override string CreateOutput(string obj, int index)
             => $"{outputPath}\\Merged_File{outputExtension}";
 
-        protected override string CreateArguments(string obj, int index, string output)
+        protected override string CreateArguments(string obj, int index, ref string output)
         {
-            var sb = new StringBuilder("-y ");
+            var overwrite = false;
+            if (File.Exists(output))
+            {
+                var args = new MessageEventArgs
+                {
+                    Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
+                };
+                ShowMessage(args);
+                overwrite = args.Result;
+            }
+            var sb = new StringBuilder();
+            if (overwrite)
+                sb.Append("-y ");
+            else
+            {
+                var filename = Path.GetFileNameWithoutExtension(output);
+                output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
+            }
             var ext = files.First().extension;
             if (files.All(f => f.extension == ext))
                 sb.Append($"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
@@ -105,12 +119,7 @@ namespace VideoUtilities
         {
             foreach (var stuff in ProcessStuff)
             {
-                if (!stuff.Process.HasExited)
-                {
-                    stuff.Process.Close();
-                    Thread.Sleep(1000);
-                }
-
+                CloseProcess(stuff.Process, false);
                 if (!Cancelled)
                     continue;
 
@@ -121,13 +130,5 @@ namespace VideoUtilities
             if (!string.IsNullOrEmpty(tempFile))
                 File.Delete(tempFile);
         }
-
-        protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
-
-        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
     }
 }

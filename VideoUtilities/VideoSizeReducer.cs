@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace VideoUtilities
 {
     public class VideoSizeReducer : BaseClass<(string Folder, string Filename, string Extension)>
     {
         private readonly string outputPath;
-        public event ProgressEventHandler ProgressDownload;
-        public event FinishedDownloadEventHandler FinishedDownload;
-        public event StartedDownloadEventHandler StartedDownload;
-        public event ErrorEventHandler ErrorDownload;
 
         public VideoSizeReducer(IEnumerable<(string Folder, string Filename, string Extension)> fileViewModels, string outPath)
         {
@@ -17,12 +14,31 @@ namespace VideoUtilities
             Cancelled = false;
             outputPath = outPath;
             SetList(fileViewModels);
-            DoSetup(null);
         }
 
+        public void Setup() => DoSetup(null);
+
         protected override string CreateOutput((string Folder, string Filename, string Extension) obj, int index) => $"{outputPath}\\{obj.Filename}_reduced{obj.Extension}";
-        protected override string CreateArguments((string Folder, string Filename, string Extension) obj, int index, string output) 
-            => $"-y -i \"{obj.Folder}\\{obj.Filename}{obj.Extension}\" -vcodec libx264 -crf 28 \"{output}\"";
+
+        protected override string CreateArguments((string Folder, string Filename, string Extension) obj, int index, ref string output)
+        {
+            var overwrite = false;
+            if (File.Exists(output))
+            {
+                var args = new MessageEventArgs
+                {
+                    Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
+                };
+                ShowMessage(args);
+                overwrite = args.Result;
+                if (!overwrite)
+                {
+                    var filename = Path.GetFileNameWithoutExtension(output);
+                    output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
+                }
+            }
+            return $"{(overwrite ? "-y" : string.Empty)} -i \"{obj.Folder}\\{obj.Filename}{obj.Extension}\" -vcodec libx264 -crf 28 \"{output}\"";
+        }
 
         protected override TimeSpan? GetDuration((string Folder, string Filename, string Extension) obj) => null;
 
@@ -36,13 +52,5 @@ namespace VideoUtilities
         {
             
         }
-
-        protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
-
-        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
     }
 }

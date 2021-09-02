@@ -61,6 +61,7 @@
     <Compile Include="MetadataClass.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VideoConverter.cs" />
+    <Compile Include="VideoDownloader.cs" />
     <Compile Include="VideoMerger.cs" />
     <Compile Include="VideoChapterAdder.cs" />
     <Compile Include="VideoReverser.cs" />

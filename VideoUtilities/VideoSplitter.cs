@@ -4,15 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using MVVMFramework;
+using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
 {
     public class VideoSplitter : BaseClass<(TimeSpan StartTime, TimeSpan EndTime, string Title)>
     {
-        public event ProgressEventHandler ProgressDownload;
-        public event FinishedDownloadEventHandler FinishedDownload;
-        public event StartedDownloadEventHandler StartedDownload;
-        public event ErrorEventHandler ErrorDownload;
         public event EventHandler SplitFinished;
 
         private readonly string sourceFolder;
@@ -38,12 +35,31 @@ namespace VideoUtilities
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;
             SetList(times);
-            DoSetup(() => OnSplitFinished(EventArgs.Empty));
         }
 
+        public void Setup() => DoSetup(() => OnSplitFinished(EventArgs.Empty));
+
         protected override string CreateOutput((TimeSpan, TimeSpan, string) obj, int index) => $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{index + 1}{(outputDifferentFormat ? outputFormat : extension)}";
-        protected override string CreateArguments((TimeSpan StartTime, TimeSpan EndTime, string Title) obj, int index, string output) =>
-            $"-y -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {obj.StartTime.TotalSeconds} -to {obj.EndTime.TotalSeconds} \"{output}\"";
+
+        protected override string CreateArguments((TimeSpan StartTime, TimeSpan EndTime, string Title) obj, int index, ref string output)
+        {
+            var overwrite = false;
+            if (File.Exists(output))
+            {
+                var args = new MessageEventArgs
+                {
+                    Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
+                };
+                ShowMessage(args);
+                overwrite = args.Result;
+                if (!overwrite)
+                {
+                    var filename = Path.GetFileNameWithoutExtension(output);
+                    output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
+                }
+            }
+            return $"{(overwrite ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {obj.StartTime.TotalSeconds} -to {obj.EndTime.TotalSeconds} \"{output}\"";
+        }
 
         protected override TimeSpan? GetDuration((TimeSpan StartTime, TimeSpan EndTime, string Title) obj) => obj.EndTime - obj.StartTime;
 
@@ -99,11 +115,7 @@ namespace VideoUtilities
             {
                 foreach (var stuff in ProcessStuff)
                 {
-                    if (!stuff.Process.HasExited)
-                    {
-                        stuff.Process.Close();
-                        Thread.Sleep(1000);
-                    }
+                    CloseProcess(stuff.Process, false);
 
                     if (!combineVideo && !Cancelled)
                         continue;
@@ -117,13 +129,5 @@ namespace VideoUtilities
             if (!string.IsNullOrEmpty(tempFile))
                 File.Delete(tempFile);
         }
-
-        protected override void OnProgress(ProgressEventArgs e) => ProgressDownload?.Invoke(this, e);
-
-        protected override void OnDownloadFinished(FinishedEventArgs e) => FinishedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadStarted(DownloadStartedEventArgs e) => StartedDownload?.Invoke(this, e);
-
-        protected override void OnDownloadError(ProgressEventArgs e) => ErrorDownload?.Invoke(this, e);
     }
 }

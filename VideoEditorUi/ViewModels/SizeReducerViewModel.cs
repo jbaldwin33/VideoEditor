@@ -154,6 +154,7 @@ namespace VideoEditorUi.ViewModels
             sizeReducer.ProgressDownload += SizeReducer_ProgressDownload;
             sizeReducer.FinishedDownload += SizeReducer_FinishedDownload;
             sizeReducer.ErrorDownload += SizeReducer_ErrorDownload;
+            sizeReducer.MessageHandler += LibraryMessageHandler;
             ProgressBarViewModel = new ProgressBarViewModel(FileCollection.Count);
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
@@ -166,6 +167,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
+            sizeReducer.Setup();
             Task.Run(() => sizeReducer.DoWork(Translatables.ReducingSizeLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
@@ -177,6 +179,7 @@ namespace VideoEditorUi.ViewModels
             converter.ProgressDownload += Converter_ProgressDownload;
             converter.FinishedDownload += Converter_FinishedDownload;
             converter.ErrorDownload += Converter_ErrorDownload;
+            converter.MessageHandler += LibraryMessageHandler;
             ProgressBarViewModel = new ProgressBarViewModel(FileCollection.Count);
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
@@ -189,6 +192,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
+            converter.Setup();
             Task.Run(() => converter.DoWork(Translatables.ConvertingLabel));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
@@ -252,6 +256,13 @@ namespace VideoEditorUi.ViewModels
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+        }
+
+        private void LibraryMessageHandler(object sender, MessageEventArgs e)
+        {
+            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            ShowMessage(args);
+            e.Result = args.Result == MessageBoxResult.Yes;
         }
 
         private void CleanUp()
