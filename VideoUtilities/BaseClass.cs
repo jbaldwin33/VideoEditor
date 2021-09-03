@@ -32,6 +32,7 @@ namespace VideoUtilities
         protected int NumberFinished;
         protected int NumberInProcess;
         protected IEnumerable<T> ObjectList;
+        protected bool UseYoutubeDL;
         private string path;
         private List<int> keepOutputList = new List<int>();
         private object _lock = new object();
@@ -69,6 +70,8 @@ namespace VideoUtilities
             }
         }
 
+        public virtual void Setup() => throw new NotImplementedException();
+
         protected void DoSetup(Action callback)
         {
             DoAfterExit = callback;
@@ -85,13 +88,22 @@ namespace VideoUtilities
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
+                        FileName = Path.Combine(GetBinaryPath(), UseYoutubeDL ? "youtube-dl.exe" : "ffmpeg.exe"),
                         CreateNoWindow = true,
                         Arguments = CreateArguments(obj, i, ref output)
                     }
                 };
                 process.Exited += Process_Exited;
-                process.ErrorDataReceived += OutputHandler;
+                if (UseYoutubeDL)
+                {
+                    process.ErrorDataReceived += ErrorReceivedHandler;
+                    process.OutputDataReceived += OutputHandler;
+                }
+                else
+                {
+                    process.ErrorDataReceived += OutputHandler;
+                }
+
                 ProcessStuff.Add(new ProcessClass(false, process, output, TimeSpan.Zero, GetDuration(obj)));
                 i++;
             }
@@ -180,6 +192,12 @@ namespace VideoUtilities
 
             if (ProcessStuff[index].Percentage >= 100 && !ProcessStuff[index].Finished)
                 OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
+        }
+
+        protected void ErrorReceivedHandler(object sender, DataReceivedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+                OnDownloadError(new ProgressEventArgs { Error = e.Data});
         }
 
         protected void Process_Exited(object sender, EventArgs e)

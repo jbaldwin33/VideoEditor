@@ -18,7 +18,7 @@ namespace VideoUtilities
             SetList(new[] { fullPath });
         }
 
-        public void Setup() => DoSetup(null);
+        public override void Setup() => DoSetup(null);
         protected override string CreateOutput(string obj, int index)
             => $"{Path.GetDirectoryName(obj)}\\{Path.GetFileNameWithoutExtension(obj)}_formatted{Path.GetExtension(obj)}";
 

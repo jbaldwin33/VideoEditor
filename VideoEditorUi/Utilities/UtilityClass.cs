@@ -21,7 +21,7 @@ namespace VideoEditorUi.Utilities
         }
         public static void InitializePlayer(VideoPlayerWPF player) => player.Init(GetBinaryPath(), "UserName", "RegKey");
 
-        public static async void GetDetails(VideoPlayerWPF player, string name) => player.mediaProperties = await GetVideoDetails(name);
+        public static void GetDetails(VideoPlayerWPF player, string name) => player.mediaProperties = GetVideoDetails(name);
 
         /// <summary>
         /// Handles MPEG-TS files since the Start time differs from other files
@@ -38,9 +38,9 @@ namespace VideoEditorUi.Utilities
             mediaPlayer?.GetType().GetMethod("Close")?.Invoke(mediaPlayer, null);
         }
 
-        private static async Task<MediaProperties> GetVideoDetails(string input)
+        private static MediaProperties GetVideoDetails(string input)
         {
-            var output = await DoProcess(input);
+            var output = DoProcess(input);
             var serializer = new XmlSerializer(typeof(MediaProperties));
             MediaProperties mediaProperties;
             using (var reader = new StringReader(output))
@@ -48,7 +48,7 @@ namespace VideoEditorUi.Utilities
             return mediaProperties;
         }
 
-        private static async Task<string> DoProcess(string input)
+        private static string DoProcess(string input)
         {
             string output;
             using (var process = new Process())
@@ -65,7 +65,7 @@ namespace VideoEditorUi.Utilities
                 };
                 process.Start();
                 using (var reader = process.StandardOutput)
-                    output = await reader.ReadToEndAsync();
+                    output = reader.ReadToEnd();
                 process.WaitForExit();
             };
             return output;

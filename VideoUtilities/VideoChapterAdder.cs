@@ -31,7 +31,7 @@ namespace VideoUtilities
             SetList(new[] { fullPath });
         }
 
-        public void Setup()
+        public override void Setup()
         {
             DoSetup(() =>
             {

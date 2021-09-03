@@ -16,11 +16,11 @@ namespace VideoEditorUi
             var types = new[]
             {
                 (typeof(SplitterViewModel), Translatables.Splitter),
-                //(typeof(ConverterViewModel), Translatables.Converter),
                 (typeof(SpeedChangerViewModel), Translatables.SpeedChanger),
                 (typeof(ReverseViewModel), Translatables.Reverser),
                 (typeof(MergerViewModel), Translatables.Merger),
-                (typeof(SizeReducerViewModel), $"{Translatables.Converter}/{Translatables.ReduceSize}")
+                (typeof(SizeReducerViewModel), $"{Translatables.Converter}/{Translatables.ReduceSize}"),
+                //(typeof(DownloaderViewModel), Translatables.Downloader)
             };
             var window = new BaseWindowView(types) { Title = Translatables.VideoEditor };
             window.Show();

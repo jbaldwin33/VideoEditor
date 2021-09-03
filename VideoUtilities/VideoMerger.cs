@@ -36,7 +36,7 @@ namespace VideoUtilities
             SetList(new[] { "" });
         }
 
-        public void Setup() => DoSetup(null);
+        public override void Setup() => DoSetup(null);
 
         protected override string CreateOutput(string obj, int index)
             => $"{outputPath}\\Merged_File{outputExtension}";

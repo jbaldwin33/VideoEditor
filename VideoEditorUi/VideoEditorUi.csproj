@@ -92,6 +92,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities\RectangleExtensions.cs" />
+    <Compile Include="ViewModels\DownloaderViewModel.cs" />
     <Compile Include="ViewModels\SizeReducerViewModel.cs" />
     <Compile Include="ViewModels\MergerViewModel.cs" />
     <Compile Include="ViewModels\ReverseViewModel.cs" />
@@ -99,10 +100,14 @@
     <Compile Include="ViewModels\SpeedChangerViewModel.cs" />
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\ProgressBarViewModel.cs" />
+    <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
     <Compile Include="ViewModels\VideoViewModel.cs" />
     <Compile Include="Views\ChapterTitleDialogView.xaml.cs">
       <DependentUpon>ChapterTitleDialogView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DownloaderView.xaml.cs">
+      <DependentUpon>DownloaderView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SizeReducerView.xaml.cs">
       <DependentUpon>SizeReducerView.xaml</DependentUpon>
@@ -129,6 +134,10 @@
     <Page Include="Views\ChapterTitleDialogView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\DownloaderView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\SizeReducerView.xaml">
       <Generator>MSBuild:Compile</Generator>

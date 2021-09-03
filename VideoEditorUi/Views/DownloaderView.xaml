@@ -1,0 +1,65 @@
+﻿<framework:ViewBaseControl x:Class="VideoEditorUi.Views.DownloaderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+             xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
+             mc:Ignorable="d" 
+             d:DesignHeight="480" d:DesignWidth="800">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="4*"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+    <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Vertical" HorizontalAlignment="Right">
+      <controls:SmallButton Content="{Binding RemoveLabel}" Command="{Binding RemoveCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <ListView ItemsSource="{Binding FileCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
+        <ListView.ItemsPanel>
+          <ItemsPanelTemplate>
+            <StackPanel Orientation="Vertical"/>
+          </ItemsPanelTemplate>
+        </ListView.ItemsPanel>
+        <ListView.Template>
+          <ControlTemplate>
+            <Border BorderBrush="Black" BorderThickness="1">
+              <ScrollViewer HorizontalScrollBarVisibility="Auto" CanContentScroll="True" Height="200">
+                <ItemsPresenter />
+              </ScrollViewer>
+            </Border>
+          </ControlTemplate>
+        </ListView.Template>
+      </ListView>
+    </StackPanel>
+    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
+      <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+    </StackPanel>
+    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,1,0,0">
+      <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ConvertFormatLabel}" GroupName="radioGroup" IsChecked="{Binding ConverterSelected}"/>
+      <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ReduceVideoSizeLabel}" GroupName="radioGroup" />
+    </StackPanel>
+    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding ConverterSelected, Converter={StaticResource BoolToVisConverter}}">
+      <controls:DefaultTextBlock Text="{Binding OutputFormatLabel}"/>
+      <ComboBox IsEditable="False" IsReadOnly="True" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
+      <controls:LargeTextBox Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20"/>
+      <controls:LargeButton Content="{Binding OutputFolderLabel}" Command="{Binding SelectOutputFolderCommand}"/>
+    </StackPanel>
+    <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+      <controls:LargeButton Command="{Binding ReduceSizeCommand}" Content="{Binding ReduceVideoSizeLabel}" Visibility="{Binding ConverterSelected, Converter={StaticResource InvBoolToVisConverter}}"/>
+      <controls:MediumButton Command="{Binding ConvertCommand}" Content="{Binding ConvertLabel}" Visibility="{Binding ConverterSelected, Converter={StaticResource BoolToVisConverter}}"/>
+    </StackPanel>
+  </Grid>
+</framework:ViewBaseControl>

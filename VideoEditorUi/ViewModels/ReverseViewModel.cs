@@ -131,7 +131,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Reverser_ErrorDownload(object sender, ProgressEventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            CleanUp();
             ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 

@@ -21,7 +21,7 @@ using Path = System.IO.Path;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SplitterViewModel : ViewModel
+    public class ChapterAdderViewModel : VideoViewModel<string> //ViewModel
     {
         private RelayCommand seekBackCommand;
         private RelayCommand playCommand;
@@ -30,12 +30,11 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand stopCommand;
         private RelayCommand startCommand;
         private RelayCommand endCommand;
-        private RelayCommand splitCommand;
         private RelayCommand addChapterCommand;
         private RelayCommand selectFileCommand;
         private RelayCommand importCommand;
         private RelayCommand rectCommand;
-        private VideoPlayerWPF player;
+        //private VideoPlayerWPF player;
         private Slider slider;
         private TimeSpan startTime;
         private TimeSpan endTime;
@@ -44,16 +43,16 @@ namespace VideoEditorUi.ViewModels
         private bool startTimeSet;
         private bool endTimeSet;
         private bool fileLoaded;
-        private bool reEncodeVideo;
+        //private bool reEncodeVideo;
         private string inputPath;
         private ObservableCollection<ChapterMarkerViewModel> chapterMarkers;
         private ObservableCollection<RectClass> rectCollection;
-        private List<FormatTypeViewModel> formats;
-        private FormatEnum formatType;
-        private bool canCombine;
-        private bool combineVideo;
-        private bool outputDifferentFormat;
-        private ProgressBarViewModel progressBarViewModel;
+        //private List<FormatTypeViewModel> formats;
+        //private FormatEnum formatType;
+        //private bool canCombine;
+        //private bool combineVideo;
+        //private bool outputDifferentFormat;
+        //private ProgressBarViewModel progressBarViewModel;
         private bool addChapters;
         private string newChapter;
         private bool timesImported;
@@ -64,11 +63,11 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref slider, value);
         }
 
-        public VideoPlayerWPF Player
-        {
-            get => player;
-            set => SetProperty(ref player, value);
-        }
+        //public VideoPlayerWPF Player
+        //{
+        //    get => player;
+        //    set => SetProperty(ref player, value);
+        //}
 
         public TimeSpan StartTime
         {
@@ -115,11 +114,11 @@ namespace VideoEditorUi.ViewModels
             get => fileLoaded;
             set => SetProperty(ref fileLoaded, value);
         }
-        public bool ReEncodeVideo
-        {
-            get => reEncodeVideo;
-            set => SetProperty(ref reEncodeVideo, value);
-        }
+        //public bool ReEncodeVideo
+        //{
+        //    get => reEncodeVideo;
+        //    set => SetProperty(ref reEncodeVideo, value);
+        //}
 
         public string InputPath
         {
@@ -140,45 +139,45 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref rectCollection, value);
         }
 
-        public FormatEnum FormatType
-        {
-            get => formatType;
-            set => SetProperty(ref formatType, value);
-        }
+        //public FormatEnum FormatType
+        //{
+        //    get => formatType;
+        //    set => SetProperty(ref formatType, value);
+        //}
 
-        public List<FormatTypeViewModel> Formats
-        {
-            get => formats;
-            set => SetProperty(ref formats, value);
-        }
+        //public List<FormatTypeViewModel> Formats
+        //{
+        //    get => formats;
+        //    set => SetProperty(ref formats, value);
+        //}
 
-        public bool CanCombine
-        {
-            get => canCombine;
-            set => SetProperty(ref canCombine, value);
-        }
+        //public bool CanCombine
+        //{
+        //    get => canCombine;
+        //    set => SetProperty(ref canCombine, value);
+        //}
 
-        public bool CombineVideo
-        {
-            get => combineVideo;
-            set => SetProperty(ref combineVideo, value);
-        }
+        //public bool CombineVideo
+        //{
+        //    get => combineVideo;
+        //    set => SetProperty(ref combineVideo, value);
+        //}
 
-        public bool OutputDifferentFormat
-        {
-            get => outputDifferentFormat;
-            set
-            {
-                SetProperty(ref outputDifferentFormat, value);
-                ReEncodeVideo = value;
-            }
-        }
+        //public bool OutputDifferentFormat
+        //{
+        //    get => outputDifferentFormat;
+        //    set
+        //    {
+        //        SetProperty(ref outputDifferentFormat, value);
+        //        ReEncodeVideo = value;
+        //    }
+        //}
 
-        public ProgressBarViewModel ProgressBarViewModel
-        {
-            get => progressBarViewModel;
-            set => SetProperty(ref progressBarViewModel, value);
-        }
+        //public ProgressBarViewModel ProgressBarViewModel
+        //{
+        //    get => progressBarViewModel;
+        //    set => SetProperty(ref progressBarViewModel, value);
+        //}
 
         public bool AddChapters
         {
@@ -186,7 +185,7 @@ namespace VideoEditorUi.ViewModels
             set
             {
                 SetProperty(ref addChapters, value);
-                CanCombine = !value && ChapterMarkers?.Count > 0;
+                //CanCombine = !value && ChapterMarkers?.Count > 0;
             }
         }
 
@@ -234,19 +233,22 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand StopCommand => stopCommand ?? (stopCommand = new RelayCommand(StopCommandExecute, () => FileLoaded));
         public RelayCommand StartCommand => startCommand ?? (startCommand = new RelayCommand(StartCommandExecute, () => !StartTimeSet && FileLoaded && !TimesImported));
         public RelayCommand EndCommand => endCommand ?? (endCommand = new RelayCommand(EndCommandExecute, () => StartTimeSet && !EndTimeSet && !TimesImported));
-        public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, () => ChapterMarkers?.Count > 0 && !AddChapters));
+        //public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, () => ChapterMarkers?.Count > 0 && !AddChapters));
         public RelayCommand AddChapterCommand => addChapterCommand ?? (addChapterCommand = new RelayCommand(AddChapterCommandExecute, () => (ChapterMarkers?.Count > 0 || TimesImported) && AddChapters));
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand ImportCommand => importCommand ?? (importCommand = new RelayCommand(ImportCommandExecute, () => FileLoaded));
 
         public RelayCommand RectCommand => rectCommand ?? (rectCommand = new RelayCommand(RectCommandExecute, () => true));
 
-        private VideoSplitter splitter;
-        private VideoChapterAdder chapterAdder;
+        //private VideoSplitter splitter;
+        //private VideoChapterAdder chapterAdder;
         private string importedFile;
         private static readonly object _lock = new object();
 
-        public SplitterViewModel() { }
+        public ChapterAdderViewModel()
+        {
+            AddChapters = true;
+        }
 
         public override void OnLoaded()
         {
@@ -256,16 +258,16 @@ namespace VideoEditorUi.ViewModels
 
         public override void OnUnloaded()
         {
-            ClosePlayer(player);
+            //ClosePlayer(player);
             FileLoaded = false;
             TimesImported = false;
-            ChapterMarkers.CollectionChanged -= Times_CollectionChanged;
+            //ChapterMarkers.CollectionChanged -= Times_CollectionChanged;
             base.OnUnloaded();
         }
 
         private void Initialize()
         {
-            CanCombine = false;
+            //CanCombine = false;
             AddChapters = false;
             StartTimeSet = EndTimeSet = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
@@ -273,58 +275,58 @@ namespace VideoEditorUi.ViewModels
             PositionChanged = time => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
             ChapterMarkers = new ObservableCollection<ChapterMarkerViewModel>();
             RectCollection = new ObservableCollection<RectClass>();
-            Formats = FormatTypeViewModel.CreateViewModels();
-            FormatType = FormatEnum.avi;
-            ChapterMarkers.CollectionChanged += Times_CollectionChanged;
+            //Formats = FormatTypeViewModel.CreateViewModels();
+            //FormatType = FormatEnum.avi;
+            //ChapterMarkers.CollectionChanged += Times_CollectionChanged;
 
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(ChapterMarkers, _lock);
         }
 
-        private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = ChapterMarkers.Count > 1;
+        //private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = ChapterMarkers.Count > 1;
 
-        private void PlayCommandExecute() => player.Play();
+        private void PlayCommandExecute() => Player.Play();
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
-            SetPlayerPosition(player, slider.Value);
+            SetPlayerPosition(Player, slider.Value);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
             slider.Value = slider.Value + 5000 > slider.Maximum ? slider.Maximum : slider.Value + 5000;
-            SetPlayerPosition(player, slider.Value);
+            SetPlayerPosition(Player, slider.Value);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
         }
 
-        private void PauseCommandExecute() => player.Pause();
+        private void PauseCommandExecute() => Player.Pause();
 
-        private void StopCommandExecute() => player.Stop();
-        private void SplitCommandExecute()
-        {
-            splitter = new VideoSplitter(ChapterMarkers.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
-            splitter.StartedDownload += Splitter_StartedDownload;
-            splitter.ProgressDownload += Splitter_ProgressDownload;
-            splitter.FinishedDownload += Splitter_FinishedDownload;
-            splitter.ErrorDownload += Splitter_ErrorDownload;
-            splitter.SplitFinished += Splitter_SplitFinished;
-            splitter.MessageHandler += LibraryMessageHandler;
-            ProgressBarViewModel = new ProgressBarViewModel(ChapterMarkers.Count);
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
-            {
-                try
-                {
-                    splitter.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            splitter.Setup();
-            Task.Run(() => splitter.DoWork(Translatables.SplittingLabel));
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
-        }
+        private void StopCommandExecute() => Player.Stop();
+        //private void SplitCommandExecute()
+        //{
+        //    VideoEditor = new VideoSplitter(ChapterMarkers.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
+        //    //splitter.StartedDownload += Splitter_StartedDownload;
+        //    //splitter.ProgressDownload += Splitter_ProgressDownload;
+        //    //splitter.FinishedDownload += Splitter_FinishedDownload;
+        //    //splitter.ErrorDownload += Splitter_ErrorDownload;
+        //    //splitter.SplitFinished += Splitter_SplitFinished;
+        //    //splitter.MessageHandler += LibraryMessageHandler;
+        //    ProgressBarViewModel = new ProgressBarViewModel(ChapterMarkers.Count);
+        //    ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
+        //    {
+        //        try
+        //        {
+        //            splitter.CancelOperation(string.Empty);
+        //        }
+        //        catch (Exception ex)
+        //        {
+        //            ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+        //        }
+        //    };
+        //    splitter.Setup();
+        //    Task.Run(() => splitter.DoWork(Translatables.SplittingLabel));
+        //    Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+        //}
 
         private void AddChapterCommandExecute()
         {
@@ -334,41 +336,42 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
 
-            chapterAdder = TimesImported
+            VideoEditor = TimesImported
                 ? new VideoChapterAdder(InputPath, importChapterFile: importedFile)
                 : new VideoChapterAdder(InputPath, ChapterMarkers.Select(t => new Tuple<TimeSpan, TimeSpan, string>(t.StartTime, t.EndTime, t.Title)).ToList());
-            chapterAdder.StartedDownload += Splitter_StartedDownload;
-            chapterAdder.ProgressDownload += Splitter_ProgressDownload;
-            chapterAdder.FinishedDownload += Splitter_FinishedDownload;
-            chapterAdder.ErrorDownload += Splitter_ErrorDownload;
-            chapterAdder.MessageHandler += LibraryMessageHandler;
-            chapterAdder.GetMetadataFinished += Adder_GetMetadataFinished;
+            
+            //chapterAdder.StartedDownload += Splitter_StartedDownload;
+            //chapterAdder.ProgressDownload += Splitter_ProgressDownload;
+            //chapterAdder.FinishedDownload += Splitter_FinishedDownload;
+            //chapterAdder.ErrorDownload += Splitter_ErrorDownload;
+            //chapterAdder.MessageHandler += LibraryMessageHandler;
+            //chapterAdder.GetMetadataFinished += Adder_GetMetadataFinished;
             ProgressBarViewModel = new ProgressBarViewModel();
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
                 {
                     try
                     {
-                        chapterAdder.CancelOperation(string.Empty);
+                        VideoEditor.CancelOperation(string.Empty);
                     }
                     catch (Exception ex)
                     {
                         ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                     }
                 };
-            chapterAdder.Setup();
-            Task.Run(() => chapterAdder.DoWork(Translatables.GettingMetadataMessage));
+            VideoEditor.Setup();
+            Task.Run(() => VideoEditor.DoWork(Translatables.GettingMetadataMessage));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         private void StartCommandExecute()
         {
             StartTimeSet = true;
-            StartTime = GetPlayerPosition(player);
+            StartTime = GetPlayerPosition(Player);
         }
 
         private void EndCommandExecute()
         {
-            if (GetPlayerPosition(player) < StartTime)
+            if (GetPlayerPosition(Player) < StartTime)
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
@@ -376,7 +379,7 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
             EndTimeSet = true;
-            EndTime = GetPlayerPosition(player);
+            EndTime = GetPlayerPosition(Player);
             AddRectangle();
 
             if (AddChapters)
@@ -400,8 +403,8 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            GetDetails(player, openFileDialog.FileName);
-            player.Open(new Uri(openFileDialog.FileName));
+            GetDetails(Player, openFileDialog.FileName);
+            Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
             ResetAll();
 
@@ -476,50 +479,15 @@ namespace VideoEditorUi.ViewModels
             ClearAllRectangles();
         }
 
-        private void Splitter_StartedDownload(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
-
-        private void Splitter_ProgressDownload(object sender, ProgressEventArgs e)
-        {
-            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
-                ProgressBarViewModel.UpdateProgressValue(e.Percentage, e.ProcessIndex);
-        }
-
-        private void Splitter_FinishedDownload(object sender, FinishedEventArgs e)
+        protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
             var chaptersAdded = AddChapters;
-            CleanUp();
-            ClosePlayer(player);
             var message = e.Cancelled
                 ? $"{Translatables.OperationCancelled} {e.Message}"
                 : chaptersAdded ? Translatables.ChaptersSuccessfullyAdded : Translatables.VideoSuccessfullySplit;
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+            base.FinishedDownload(sender, e);
         }
-
-        private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
-        {
-            CleanUp();
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-        }
-
-        private void Splitter_SplitFinished(object sender, EventArgs e)
-        {
-            Navigator.Instance.CloseChildWindow.Execute(false);
-            ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
-            {
-                try
-                {
-                    splitter.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            Task.Run(() => splitter.CombineSections());
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
-        }
-
         private void Adder_GetMetadataFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
@@ -528,79 +496,37 @@ namespace VideoEditorUi.ViewModels
             {
                 try
                 {
-                    chapterAdder.CancelOperation(string.Empty);
+                    VideoEditor.CancelOperation(string.Empty);
                 }
                 catch (Exception ex)
                 {
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => chapterAdder.SetMetadata());
+            Task.Run(() => VideoEditor.DoSecondaryWork());//todo
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
-        private void LibraryMessageHandler(object sender, MessageEventArgs e)
+        protected override void LibraryMessageHandler(object sender, MessageEventArgs e)
         {
             var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
             e.Result = args.Result == MessageBoxResult.Yes;
         }
 
-        private void CleanUp()
+        protected override void CleanUp()
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
-            CombineVideo = false;
+            //CombineVideo = false;
             AddChapters = false;
-            OutputDifferentFormat = false;
-            ReEncodeVideo = false;
+            //OutputDifferentFormat = false;
+            //ReEncodeVideo = false;
             FileLoaded = false;
             TimesImported = false;
             importedFile = string.Empty;
-            FormatType = FormatEnum.avi;
+            //FormatType = FormatEnum.avi;
             ClearAllRectangles();
-        }
-    }
-
-    public class RectClass
-    {
-        public Thickness Margin { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public HorizontalAlignment HorizontalAlignment { get; set; }
-        public SolidColorBrush Fill { get; set; }
-        public RelayCommand RectCommand { get; set; }
-    }
-
-    public class ChapterMarkerViewModel : ViewModel
-    {
-        private TimeSpan startTime;
-        private TimeSpan endTime;
-        private string title;
-
-        public TimeSpan StartTime
-        {
-            get => startTime;
-            set => SetProperty(ref startTime, value);
-        }
-
-        public TimeSpan EndTime
-        {
-            get => endTime;
-            set => SetProperty(ref endTime, value);
-        }
-        public string Title
-        {
-            get => title;
-            set => SetProperty(ref title, value);
-        }
-
-
-        public ChapterMarkerViewModel(TimeSpan start, TimeSpan end, string title)
-        {
-            StartTime = start;
-            EndTime = end;
-            Title = title;
         }
     }
 }

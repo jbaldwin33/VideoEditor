@@ -17,10 +17,12 @@ namespace VideoUtilities
         public string OutputName { get; set; }
         public string DestinationFolder { get; set; }
         public int ToDownload { get; set; }
+        public int Downloaded { get; set; }
         public bool IsList { get; set; }
 
         public VideoDownloader(List<string> urls, string outputName, string outputfolder, bool isList = false)
         {
+            UseYoutubeDL = true;
             Started = false;
             IsList = isList;
             DestinationFolder = outputfolder;
@@ -60,11 +62,11 @@ namespace VideoUtilities
                 return;
 
             if (outLine.Data.Contains("Finished downloading playlist"))
-                NumberFinished++;
+                Downloaded++;
 
             if (outLine.Data.Contains("ERROR"))
             {
-                OnDownloadError(new ProgressEventArgs() { Error = outLine.Data});
+                OnDownloadError(new ProgressEventArgs { Error = outLine.Data});
                 return;
             }
 
@@ -86,42 +88,42 @@ namespace VideoUtilities
                 }
 
                 if (b.Length > 0)
-                    NumberFinished = int.Parse(b) - 1;
+                    Downloaded = int.Parse(b) - 1;
                 if (c.Length > 0)
                     ToDownload = int.Parse(c);
             }
 
-            if (NumberFinished > ToDownload)
+            if (Downloaded > ToDownload)
             {
-                OnDownloadError(new ProgressEventArgs() { Error = "This playlist is empty. No videos were downloaded"});
+                OnDownloadError(new ProgressEventArgs { Error = "This playlist is empty. No videos were downloaded"});
                 return;
             }
 
             var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
-            if (!pattern.IsMatch(outLine.Data) && ((NumberFinished == 0 && ToDownload == 0) || (ToDownload != 0 && NumberFinished != ToDownload)))
+            if (!pattern.IsMatch(outLine.Data) && ((Downloaded == 0 && ToDownload == 0) || (ToDownload != 0 && Downloaded != ToDownload)))
             {
                 return;
             }
 
             // fire the process event
-            //var perc = IsList
-            //  ? Convert.ToDecimal(((float)NumberFinished / (float)ToDownload) * 100)
-            //  : Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
+            var perc = IsList
+              ? Convert.ToDecimal(Downloaded / ToDownload * 100)
+              : Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
 
-            if (ProcessStuff[index].Percentage > 100 || ProcessStuff[index].Percentage < 0)
+            if (perc > 100 || perc < 0)
             {
-                Console.WriteLine("weird perc {0}", ProcessStuff[index].Percentage);
+                Console.WriteLine("weird perc {0}", perc);
                 return;
             }
-            OnProgress(new ProgressEventArgs { Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
+            OnProgress(new ProgressEventArgs { Percentage = perc, Data = outLine.Data });
 
             // is it finished?
-            if (ProcessStuff[index].Percentage < 100)
+            if (perc < 100)
             {
                 return;
             }
 
-            if (ProcessStuff[index].Percentage == 100 && !ProcessStuff[index].Finished && ToDownload == NumberFinished)
+            if (perc == 100 && !ProcessStuff[index].Finished && ToDownload == Downloaded)
                 OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, ProcessIndex = index});
         }
 

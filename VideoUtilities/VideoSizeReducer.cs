@@ -16,7 +16,7 @@ namespace VideoUtilities
             SetList(fileViewModels);
         }
 
-        public void Setup() => DoSetup(null);
+        public override void Setup() => DoSetup(null);
 
         protected override string CreateOutput((string Folder, string Filename, string Extension) obj, int index) => $"{outputPath}\\{obj.Filename}_reduced{obj.Extension}";
 

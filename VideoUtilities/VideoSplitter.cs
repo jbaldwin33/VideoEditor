@@ -23,7 +23,7 @@ namespace VideoUtilities
         private readonly bool doReEncode;
         private object _lock = new object();
 
-        public VideoSplitter(string fullPath, List<(TimeSpan, TimeSpan, string)> times, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
+        public VideoSplitter(List<(TimeSpan, TimeSpan, string)> times, string fullPath, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {
             Cancelled = false;
             fullInputPath = fullPath;
@@ -37,7 +37,7 @@ namespace VideoUtilities
             SetList(times);
         }
 
-        public void Setup() => DoSetup(() => OnSplitFinished(EventArgs.Empty));
+        public override void Setup() => DoSetup(() => OnSplitFinished(EventArgs.Empty));
 
         protected override string CreateOutput((TimeSpan, TimeSpan, string) obj, int index) => $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{index + 1}{(outputDifferentFormat ? outputFormat : extension)}";
 
