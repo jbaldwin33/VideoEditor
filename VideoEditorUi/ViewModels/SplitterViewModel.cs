@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,6 +12,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using CSVideoPlayer;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Views;
@@ -23,6 +25,8 @@ namespace VideoEditorUi.ViewModels
 {
     public class SplitterViewModel : ViewModel
     {
+        #region Fields and props
+
         private RelayCommand seekBackCommand;
         private RelayCommand playCommand;
         private RelayCommand seekForwardCommand;
@@ -35,6 +39,7 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand selectFileCommand;
         private RelayCommand importCommand;
         private RelayCommand rectCommand;
+        private RelayCommand jumpToTimeCommand;
         private VideoPlayerWPF player;
         private Slider slider;
         private TimeSpan startTime;
@@ -202,30 +207,34 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref timesImported, value);
         }
 
+        #endregion
 
         public Action<TimeSpan> PositionChanged;
 
         #region  Labels
 
-        public string PlayLabel => Translatables.PlayLabel;
-        public string SeekBackLabel => Translatables.SeekBackLabel;
-        public string SeekForwardLabel => Translatables.SeekForwardLabel;
-        public string PauseLabel => Translatables.PauseLabel;
-        public string StopLabel => Translatables.StopLabel;
-        public string StartLabel => Translatables.StartTimeLabel;
-        public string EndLabel => Translatables.EndTimeLabel;
-        public string SplitLabel => Translatables.SplitLabel;
-        public string SelectFileLabel => Translatables.SelectFileLabel;
-        public string CombineSectionsLabel => Translatables.CombineSectionsQuestion;
-        public string OutputFormatLabel => Translatables.OutputFormatQuestion;
-        public string ReEncodeQuestionLabel => Translatables.ReEncodeQuestion;
-        public string ReEncodeComment => Translatables.ReEncodeComment;
-        public string AddChapterLabel => Translatables.AddChapter;
-        public string ConfirmLabel => Translatables.Confirm;
-        public string ImportLabel => Translatables.ImportLabel;
-        public string AddChaptersLabel => Translatables.AddChaptersMessage;
+        public string PlayLabel => new PlayLabelTranslatable();
+        public string SeekBackLabel => new SeekBackLabelTranslatable();
+        public string SeekForwardLabel => new SeekForwardLabelTranslatable();
+        public string PauseLabel => new PauseLabelTranslatable();
+        public string StopLabel => new StopLabelTranslatable();
+        public string StartLabel => new StartTimeLabelTranslatable();
+        public string EndLabel => new EndTimeLabelTranslatable();
+        public string SplitLabel => new SplitLabelTranslatable();
+        public string SelectFileLabel => new SelectFileLabelTranslatable();
+        public string CombineSectionsLabel => new CombineSectionsQuestionTranslatable();
+        public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
+        public string ReEncodeQuestionLabel => new ReEncodeQuestionTranslatable();
+        public string ReEncodeComment => new ReEncodeCommentTranslatable();
+        public string AddChapterLabel => new AddChapterTranslatable();
+        public string ConfirmLabel => new ConfirmTranslatable();
+        public string ImportLabel => new ImportLabelTranslatable();
+        public string AddChaptersLabel => new AddChaptersMessageTranslatable();
+        public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
 
         #endregion
+
+        #region Commands
 
         public RelayCommand SeekBackCommand => seekBackCommand ?? (seekBackCommand = new RelayCommand(SeekBackCommandExecute, () => FileLoaded));
         public RelayCommand SeekForwardCommand => seekForwardCommand ?? (seekForwardCommand = new RelayCommand(SeekForwardCommandExecute, () => FileLoaded));
@@ -238,8 +247,11 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand AddChapterCommand => addChapterCommand ?? (addChapterCommand = new RelayCommand(AddChapterCommandExecute, () => (ChapterMarkers?.Count > 0 || TimesImported) && AddChapters));
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand ImportCommand => importCommand ?? (importCommand = new RelayCommand(ImportCommandExecute, () => FileLoaded));
-
         public RelayCommand RectCommand => rectCommand ?? (rectCommand = new RelayCommand(RectCommandExecute, () => true));
+        public RelayCommand JumpToTimeCommand => jumpToTimeCommand ?? (jumpToTimeCommand = new RelayCommand(JumpToTimeCommandExecute, () => FileLoaded));
+
+
+        #endregion
 
         private VideoSplitter splitter;
         private VideoChapterAdder chapterAdder;
@@ -297,6 +309,13 @@ namespace VideoEditorUi.ViewModels
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
         }
 
+        private void JumpToTimeCommandExecute()
+        {
+            TimeSpan.TryParseExact(CurrentTimeString, "hh':'mm':'ss':'fff", CultureInfo.CurrentCulture, out var result);
+            slider.Value = result.TotalMilliseconds;
+            SetPlayerPosition(player, slider.Value);
+        }
+
         private void PauseCommandExecute() => player.Pause();
 
         private void StopCommandExecute() => player.Stop();
@@ -322,7 +341,7 @@ namespace VideoEditorUi.ViewModels
                 }
             };
             splitter.Setup();
-            Task.Run(() => splitter.DoWork(Translatables.SplittingLabel));
+            Task.Run(() => splitter.DoWork(new SplittingLabelTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -330,7 +349,7 @@ namespace VideoEditorUi.ViewModels
         {
             if (ChapterMarkers.Any(t => string.IsNullOrEmpty(t.Title)))
             {
-                ShowMessage(new MessageBoxEventArgs(Translatables.InsufficientTitles, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                ShowMessage(new MessageBoxEventArgs(new InsufficientTitlesTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
 
@@ -356,7 +375,7 @@ namespace VideoEditorUi.ViewModels
                     }
                 };
             chapterAdder.Setup();
-            Task.Run(() => chapterAdder.DoWork(Translatables.GettingMetadataMessage));
+            Task.Run(() => chapterAdder.DoWork(new GettingMetadataMessageTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -372,7 +391,7 @@ namespace VideoEditorUi.ViewModels
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
-                ShowMessage(new MessageBoxEventArgs(Translatables.EndTimeAfterStartTime, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                ShowMessage(new MessageBoxEventArgs(new EndTimeAfterStartTimeTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
             EndTimeSet = true;
@@ -405,7 +424,7 @@ namespace VideoEditorUi.ViewModels
             FileLoaded = true;
             ResetAll();
 
-            var args = new MessageBoxEventArgs(Translatables.AddChaptersMessage, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var args = new MessageBoxEventArgs(new AddChaptersMessageTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
             var chaptersCompatible = canAddChapters();
             if (args.Result == MessageBoxResult.Yes && !chaptersCompatible)
@@ -417,7 +436,7 @@ namespace VideoEditorUi.ViewModels
 
         private void ImportCommandExecute()
         {
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ChapterFileFormatMessage}\nStartTime,Title\n00:00:00,Chapter 1\n00:30:14,Chapter 2", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+            ShowMessage(new MessageBoxEventArgs($"{new ChapterFileFormatMessageTranslatable()}\nStartTime,Title\n00:00:00,Chapter 1\n00:30:14,Chapter 2", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
             var openFileDialog = new OpenFileDialog
             {
                 Filter = "Text Files|*.txt",
@@ -435,7 +454,7 @@ namespace VideoEditorUi.ViewModels
         private void RectCommandExecute(object obj)
         {
             var rect = obj as RectClass;
-            var args = new MessageBoxEventArgs(Translatables.DeleteSectionConfirm, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var args = new MessageBoxEventArgs(new DeleteSectionConfirmTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
             if (args.Result == MessageBoxResult.Yes)
             {
@@ -490,15 +509,16 @@ namespace VideoEditorUi.ViewModels
             CleanUp();
             ClosePlayer(player);
             var message = e.Cancelled
-                ? $"{Translatables.OperationCancelled} {e.Message}"
-                : chaptersAdded ? Translatables.ChaptersSuccessfullyAdded : Translatables.VideoSuccessfullySplit;
+                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                : chaptersAdded ? (Translatable)new ChaptersSuccessfullyAddedTranslatable() : new VideoSuccessfullySplitTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Splitter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             CleanUp();
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ChapterAdderTryAgainTranslatable(Path.GetDirectoryName(InputPath))}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void Splitter_SplitFinished(object sender, EventArgs e)

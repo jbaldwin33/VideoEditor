@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
@@ -152,8 +153,8 @@ namespace VideoUtilities
             var totalMemory = info.TotalPhysicalMemory / (1024f * 1024f * 1024f);
             var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
 
-            if (usedMemoryPercentage > 95)
-                CancelOperation(string.Format(Translatables.RamUsageLabel, $"{usedMemoryPercentage:00}"));
+            if (usedMemoryPercentage > 5)
+                CancelOperation(new RamUsageLabelTranslatable($"{usedMemoryPercentage:00}"));
 
             var index = ProcessStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Finished ? 0 : ProcessStuff[index].Percentage, Data = ProcessStuff[index].Finished ? string.Empty : outLine.Data });

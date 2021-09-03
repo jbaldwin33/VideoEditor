@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using CSVideoPlayer;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
@@ -58,7 +59,7 @@ namespace VideoEditorUi.ViewModels
         protected void ErrorDownload(object sender, ProgressEventArgs e)
         {
             CleanUp();
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         protected virtual void LibraryMessageHandler(object sender, MessageEventArgs e)

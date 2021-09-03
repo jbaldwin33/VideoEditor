@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 
@@ -8,7 +9,7 @@ namespace VideoEditorUi.ViewModels
 {
     public class ProgressBarViewModel : ViewModel
     {
-        public string CancelLabel => Translatables.CancelLabel;
+        public string CancelLabel => new CancelLabelTranslatable();
         public event EventHandler OnCancelledHandler;
         private string progressLabel;
         private RelayCommand cancelCommand;
@@ -44,7 +45,7 @@ namespace VideoEditorUi.ViewModels
             Navigator.Instance.CloseChildWindow.Execute(true);
         }
 
-        public void SetFinished(int index) => ProgressBarCollection[index].VideoIndexLabel = Translatables.CompleteLabel;
+        public void SetFinished(int index) => ProgressBarCollection[index].VideoIndexLabel = new CompleteLabelTranslatable();
     }
 
     public class ProgressViewModel : ViewModel
@@ -66,7 +67,7 @@ namespace VideoEditorUi.ViewModels
             {
                 SetProperty(ref progressValue, value);
                 if (value >= 100)
-                    VideoIndexLabel = Translatables.CompleteLabel;
+                    VideoIndexLabel = new CompleteLabelTranslatable();
             }
         }
 
@@ -80,7 +81,7 @@ namespace VideoEditorUi.ViewModels
         public ProgressViewModel(int index, int total)
         {
             ShowLabel = total != 1;
-            VideoIndexLabel = $"{string.Format(Translatables.VideoCounterLabel, index, total)}:";
+            VideoIndexLabel = $"{new VideoCounterLabelTranslatable(index, total)}:";
         }
 
         public void UpdateProgress(decimal progress) => ProgressValue = progress;

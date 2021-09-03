@@ -12,6 +12,7 @@ using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
@@ -116,13 +117,13 @@ namespace VideoEditorUi.ViewModels
 
         public RelayCommand SelectOutputFolderCommand => selectOutputFolderCommand ?? (selectOutputFolderCommand = new RelayCommand(SelectOutputFolderCommandExecute, () => true));
 
-        public string MergeLabel => Translatables.MergeLabel;
-        public string SelectFileLabel => Translatables.SelectFileLabel;
-        public string MoveUpLabel => Translatables.MoveUpLabel;
-        public string MoveDownLabel => Translatables.MoveDownLabel;
-        public string RemoveLabel => Translatables.RemoveLabel;
-        public string OutputFormatLabel => Translatables.OutputFormatQuestion;
-        public string OutputFolderLabel => Translatables.OutputFolderLabel;
+        public string MergeLabel => new MergeLabelTranslatable();
+        public string SelectFileLabel => new SelectFileLabelTranslatable();
+        public string MoveUpLabel => new MoveUpLabelTranslatable();
+        public string MoveDownLabel => new MoveDownLabelTranslatable();
+        public string RemoveLabel => new RemoveLabelTranslatable();
+        public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
+        public string OutputFolderLabel => new OutputFolderLabelTranslatable();
         private static readonly object _lock = new object();
 
         public MergerViewModel() { }
@@ -214,7 +215,7 @@ namespace VideoEditorUi.ViewModels
                 }
             };
             merger.Setup();
-            Task.Run(() => merger.DoWork(Translatables.MergingLabel));
+            Task.Run(() => merger.DoWork(new MergingLabelTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -271,15 +272,15 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"{Translatables.OperationCancelled} {e.Message}"
-                : Translatables.VideoSuccessfullyMerged;
+                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                : new VideoSuccessfullyMergedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Merger_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void LibraryMessageHandler(object sender, MessageEventArgs e)

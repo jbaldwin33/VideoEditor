@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using MVVMFramework;
+using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {
@@ -34,7 +35,7 @@ namespace VideoUtilities
             try
             {
                 var output = $"{sourceFolder}\\{filenameWithoutExtension}_temp%03d{fileExtension}";
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.TrimmingSectionsLabel });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = new TrimmingSectionsLabelTranslatable() });
                 var process = new Process
                 {
                     EnableRaisingEvents = true,
@@ -97,7 +98,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.CombiningSectionsLabel });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = new CombiningSectionsLabelTranslatable() });
                 tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
                 using (var writeText = new StreamWriter(tempFile))
                 {

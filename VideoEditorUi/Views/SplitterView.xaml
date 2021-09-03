@@ -70,7 +70,8 @@
           <controls:MediumButton Command="{Binding AddChapterCommand}" Content="{Binding AddChapterLabel}" Visibility="{Binding AddChapters, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"/>
         </StackPanel>
         <StackPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center">
-          <controls:LargeTextBox IsReadOnly="True" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+          <controls:LargeTextBox IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
+          <controls:MediumButton Content="{Binding JumpToTimeLabel}" Command="{Binding JumpToTimeCommand}"/>
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2" Margin="-20,0,0,0">
           <controls:LargeTextBlock  Height="140" Width="220" FontSize="13" TextWrapping="Wrap" Text="{Binding ReEncodeComment}"/>

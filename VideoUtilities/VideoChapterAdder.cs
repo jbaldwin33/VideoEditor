@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using MVVMFramework;
+using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {
@@ -59,7 +60,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.SettingMetadataMessage });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = new SettingMetadataMessageTranslatable() });
                 var outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
                 var overwrite = false;
                 if (File.Exists(outputPath))

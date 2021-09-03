@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
@@ -67,7 +68,7 @@ namespace VideoUtilities
         {
             try
             {
-                OnDownloadStarted(new DownloadStartedEventArgs { Label = Translatables.CombiningSectionsLabel });
+                OnDownloadStarted(new DownloadStartedEventArgs { Label = new CombiningSectionsLabelTranslatable() });
                 tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
                 File.WriteAllLines(tempFile, ProcessStuff.Select(x => $"file '{x.Output}'"));
                 var combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";

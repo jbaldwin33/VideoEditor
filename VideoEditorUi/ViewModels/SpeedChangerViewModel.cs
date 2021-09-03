@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
@@ -103,12 +104,12 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
         public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
 
-        public string FormatLabel => Translatables.FormatLabel;
-        public string SelectFileLabel => Translatables.SelectFileLabel;
-        public string NoFileLabel => Translatables.NoFileSelected;
-        public string FlipLabel => Translatables.FlipLabel;
-        public string RotateLabel => Translatables.RotateLabel;
-        public string VideoSpeedLabel => Translatables.VideoSpeedLabel;
+        public string FormatLabel => new FormatLabelTranslatable();
+        public string SelectFileLabel => new SelectFileLabelTranslatable();
+        public string NoFileLabel => new NoFileSelectedTranslatable();
+        public string FlipLabel => new FlipLabelTranslatable();
+        public string RotateLabel => new RotateLabelTranslatable();
+        public string VideoSpeedLabel => new VideoSpeedLabelTranslatable();
 
         public SpeedChangerViewModel() { }
 
@@ -168,7 +169,7 @@ namespace VideoEditorUi.ViewModels
                 }
             };
             formatter.Setup();
-            Task.Run(() => formatter.DoWork(Translatables.ChangingLabel));
+            Task.Run(() => formatter.DoWork(new ChangingLabelTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -233,15 +234,15 @@ namespace VideoEditorUi.ViewModels
             CleanUp();
             UtilityClass.ClosePlayer(player);
             var message = e.Cancelled
-                ? $"{Translatables.OperationCancelled} {e.Message}"
-                : Translatables.VideoSpeedSuccessfullyChanged;
+                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                : new VideoSpeedSuccessfullyChangedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void LibraryMessageHandler(object sender, MessageEventArgs e)

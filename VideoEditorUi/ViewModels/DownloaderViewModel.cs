@@ -9,6 +9,7 @@ using System.Windows.Data;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
@@ -95,16 +96,16 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand RemoveCommand => removeCommand ?? (removeCommand = new RelayCommand(RemoveExecute, () => FileSelected));
         public RelayCommand SelectOutputFolderCommand => selectOutputFolderCommand ?? (selectOutputFolderCommand = new RelayCommand(SelectOutputFolderCommandExecute, () => true));
 
-        public string MergeLabel => Translatables.MergeLabel;
-        public string SelectFileLabel => Translatables.SelectFileLabel;
-        public string MoveUpLabel => Translatables.MoveUpLabel;
-        public string MoveDownLabel => Translatables.MoveDownLabel;
-        public string RemoveLabel => Translatables.RemoveLabel;
-        public string OutputFormatLabel => $"{Translatables.OutputFormatLabel}:";
-        public string OutputFolderLabel => Translatables.OutputFolderLabel;
-        public string ReduceVideoSizeLabel => Translatables.ReduceVideoSizeLabel;
-        public string ConvertLabel => Translatables.ConvertLabel;
-        public string ConvertFormatLabel => Translatables.ConvertFormatLabel;
+        public string MergeLabel => new MergeLabelTranslatable();
+        public string SelectFileLabel => new SelectFileLabelTranslatable();
+        public string MoveUpLabel => new MoveUpLabelTranslatable();
+        public string MoveDownLabel => new MoveDownLabelTranslatable();
+        public string RemoveLabel => new RemoveLabelTranslatable();
+        public string OutputFormatLabel => $"{new OutputFormatLabelTranslatable()}:";
+        public string OutputFolderLabel => new OutputFolderLabelTranslatable();
+        public string ReduceVideoSizeLabel => new ReduceVideoSizeLabelTranslatable();
+        public string ConvertLabel => new ConvertLabelTranslatable();
+        public string ConvertFormatLabel => new ConvertFormatLabelTranslatable();
 
         private static readonly object _lock = new object();
 
@@ -168,7 +169,7 @@ namespace VideoEditorUi.ViewModels
                 }
             };
             sizeReducer.Setup();
-            Task.Run(() => sizeReducer.DoWork(Translatables.ReducingSizeLabel));
+            Task.Run(() => sizeReducer.DoWork(new ReducingSizeLabelTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
@@ -193,7 +194,7 @@ namespace VideoEditorUi.ViewModels
                 }
             };
             converter.Setup();
-            Task.Run(() => converter.DoWork(Translatables.ConvertingLabel));
+            Task.Run(() => converter.DoWork(new ConvertingLabelTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
         private void RemoveExecute() => FileCollection.Remove(SelectedFile);
@@ -223,15 +224,15 @@ namespace VideoEditorUi.ViewModels
         {
             CleanUp();
             var message = e.Cancelled
-                ? $"{Translatables.OperationCancelled} {e.Message}"
-                : Translatables.VideoSuccessfullyConverted;
+                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                : new VideoSuccessfullyConvertedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void SizeReducer_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
@@ -247,15 +248,15 @@ namespace VideoEditorUi.ViewModels
             ProgressBarViewModel.SetFinished(e.ProcessIndex);
             CleanUp();
             var message = e.Cancelled
-                ? $"{Translatables.OperationCancelled} {e.Message}"
-                : Translatables.SizeSuccessfullyReduced;
+                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                : new SizeSuccessfullyReducedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void SizeReducer_ErrorDownload(object sender, ProgressEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void LibraryMessageHandler(object sender, MessageEventArgs e)

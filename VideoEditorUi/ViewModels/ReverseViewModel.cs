@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
 using MVVMFramework;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
@@ -47,9 +48,9 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand ReverseCommand => reverseCommand ?? (reverseCommand = new RelayCommand(ReverseCommandExecute, ReverseCommandCanExecute));
 
-        public string ReverseLabel => Translatables.ReverseLabel;
-        public string SelectFileLabel => Translatables.SelectFileLabel;
-        public string NoFileLabel => Translatables.NoFileSelected;
+        public string ReverseLabel => new ReverseLabelTranslatable();
+        public string SelectFileLabel => new SelectFileLabelTranslatable();
+        public string NoFileLabel => new NoFileSelectedTranslatable();
 
         public ReverseViewModel()
         {
@@ -83,7 +84,7 @@ namespace VideoEditorUi.ViewModels
 
         private void ReverseCommandExecute()
         {
-            var messageArgs = new MessageBoxEventArgs(Translatables.ReverseVideoMessage, MessageBoxEventArgs.MessageTypeEnum.Warning, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var messageArgs = new MessageBoxEventArgs(new ReverseVideoMessageTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Warning, MessageBoxButton.YesNo, MessageBoxImage.Warning);
             ShowMessage(messageArgs);
             if (messageArgs.Result == MessageBoxResult.No)
                 return;
@@ -124,15 +125,15 @@ namespace VideoEditorUi.ViewModels
             CleanUp();
             UtilityClass.ClosePlayer(player);
             var message = e.Cancelled
-                ? $"{Translatables.OperationCancelled} {e.Message}"
-                : Translatables.VideoSuccessfullyReversed;
+                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                : new VideoSuccessfullyReversedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         private void Reverser_ErrorDownload(object sender, ProgressEventArgs e)
         {
             CleanUp();
-            ShowMessage(new MessageBoxEventArgs($"{Translatables.ErrorOccurred}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void Reverser_TrimFinished(object sender, int count)
@@ -150,7 +151,7 @@ namespace VideoEditorUi.ViewModels
                     ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 }
             };
-            Task.Run(() => reverser.DoWork(Translatables.ReversingSectionsLabel));
+            Task.Run(() => reverser.DoWork(new ReversingSectionsLabelTranslatable()));
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
