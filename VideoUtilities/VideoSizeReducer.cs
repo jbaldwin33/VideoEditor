@@ -42,12 +42,6 @@ namespace VideoUtilities
 
         protected override TimeSpan? GetDuration((string Folder, string Filename, string Extension) obj) => null;
 
-        public override void CancelOperation(string cancelMessage)
-        {
-            base.CancelOperation(cancelMessage);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
-        }
-
         protected override void CleanUp()
         {
             

@@ -60,7 +60,7 @@ namespace VideoEditorUi.ViewModels
         private bool outputDifferentFormat;
         private ProgressBarViewModel progressBarViewModel;
         private bool addChapters;
-        private string newChapter;
+        private string textInput;
         private bool timesImported;
 
         public Slider Slider
@@ -195,10 +195,10 @@ namespace VideoEditorUi.ViewModels
             }
         }
 
-        public string NewChapter
+        public string TextInput
         {
-            get => newChapter;
-            set => SetProperty(ref newChapter, value);
+            get => textInput;
+            set => SetProperty(ref textInput, value);
         }
 
         public bool TimesImported
@@ -231,6 +231,7 @@ namespace VideoEditorUi.ViewModels
         public string ImportLabel => new ImportLabelTranslatable();
         public string AddChaptersLabel => new AddChaptersMessageTranslatable();
         public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
+        public string TagText => new EnterTitleTranslatable();
 
         #endregion
 
@@ -397,12 +398,11 @@ namespace VideoEditorUi.ViewModels
             EndTimeSet = true;
             EndTime = GetPlayerPosition(player);
             AddRectangle();
-
             if (AddChapters)
-                new ChapterTitleDialogView(this) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
-
-            ChapterMarkers.Add(new ChapterMarkerViewModel(StartTime, EndTime, NewChapter));
-            NewChapter = string.Empty;
+                new ChapterTitleDialogView(this, new AddChapterTitleTranslatable()) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
+            TextInput = TextInput.Replace(',', '_').Replace(':', '_');
+            ChapterMarkers.Add(new ChapterMarkerViewModel(StartTime, EndTime, TextInput));
+            TextInput = string.Empty;
             StartTimeSet = EndTimeSet = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
         }

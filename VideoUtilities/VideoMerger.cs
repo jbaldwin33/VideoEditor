@@ -83,13 +83,6 @@ namespace VideoUtilities
 
         protected override TimeSpan? GetDuration(string obj) => totalDuration;
 
-        public override void CancelOperation(string cancelMessage)
-        {
-            base.CancelOperation(cancelMessage);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
-            CleanUp();
-        }
-
         public void GetMetadata(List<(string folder, string name, string extension)> files)
         {
             for (int i = 0; i < files.Count; i++)

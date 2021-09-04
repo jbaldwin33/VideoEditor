@@ -25,7 +25,7 @@
       <controls:SmallButton Content="{Binding RemoveLabel}" Command="{Binding RemoveCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
     </StackPanel>
     <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-      <ListView ItemsSource="{Binding FileCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
+      <ListView ItemsSource="{Binding UrlCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
         <ListView.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Vertical"/>
@@ -43,23 +43,21 @@
       </ListView>
     </StackPanel>
     <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
-      <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+      <controls:LargeButton Command="{Binding AddUrlCommand}" Content="{Binding AddUrlLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
     </StackPanel>
-    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,1,0,0">
-      <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ConvertFormatLabel}" GroupName="radioGroup" IsChecked="{Binding ConverterSelected}"/>
-      <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ReduceVideoSizeLabel}" GroupName="radioGroup" />
-    </StackPanel>
-    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding ConverterSelected, Converter={StaticResource BoolToVisConverter}}">
+    <!--<StackPanel Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" Margin="0,1,0,0">
+      <CheckBox Content="{Binding IsPlaylistLabel}" IsChecked="{Binding IsPlaylist, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    </StackPanel>-->
+    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
       <controls:DefaultTextBlock Text="{Binding OutputFormatLabel}"/>
       <ComboBox IsEditable="False" IsReadOnly="True" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
     </StackPanel>
     <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
-      <controls:LargeTextBox Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20"/>
+      <controls:LargeTextBox IsReadOnly="True" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20"/>
       <controls:LargeButton Content="{Binding OutputFolderLabel}" Command="{Binding SelectOutputFolderCommand}"/>
     </StackPanel>
     <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-      <controls:LargeButton Command="{Binding ReduceSizeCommand}" Content="{Binding ReduceVideoSizeLabel}" Visibility="{Binding ConverterSelected, Converter={StaticResource InvBoolToVisConverter}}"/>
-      <controls:MediumButton Command="{Binding ConvertCommand}" Content="{Binding ConvertLabel}" Visibility="{Binding ConverterSelected, Converter={StaticResource BoolToVisConverter}}"/>
+      <controls:MediumButton Command="{Binding DownloadCommand}" Content="{Binding DownloadLabel}" />
     </StackPanel>
   </Grid>
 </framework:ViewBaseControl>

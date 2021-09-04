@@ -142,7 +142,6 @@ namespace VideoUtilities
             base.CancelOperation(cancelMessage);
             if (!string.IsNullOrEmpty(tempFile))
                 File.Delete(tempFile);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
         }
 
         protected override void CleanUp()

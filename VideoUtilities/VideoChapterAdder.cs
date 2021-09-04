@@ -86,13 +86,7 @@ namespace VideoUtilities
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
-
-        public override void CancelOperation(string cancelMessage)
-        {
-            base.CancelOperation(cancelMessage);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
-        }
-
+        
         protected override void CleanUp()
         {
             foreach (var stuff in ProcessStuff)

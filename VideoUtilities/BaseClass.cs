@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
 using MVVMFramework;
@@ -34,10 +35,12 @@ namespace VideoUtilities
         protected int NumberInProcess;
         protected IEnumerable<T> ObjectList;
         protected bool UseYoutubeDL;
+        protected bool IsList;
         private string path;
         private List<int> keepOutputList = new List<int>();
         private object _lock = new object();
         private object _lock2 = new object();
+        private decimal youtubePercentage;
 
         protected void SetList(IEnumerable<T> list)
         {
@@ -57,6 +60,7 @@ namespace VideoUtilities
                         NumberInProcess++;
                         stuff.Process.Start();
                         stuff.Process.BeginErrorReadLine();
+                        stuff.Process.BeginOutputReadLine();
                         while (NumberInProcess >= 2)
                         {
                             Thread.Sleep(200);
@@ -98,14 +102,14 @@ namespace VideoUtilities
                 if (UseYoutubeDL)
                 {
                     process.ErrorDataReceived += ErrorReceivedHandler;
-                    process.OutputDataReceived += OutputHandler;
+                    process.OutputDataReceived += YoutubeOutputHandler;
                 }
                 else
                 {
                     process.ErrorDataReceived += OutputHandler;
                 }
 
-                ProcessStuff.Add(new ProcessClass(false, process, output, TimeSpan.Zero, GetDuration(obj)));
+                ProcessStuff.Add(new ProcessClass(false, process, output, TimeSpan.Zero, GetDuration(obj), new ProcessClass.YoutubeProps()));
                 i++;
             }
         }
@@ -153,7 +157,7 @@ namespace VideoUtilities
             var totalMemory = info.TotalPhysicalMemory / (1024f * 1024f * 1024f);
             var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
 
-            if (usedMemoryPercentage > 5)
+            if (usedMemoryPercentage > 95)
                 CancelOperation(new RamUsageLabelTranslatable($"{usedMemoryPercentage:00}"));
 
             var index = ProcessStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
@@ -195,10 +199,101 @@ namespace VideoUtilities
                 OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
         }
 
+        public void YoutubeOutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
+        {
+            if (Cancelled)
+                return;
+
+            var info = new ComputerInfo();
+            var availableMemory = info.AvailablePhysicalMemory / (1024f * 1024f * 1024f);
+            var totalMemory = info.TotalPhysicalMemory / (1024f * 1024f * 1024f);
+            var usedMemoryPercentage = (totalMemory - availableMemory) / totalMemory * 100;
+
+            if (usedMemoryPercentage > 95)
+                CancelOperation(new RamUsageLabelTranslatable($"{usedMemoryPercentage:00}"));
+
+            var index = ProcessStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
+            OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Finished ? 0 : youtubePercentage, Data = ProcessStuff[index].Finished ? string.Empty : outLine.Data });
+            // extract the percentage from process output
+            if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished)
+                return;
+
+            if (outLine.Data.Contains("Finished downloading playlist"))
+                ProcessStuff[index].YoutubeProperties.Downloaded++;
+
+            if (outLine.Data.Contains("ERROR"))
+            {
+                Failed = true;
+                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
+                return;
+            }
+
+            if (!outLine.Data.Contains("[download]"))
+                return;
+            if (outLine.Data.Contains("Destination"))
+            {
+                var str = outLine.Data.Split(new[] { "Destination: " }, StringSplitOptions.None);
+                ProcessStuff[index].Output = str[1];
+            }
+
+            if (outLine.Data.Contains("Downloading video ") && outLine.Data.Contains(" of "))
+            {
+                var str = outLine.Data.Substring(outLine.Data.IndexOf("video "));
+                var b = string.Empty;
+                var c = string.Empty;
+                for (int i = 0; i < str.Length; i++)
+                {
+                    if (char.IsDigit(str[i]))
+                        if (string.IsNullOrEmpty(b))
+                            b += str[i];
+                        else
+                            c += str[i];
+                }
+
+                if (b.Length > 0)
+                    ProcessStuff[index].YoutubeProperties.Downloaded = int.Parse(b) - 1;
+                if (c.Length > 0)
+                    ProcessStuff[index].YoutubeProperties.ToDownload = int.Parse(c);
+            }
+
+            if (ProcessStuff[index].YoutubeProperties.Downloaded > ProcessStuff[index].YoutubeProperties.ToDownload)
+            {
+                Failed = true;
+                OnDownloadError(new ProgressEventArgs { Error = "This playlist is empty. No videos were downloaded" });
+                return;
+            }
+
+            var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
+            if (!pattern.IsMatch(outLine.Data) && ((ProcessStuff[index].YoutubeProperties.Downloaded == 0 && ProcessStuff[index].YoutubeProperties.ToDownload == 0) || (ProcessStuff[index].YoutubeProperties.ToDownload != 0 && ProcessStuff[index].YoutubeProperties.Downloaded != ProcessStuff[index].YoutubeProperties.ToDownload)))
+                return;
+
+            // fire the process event
+            var perc = IsList
+              ? Convert.ToDecimal(ProcessStuff[index].YoutubeProperties.Downloaded / ProcessStuff[index].YoutubeProperties.ToDownload * 100)
+              : Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
+
+            if (perc > 100 || perc < 0)
+            {
+                Console.WriteLine("weird perc {0}", perc);
+                return;
+            }
+            youtubePercentage = perc;
+            OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = perc, Data = outLine.Data });
+
+            // is it finished?
+            if (perc < 100)
+                return;
+
+            if (perc == 100 && !ProcessStuff[index].Finished && ProcessStuff[index].YoutubeProperties.ToDownload == ProcessStuff[index].YoutubeProperties.Downloaded)
+            {
+                OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
+            }
+        }
+
         protected void ErrorReceivedHandler(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrEmpty(e.Data))
-                OnDownloadError(new ProgressEventArgs { Error = e.Data});
+                OnDownloadError(new ProgressEventArgs { Error = e.Data });
         }
 
         protected void Process_Exited(object sender, EventArgs e)
@@ -239,7 +334,7 @@ namespace VideoUtilities
         {
             try
             {
-                if (p.HasExited) 
+                if (p.HasExited)
                     return;
                 if (kill)
                     p.Kill();
@@ -269,6 +364,7 @@ namespace VideoUtilities
                         File.Delete(process.Output);
                 }
             }
+            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
         }
 
         protected virtual void OnDownloadFinished(FinishedEventArgs e)
@@ -323,16 +419,24 @@ namespace VideoUtilities
         public string Output { get; set; }
         public TimeSpan CurrentTime { get; set; }
         public TimeSpan? Duration { get; set; }
+        public YoutubeProps YoutubeProperties { get; set; }
 
         public decimal Percentage => Convert.ToDecimal((float)CurrentTime.TotalSeconds / (float)(Duration?.TotalSeconds ?? TimeSpan.MaxValue.TotalSeconds)) * 100;
 
-        public ProcessClass(bool finished, Process process, string output, TimeSpan currentTime, TimeSpan? duration)
+        public ProcessClass(bool finished, Process process, string output, TimeSpan currentTime, TimeSpan? duration, YoutubeProps props = null)
         {
             Finished = finished;
             Process = process;
             Output = output;
             CurrentTime = currentTime;
             Duration = duration;
+            YoutubeProperties = props;
+        }
+
+        public class YoutubeProps
+        {
+            public int ToDownload { get; set; }
+            public int Downloaded { get; set; }
         }
     }
 }

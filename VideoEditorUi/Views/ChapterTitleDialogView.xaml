@@ -6,10 +6,10 @@
         xmlns:local="clr-namespace:VideoEditorUi.Views" xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         xmlns:viewModels="clr-namespace:VideoEditorUi.ViewModels"
         mc:Ignorable="d"
-        Title="Add Chapter Titles" Height="200" Width="300" WindowStartupLocation="CenterOwner">
+        Height="200" Width="300" WindowStartupLocation="CenterOwner">
   <Grid>
     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical">
-      <TextBox Tag="Enter title..." TextAlignment="Left" Text="{Binding NewChapter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource placeHolder}" Width="150" Height="25" Margin="0,0,0,10"/>
+      <TextBox Name="inputText" Tag="{Binding TagText}" TextAlignment="Left" Text="{Binding TextInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource placeHolder}" Width="150" Height="25" Margin="0,0,0,10"/>
       <controls:SmallButton Content="{Binding ConfirmLabel}" Click="ButtonBase_OnClick" />
     </StackPanel>
   </Grid>

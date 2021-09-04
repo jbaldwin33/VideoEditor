@@ -62,11 +62,5 @@ namespace VideoUtilities
         {
             
         }
-
-        public override void CancelOperation(string cancelMessage)
-        {
-            base.CancelOperation(cancelMessage);
-            OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
-        }
     }
 }

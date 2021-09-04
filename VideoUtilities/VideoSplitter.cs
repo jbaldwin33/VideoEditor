@@ -92,8 +92,6 @@ namespace VideoUtilities
                 //processStuff.ForEach(p => File.Delete(p.Output));
                 if (!string.IsNullOrEmpty(tempFile))
                     File.Delete(tempFile);
-
-                OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled, Message = cancelMessage });
             }
             catch (Exception ex)
             {

@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 
 namespace VideoEditorUi.Views
@@ -11,11 +12,12 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class ChapterTitleDialogView : Window
     {
-        public ChapterTitleDialogView(ViewModel vm)
+        public ChapterTitleDialogView(ViewModel vm, string title)
         {
             InitializeComponent();
             DataContext = vm;
             Loaded += ChapterTitleDialogView_Loaded;
+            Title = title;
         }
 
         private void ChapterTitleDialogView_Loaded(object sender, RoutedEventArgs e)
@@ -24,8 +26,14 @@ namespace VideoEditorUi.Views
             SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
 
-        private void ButtonBase_OnClick(object sender, RoutedEventArgs e) => DialogResult = true;
-        
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(inputText.Text))
+                DialogResult = true;
+            else
+                MessageBox.Show(new TextCannotBeEmptyTranslatable(), new InformationLabelTranslatable(), MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
 
         private const int GWL_STYLE = -16;
         private const int WS_SYSMENU = 0x80000;
