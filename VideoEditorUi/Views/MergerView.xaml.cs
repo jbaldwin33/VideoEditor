@@ -12,7 +12,7 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class MergerView : ViewBaseControl
     {
-        private MergerViewModel viewModel;
+        private readonly MergerViewModel viewModel;
         public MergerView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
@@ -21,14 +21,14 @@ namespace VideoEditorUi.Views
 
         private void ImagePanel_Drop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (!files.Any(f => FormatTypeViewModel.IsVideoFile($".{Path.GetExtension(f)}")))
-                    MessageBox.Show("cant add non video");
-                else
-                    viewModel.DragFiles?.Invoke(files);
-            }
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
+                return;
+
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files == null || !files.Any(f => FormatTypeViewModel.IsVideoFile($".{Path.GetExtension(f)}")))
+                MessageBox.Show("cant add non video");//todo
+            else
+                viewModel.DragFiles?.Invoke(files);
         }
     }
 }

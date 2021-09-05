@@ -8,9 +8,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
-using MVVMFramework;
 using MVVMFramework.Localization;
-using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
 {
@@ -36,15 +34,15 @@ namespace VideoUtilities
         protected bool Failed;
         protected readonly List<ProcessClass> CurrentProcess = new List<ProcessClass>();
         protected readonly List<ProcessClass> ProcessStuff = new List<ProcessClass>();
+        private readonly List<int> keepOutputList = new List<int>();
+        private readonly object _lock = new object();
+        private readonly object _lock2 = new object();
         protected int NumberFinished;
         protected int NumberInProcess;
         protected IEnumerable ObjectList;
         protected bool UseYoutubeDL;
         protected bool IsList;
         private string path;
-        private List<int> keepOutputList = new List<int>();
-        private object _lock = new object();
-        private object _lock2 = new object();
         private decimal youtubePercentage;
 
         protected void SetList(IEnumerable list)

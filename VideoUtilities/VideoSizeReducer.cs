@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace VideoUtilities
 {
-    public class VideoSizeReducer : BaseClass//<(string Folder, string Filename, string Extension)>
+    public class VideoSizeReducer : BaseClass
     {
         private readonly string outputPath;
 

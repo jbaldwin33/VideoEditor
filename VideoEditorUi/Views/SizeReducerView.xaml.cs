@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Linq;
+using System.Windows;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
@@ -10,7 +12,7 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class SizeReducerView : ViewBaseControl
     {
-        private SizeReducerViewModel viewModel;
+        private readonly SizeReducerViewModel viewModel;
         public SizeReducerView() : base(Navigator.Instance.CurrentViewModel)
         {
             InitializeComponent();
@@ -19,16 +21,14 @@ namespace VideoEditorUi.Views
 
         private void ImagePanel_Drop(object sender, DragEventArgs e)
         {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
+                return;
 
-            if (e.Data.GetDataPresent(DataFormats.FileDrop))
-            {
-                // Note that you can have more than one file.
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (files == null || !files.Any(f => FormatTypeViewModel.IsVideoFile($".{Path.GetExtension(f)}")))
+                MessageBox.Show("cant add non video");//todo
+            else
                 viewModel.DragFiles?.Invoke(files);
-                // Assuming you have one file that you care about, pass it off to whatever
-                // handling code you have defined.
-                //HandleFileOpen(files[0]);
-            }
         }
     }
 }
