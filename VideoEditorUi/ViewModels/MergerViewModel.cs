@@ -124,7 +124,9 @@ namespace VideoEditorUi.ViewModels
         public string RemoveLabel => new RemoveLabelTranslatable();
         public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
         public string OutputFolderLabel => new OutputFolderLabelTranslatable();
+
         private static readonly object _lock = new object();
+        public Action<string[]> DragFiles;
 
         public MergerViewModel() { }
 
@@ -150,6 +152,14 @@ namespace VideoEditorUi.ViewModels
             FileCollection.CollectionChanged += FileCollection_CollectionChanged;
             FormatType = FormatEnum.avi;
 
+            DragFiles = files =>
+            {
+                FileViewModels.AddRange(files.Select(CreateFileViewModel));
+                var safeFileNames = files.Select(Path.GetFileName);
+                foreach (var file in safeFileNames)
+                    FileCollection.Add(file);
+            };
+
             BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(FileViewModels, _lock);
         }
@@ -173,7 +183,7 @@ namespace VideoEditorUi.ViewModels
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "All Video Files|*.wmv;*.avi;*.mpg;*.mpeg;*.mp4;*.mov;*.m4a;*.mkv;*.ts;*.WMV;*.AVI;*.MPG;*.MPEG;*.MP4;*.MOV;*.M4A;*.MKV;*.TS",
+                Filter = "All Video Files|*.wmv;*.avi;*.mpg;*.mpeg;*.mp4;*.mov;*.m4a;*.mkv;*.ts;*.txt;*.WMV;*.AVI;*.MPG;*.MPEG;*.MP4;*.MOV;*.M4A;*.MKV;*.TS",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
                 Multiselect = true
             };

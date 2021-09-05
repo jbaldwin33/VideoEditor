@@ -109,6 +109,8 @@ namespace VideoEditorUi.ViewModels
 
         private static readonly object _lock = new object();
 
+        public Action<string[]> DragFiles;
+
         public SizeReducerViewModel() { }
 
         public override void OnLoaded()
@@ -130,6 +132,7 @@ namespace VideoEditorUi.ViewModels
             FormatType = FormatEnum.avi;
             FileCollection = new ObservableCollection<string>();
 
+            DragFiles = files => files.ToList().ForEach(FileCollection.Add);
             BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
         }
         

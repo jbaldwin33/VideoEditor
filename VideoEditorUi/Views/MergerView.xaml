@@ -25,8 +25,8 @@
       <controls:SmallButton Content="{Binding MoveDownLabel}" Command="{Binding MoveDownCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
       <controls:SmallButton Content="{Binding RemoveLabel}" Command="{Binding RemoveCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
     </StackPanel>
-    <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-      <ListView ItemsSource="{Binding FileCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
+    <StackPanel AllowDrop="True" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <ListView AllowDrop="True" Drop="ImagePanel_Drop" ItemsSource="{Binding FileCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
         <ListView.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Vertical"/>

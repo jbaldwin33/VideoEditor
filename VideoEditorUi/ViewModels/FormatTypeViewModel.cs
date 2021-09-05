@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
@@ -27,12 +28,14 @@ namespace VideoEditorUi.ViewModels
                 new FormatTypeViewModel(FormatEnum.wmv, ".wmv"),
             };
 
-        public static FormatEnum[] ChapterMarkerCompatibleFormats => new []
+        public static FormatEnum[] ChapterMarkerCompatibleFormats => new[]
         {
             FormatEnum.mkv,
             FormatEnum.mov,
             FormatEnum.mp4,
             FormatEnum.wmv
         };
+
+        public static bool IsVideoFile(string extension) => Enum.TryParse(extension, true, out FormatEnum _);
     }
 }
