@@ -10,7 +10,7 @@ using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SpeedChangerViewModel : VideoViewModel
+    public class SpeedChangerViewModel : EditorViewModel
     {
         #region Fields and props
 

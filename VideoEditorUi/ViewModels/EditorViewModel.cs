@@ -10,7 +10,7 @@ using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public abstract class VideoViewModel : ViewModel
+    public abstract class EditorViewModel : ViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
         protected BaseClass VideoEditor;

@@ -108,7 +108,7 @@
     <Compile Include="ViewModels\FormatTypeViewModel.cs" />
     <Compile Include="ViewModels\ProgressBarViewModel.cs" />
     <Compile Include="ViewModels\SplitterViewModel.cs" />
-    <Compile Include="ViewModels\VideoViewModel.cs" />
+    <Compile Include="ViewModels\EditorViewModel.cs" />
     <Compile Include="Views\ChapterTitleDialogView.xaml.cs">
       <DependentUpon>ChapterTitleDialogView.xaml</DependentUpon>
     </Compile>

@@ -8,7 +8,7 @@ using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class ReverseViewModel : VideoViewModel
+    public class ReverseViewModel : EditorViewModel
     {
         #region Fields and props
 

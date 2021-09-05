@@ -20,7 +20,7 @@ using MVVMFramework.Localization;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SplitterViewModel : VideoViewModel
+    public class SplitterViewModel : EditorViewModel
     {
         #region Fields and props
 

@@ -13,7 +13,7 @@ using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class DownloaderViewModel : VideoViewModel
+    public class DownloaderViewModel : EditorViewModel
     {
         #region Fields and props
 

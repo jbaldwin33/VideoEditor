@@ -14,7 +14,7 @@ using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SizeReducerViewModel : VideoViewModel
+    public class SizeReducerViewModel : EditorViewModel
     {
         #region Fields and props
 

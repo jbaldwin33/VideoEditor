@@ -14,7 +14,7 @@ using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class MergerViewModel : VideoViewModel
+    public class MergerViewModel : EditorViewModel
     {
         #region Fields and props
 
