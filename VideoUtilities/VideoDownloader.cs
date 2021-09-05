@@ -4,7 +4,7 @@ using System.IO;
 
 namespace VideoUtilities
 {
-    public class VideoDownloader : BaseClass<string>
+    public class VideoDownloader : BaseClass
     {
         private readonly string extension;
         private readonly string destinationFolder;
@@ -18,26 +18,21 @@ namespace VideoUtilities
             SetList(urls);
         }
 
-        protected override string CreateOutput(string obj, int index)
-        {
-            return /*IsList
-                ? */Path.Combine(destinationFolder, $"%(title)s.{extension}");
-            //: Path.Combine(destinationFolder, $"{outputFolder}.{extension}");
-        }
+        protected override string CreateOutput(int index, object obj) => Path.Combine(destinationFolder, $"%(title)s.{extension}");
 
-        protected override string CreateArguments(string obj, int index, ref string output)
+        protected override string CreateArguments(int index, ref string output, object obj)
         {
             return IsList
                 ? string.Format($"--continue  --no-overwrites --restrict-filenames --no-part --playlist-start 1 --yes-playlist \"{obj}\" -o {output}")
                 : string.Format($"--continue  --no-overwrites --restrict-filenames --no-part -f best --add-metadata {obj} -o \"{output}\"");
         }
 
-        protected override TimeSpan? GetDuration(string obj) => null;
+        protected override TimeSpan? GetDuration(object obj) => null;
         public override void Setup() => DoSetup(null);
 
         protected override void CleanUp()
         {
-            
+
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using MVVMFramework;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
@@ -9,8 +8,8 @@ namespace VideoEditorUi.ViewModels
 {
     public class ProgressBarViewModel : ViewModel
     {
-        public string CancelLabel => new CancelLabelTranslatable();
         public event EventHandler OnCancelledHandler;
+        
         private string progressLabel;
         private RelayCommand cancelCommand;
         private ObservableCollection<ProgressViewModel> progressBarCollection;
@@ -29,10 +28,12 @@ namespace VideoEditorUi.ViewModels
 
         public RelayCommand CancelCommand => cancelCommand ?? (cancelCommand = new RelayCommand(CancelCommandExecute, () => true));
 
-        public ProgressBarViewModel(int count = 1)
+        public string CancelLabel => new CancelLabelTranslatable();
+
+        public ProgressBarViewModel(int count)
         {
             ProgressBarCollection = new ObservableCollection<ProgressViewModel>();
-            for (int i = 0; i < count; i++)
+            for (var i = 0; i < count; i++)
                 ProgressBarCollection.Add(new ProgressViewModel(i + 1, count));
         }
 

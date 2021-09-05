@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 
 namespace VideoUtilities
 {
-    public class VideoSpeedChanger : BaseClass<string>
+    public class VideoSpeedChanger : BaseClass
     {
         private readonly Enums.ScaleRotate scaleRotate;
         private readonly double newSpeed;
@@ -19,11 +18,12 @@ namespace VideoUtilities
         }
 
         public override void Setup() => DoSetup(null);
-        protected override string CreateOutput(string obj, int index)
-            => $"{Path.GetDirectoryName(obj)}\\{Path.GetFileNameWithoutExtension(obj)}_formatted{Path.GetExtension(obj)}";
+        protected override string CreateOutput(int index, object obj)
+            => $"{Path.GetDirectoryName((string)obj)}\\{Path.GetFileNameWithoutExtension((string)obj)}_formatted{Path.GetExtension((string)obj)}";
 
-        protected override string CreateArguments(string obj, int index, ref string output)
+        protected override string CreateArguments(int index, ref string output, object obj)
         {
+            obj = obj as string;
             var filter = string.Empty;
             var overwrite = false;
             switch (scaleRotate)
@@ -57,7 +57,7 @@ namespace VideoUtilities
             return $"{(overwrite ? "-y" : string.Empty)} -i \"{obj}\" -filter_complex \"[0:v]setpts={1 / newSpeed}*PTS{filter}[v];[0:a]atempo={newSpeed}[a]\" -map \"[v]\" -map \"[a]\" \"{output}\"";
         }
 
-        protected override TimeSpan? GetDuration(string obj) => null;
+        protected override TimeSpan? GetDuration(object obj) => null;
         protected override void CleanUp()
         {
             

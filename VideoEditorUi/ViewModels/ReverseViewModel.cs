@@ -1,31 +1,21 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Win32;
-using MVVMFramework;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
-using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class ReverseViewModel : ViewModel
+    public class ReverseViewModel : VideoViewModel
     {
-        private CSVideoPlayer.VideoPlayerWPF player;
+        #region Fields and props
+
         private string inputPath;
         private bool fileLoaded;
         private RelayCommand selectFileCommand;
         private RelayCommand reverseCommand;
-        private ProgressBarViewModel progressBarViewModel;
-        private VideoReverser reverser;
-
-        public CSVideoPlayer.VideoPlayerWPF Player
-        {
-            get => player;
-            set => SetProperty(ref player, value);
-        }
 
         public string InputPath
         {
@@ -39,32 +29,30 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref fileLoaded, value);
         }
 
-        public ProgressBarViewModel ProgressBarViewModel
-        {
-            get => progressBarViewModel;
-            set => SetProperty(ref progressBarViewModel, value);
-        }
+        #endregion
+
+        #region Commands
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
-        public RelayCommand ReverseCommand => reverseCommand ?? (reverseCommand = new RelayCommand(ReverseCommandExecute, ReverseCommandCanExecute));
+        public RelayCommand ReverseCommand => reverseCommand ?? (reverseCommand = new RelayCommand(ReverseCommandExecute, () => FileLoaded));
+
+        #endregion
+
+        #region Labels
 
         public string ReverseLabel => new ReverseLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
         public string NoFileLabel => new NoFileSelectedTranslatable();
 
-        public ReverseViewModel()
-        {
-
-        }
+        #endregion
 
         public override void OnUnloaded()
         {
-            UtilityClass.ClosePlayer(player);
             FileLoaded = false;
             base.OnUnloaded();
         }
 
-        private bool ReverseCommandCanExecute() => FileLoaded;
+        protected override void Initialize() { }
 
         private void SelectFileCommandExecute()
         {
@@ -78,7 +66,7 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            player.Open(new Uri(openFileDialog.FileName));
+            Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
         }
 
@@ -88,104 +76,38 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(messageArgs);
             if (messageArgs.Result == MessageBoxResult.No)
                 return;
-            reverser = new VideoReverser(InputPath);
-            reverser.StartedDownload += Reverser_DownloadStarted;
-            reverser.ProgressDownload += Reverser_ProgressDownload;
-            reverser.FinishedDownload += Reverser_FinishedDownload;
-            reverser.ErrorDownload += Reverser_ErrorDownload;
-            reverser.MessageHandler += LibraryMessageHandler;
-            reverser.TrimFinished += Reverser_TrimFinished;
-            reverser.ReverseFinished += Reverser_ReverseFinished;
-            ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
-            {
-                try
-                {
-                    reverser.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            Task.Run(() => reverser.TrimSections());
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            VideoEditor = new VideoReverser(InputPath);
+            VideoEditor.PreWorkFinished += Reverser_TrimFinished;
+            VideoEditor.FirstWorkFinished += Reverser_ReverseFinished;
+            Execute(false, StageEnum.Pre);
         }
 
-        private void Reverser_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
-
-        private void Reverser_ProgressDownload(object sender, ProgressEventArgs e)
+        protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
-            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
-                ProgressBarViewModel.UpdateProgressValue(e.Percentage, e.ProcessIndex);
-        }
-
-        private void Reverser_FinishedDownload(object sender, FinishedEventArgs e)
-        {
-            CleanUp();
-            UtilityClass.ClosePlayer(player);
+            base.FinishedDownload(sender, e);
             var message = e.Cancelled
                 ? $"{new OperationCancelledTranslatable()} {e.Message}"
                 : new VideoSuccessfullyReversedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        private void Reverser_ErrorDownload(object sender, ProgressEventArgs e)
-        {
-            CleanUp();
-            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-        }
-
-        private void Reverser_TrimFinished(object sender, int count)
+        private void Reverser_TrimFinished(object sender, PreWorkEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ProgressBarViewModel = new ProgressBarViewModel(count);
-            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
-            {
-                try
-                {
-                    reverser.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            Task.Run(() => reverser.DoWork(new ReversingSectionsLabelTranslatable()));
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            Execute(false, StageEnum.Primary, new ReversingSectionsLabelTranslatable(), (int)e.Argument);
         }
 
         private void Reverser_ReverseFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (_, args) =>
-            {
-                try
-                {
-                    reverser.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            Task.Run(() => reverser.ConcatSections());
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            Execute(false, StageEnum.Secondary);
         }
 
-        private void LibraryMessageHandler(object sender, MessageEventArgs e)
+        protected override void CleanUp()
         {
-            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            ShowMessage(args);
-            e.Result = args.Result == MessageBoxResult.Yes;
-        }
-
-        private void CleanUp()
-        {
-            Navigator.Instance.CloseChildWindow.Execute(false);
             InputPath = string.Empty;
             FileLoaded = false;
+            base.CleanUp();
         }
     }
 }

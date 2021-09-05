@@ -3,22 +3,21 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.Win32;
 using MVVMFramework.ViewModels;
-using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using MVVMFramework;
 using MVVMFramework.Localization;
 using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class MergerViewModel : ViewModel
+    public class MergerViewModel : VideoViewModel
     {
+        #region Fields and props
+
         private string outputPath;
         private RelayCommand selectFileCommand;
         private RelayCommand mergeCommand;
@@ -26,8 +25,6 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand moveDownCommand;
         private RelayCommand removeCommand;
         private RelayCommand selectOutputFolderCommand;
-        private ProgressBarViewModel progressBarViewModel;
-        private VideoMerger merger;
         private string selectedFile;
         private bool fileSelected;
         private List<(string, string, string)> fileViewModels;
@@ -42,12 +39,6 @@ namespace VideoEditorUi.ViewModels
         {
             get => outputPath;
             set => SetProperty(ref outputPath, value);
-        }
-
-        public ProgressBarViewModel ProgressBarViewModel
-        {
-            get => progressBarViewModel;
-            set => SetProperty(ref progressBarViewModel, value);
         }
 
         public ObservableCollection<string> FileCollection
@@ -108,14 +99,20 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref formatType, value);
         }
 
+        #endregion
+
+        #region Commands
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
-        public RelayCommand MergeCommand => mergeCommand ?? (mergeCommand = new RelayCommand(MergeCommandExecute, MergeCommandCanExecute));
+        public RelayCommand MergeCommand => mergeCommand ?? (mergeCommand = new RelayCommand(MergeCommandExecute, () => FileCollection?.Count > 1));
         public RelayCommand MoveUpCommand => moveUpCommand ?? (moveUpCommand = new RelayCommand(MoveUpExecute, () => FileSelected));
         public RelayCommand MoveDownCommand => moveDownCommand ?? (moveDownCommand = new RelayCommand(MoveDownExecute, () => FileSelected));
         public RelayCommand RemoveCommand => removeCommand ?? (removeCommand = new RelayCommand(RemoveExecute, () => FileSelected));
-
         public RelayCommand SelectOutputFolderCommand => selectOutputFolderCommand ?? (selectOutputFolderCommand = new RelayCommand(SelectOutputFolderCommandExecute, () => true));
+
+        #endregion
+
+        #region Labels
 
         public string MergeLabel => new MergeLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
@@ -125,16 +122,10 @@ namespace VideoEditorUi.ViewModels
         public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
         public string OutputFolderLabel => new OutputFolderLabelTranslatable();
 
+        #endregion
+
         private static readonly object _lock = new object();
         public Action<string[]> DragFiles;
-
-        public MergerViewModel() { }
-
-        public override void OnLoaded()
-        {
-            Initialize();
-            base.OnLoaded();
-        }
 
         public override void OnUnloaded()
         {
@@ -144,7 +135,7 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        private void Initialize()
+        protected override void Initialize()
         {
             FileCollection = new ObservableCollection<string>();
             FileViewModels = new List<(string, string, string)>();
@@ -177,8 +168,6 @@ namespace VideoEditorUi.ViewModels
                 CanChangeExtension = true;
         }
 
-        private bool MergeCommandCanExecute() => FileCollection?.Count > 1;
-
         private void SelectFileCommandExecute()
         {
             var openFileDialog = new OpenFileDialog
@@ -206,27 +195,8 @@ namespace VideoEditorUi.ViewModels
                 : MultipleExtensions
                     ? $".{FormatType}"
                     : FileViewModels[0].extension;
-            merger = new VideoMerger(FileViewModels, OutputPath, outExt);
-            merger.StartedDownload += Merger_DownloadStarted;
-            merger.ProgressDownload += Merger_ProgressDownload;
-            merger.FinishedDownload += Merger_FinishedDownload;
-            merger.ErrorDownload += Merger_ErrorDownload;
-            merger.MessageHandler += LibraryMessageHandler;
-            ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
-            {
-                try
-                {
-                    merger.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            merger.Setup();
-            Task.Run(() => merger.DoWork(new MergingLabelTranslatable()));
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            VideoEditor = new VideoMerger(FileViewModels, OutputPath, outExt);
+            Execute(true, StageEnum.Primary, new MergingLabelTranslatable());
         }
 
         private void MoveUpExecute()
@@ -270,44 +240,23 @@ namespace VideoEditorUi.ViewModels
             OutputPath = openFolderDialog.FileName;
         }
 
-        private void Merger_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
-
-        private void Merger_ProgressDownload(object sender, ProgressEventArgs e)
+        protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
-            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
-                ProgressBarViewModel.UpdateProgressValue(e.Percentage);
-        }
-
-        private void Merger_FinishedDownload(object sender, FinishedEventArgs e)
-        {
-            CleanUp();
+            base.FinishedDownload(sender, e);
             var message = e.Cancelled
                 ? $"{new OperationCancelledTranslatable()} {e.Message}"
                 : new VideoSuccessfullyMergedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        private void Merger_ErrorDownload(object sender, ProgressEventArgs e)
-        {
-            Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-        }
-
-        private void LibraryMessageHandler(object sender, MessageEventArgs e)
-        {
-            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            ShowMessage(args);
-            e.Result = args.Result == MessageBoxResult.Yes;
-        }
-
-        private void CleanUp()
+        protected override void CleanUp()
         {
             FileCollection.Clear();
             FileViewModels.Clear();
             FormatType = FormatEnum.avi;
             OutputDifferentFormat = false;
             OutputPath = null;
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            base.CleanUp();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.IO;
 
 namespace VideoUtilities
 {
-    public class VideoConverter : BaseClass<(string Folder, string Filename, string Extension)>
+    public class VideoConverter : BaseClass
     {
         private readonly string outExtension;
 
@@ -18,11 +18,15 @@ namespace VideoUtilities
 
         public override void Setup() => DoSetup(null);
 
-        protected override string CreateOutput((string Folder, string Filename, string Extension) obj, int index) 
-            => $"{obj.Folder}\\{obj.Filename}_converted{outExtension}";
-
-        protected override string CreateArguments((string Folder, string Filename, string Extension) obj, int index, ref string output)
+        protected override string CreateOutput(int index, object obj)
         {
+            var (folder, filename, _) = (ValueTuple<string, string, string>)obj;
+            return $"{folder}\\{filename}_converted{outExtension}";
+        }
+
+        protected override string CreateArguments(int index, ref string output, object obj)
+        {
+            var (folder, filename, extension) = (ValueTuple<string, string, string>)obj;
             var overwrite = false;
             if (File.Exists(output))
             {
@@ -34,14 +38,14 @@ namespace VideoUtilities
                 overwrite = args.Result;
                 if (!overwrite)
                 {
-                    var filename = Path.GetFileNameWithoutExtension(output);
-                    output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
+                    var filename2 = Path.GetFileNameWithoutExtension(output);
+                    output = $"{Path.GetDirectoryName(output)}\\{filename2}[0]{Path.GetExtension(output)}";
                 }
             }
-            return $"{(overwrite ? "-y" : string.Empty)} -i \"{obj.Folder}\\{obj.Filename}{obj.Extension}\" -c:a copy -c:v copy \"{output}\"";
+            return $"{(overwrite ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" -c:a copy -c:v copy \"{output}\"";
         }
 
-        protected override TimeSpan? GetDuration((string Folder, string Filename, string Extension) obj) => null;
+        protected override TimeSpan? GetDuration(object obj) => null;
 
         protected override void CleanUp()
         {

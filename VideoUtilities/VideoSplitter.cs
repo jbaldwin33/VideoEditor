@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using MVVMFramework;
 using MVVMFramework.Localization;
-using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
 {
-    public class VideoSplitter : BaseClass<(TimeSpan StartTime, TimeSpan EndTime, string Title)>
+    public class VideoSplitter : BaseClass
     {
         public event EventHandler SplitFinished;
 
@@ -38,12 +36,10 @@ namespace VideoUtilities
             SetList(times);
         }
 
-        public override void Setup() => DoSetup(() => OnSplitFinished(EventArgs.Empty));
-
-        protected override string CreateOutput((TimeSpan, TimeSpan, string) obj, int index) => $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{index + 1}{(outputDifferentFormat ? outputFormat : extension)}";
-
-        protected override string CreateArguments((TimeSpan StartTime, TimeSpan EndTime, string Title) obj, int index, ref string output)
+        public override void Setup() => DoSetup(() => OnFirstWorkFinished(EventArgs.Empty));
+        protected override string CreateArguments(int index, ref string output, object obj)
         {
+            var (startTime, endTime, _) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
             var overwrite = false;
             if (File.Exists(output))
             {
@@ -59,12 +55,18 @@ namespace VideoUtilities
                     output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
                 }
             }
-            return $"{(overwrite ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {obj.StartTime.TotalSeconds} -to {obj.EndTime.TotalSeconds} \"{output}\"";
+            return $"{(overwrite ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {startTime.TotalSeconds} -to {endTime.TotalSeconds} \"{output}\"";
         }
 
-        protected override TimeSpan? GetDuration((TimeSpan StartTime, TimeSpan EndTime, string Title) obj) => obj.EndTime - obj.StartTime;
+        protected override string CreateOutput(int index, object obj) => $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{index + 1}{(outputDifferentFormat ? outputFormat : extension)}";
 
-        public void CombineSections()
+        protected override TimeSpan? GetDuration(object obj)
+        {
+            var (startTime, endTime, _) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
+            return endTime - startTime;
+        }
+
+        public override void SecondaryWork()
         {
             try
             {
@@ -100,7 +102,7 @@ namespace VideoUtilities
             }
         }
 
-        private void OnSplitFinished(EventArgs e)
+        protected override void OnFirstWorkFinished(EventArgs e)
         {
             if (combineVideo)
                 SplitFinished?.Invoke(this, e);

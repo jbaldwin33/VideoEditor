@@ -2,14 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using MVVMFramework;
 using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {
-    public class VideoChapterAdder : BaseClass<string>
+    public class VideoChapterAdder : BaseClass
     {
-        public event EventHandler GetMetadataFinished;
         private readonly string metadataFile;
         private string chapterFile;
         private readonly string fullInputPath;
@@ -37,16 +35,16 @@ namespace VideoUtilities
             DoSetup(() =>
             {
                 WriteToMetadata();
-                OnGetMetadataFinished();
+                OnFirstWorkFinished(EventArgs.Empty);
             });
         }
 
-        protected override string CreateOutput(string obj, int index) => metadataFile;
+        protected override string CreateOutput(int index, object obj) => metadataFile;
 
-        protected override string CreateArguments(string obj, int index, ref string output)
+        protected override string CreateArguments(int index, ref string output, object obj)
             => $"-y -i \"{obj}\" -f ffmetadata \"{metadataFile}\"";
 
-        protected override TimeSpan? GetDuration(string obj) => null;
+        protected override TimeSpan? GetDuration(object obj) => null;
 
         private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times, string sourceFolder, string sourceFileWithoutExtension)
         {
@@ -56,7 +54,7 @@ namespace VideoUtilities
                     sw.WriteLine($"{startTime},{title}");
         }
 
-        public void SetMetadata()
+        public override void SecondaryWork()
         {
             try
             {
@@ -67,7 +65,7 @@ namespace VideoUtilities
                 {
                     var args2 = new MessageEventArgs
                     {
-                        Message = $"The file {Path.GetFileName(outputPath)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
+                        Message = $"The file {Path.GetFileName(outputPath)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"//todo
                     };
                     ShowMessage(args2);
                     overwrite = args2.Result;
@@ -128,8 +126,6 @@ namespace VideoUtilities
                 }
             }
         }
-
-        private void OnGetMetadataFinished() => GetMetadataFinished?.Invoke(this, EventArgs.Empty);
     }
 
     public class Chapter

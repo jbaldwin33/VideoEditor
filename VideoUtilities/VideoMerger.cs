@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace VideoUtilities
 {
-    public class VideoMerger : BaseClass<string>
+    public class VideoMerger : BaseClass
     {
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private readonly TimeSpan totalDuration;
@@ -38,10 +38,10 @@ namespace VideoUtilities
 
         public override void Setup() => DoSetup(null);
 
-        protected override string CreateOutput(string obj, int index)
+        protected override string CreateOutput(int index, object obj)
             => $"{outputPath}\\Merged_File{outputExtension}";
 
-        protected override string CreateArguments(string obj, int index, ref string output)
+        protected override string CreateArguments(int index, ref string output, object obj)
         {
             var overwrite = false;
             if (File.Exists(output))
@@ -81,7 +81,7 @@ namespace VideoUtilities
             return sb.ToString();
         }
 
-        protected override TimeSpan? GetDuration(string obj) => totalDuration;
+        protected override TimeSpan? GetDuration(object obj) => totalDuration;
 
         public void GetMetadata(List<(string folder, string name, string extension)> files)
         {

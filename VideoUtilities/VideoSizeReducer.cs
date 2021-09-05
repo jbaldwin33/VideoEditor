@@ -4,7 +4,7 @@ using System.IO;
 
 namespace VideoUtilities
 {
-    public class VideoSizeReducer : BaseClass<(string Folder, string Filename, string Extension)>
+    public class VideoSizeReducer : BaseClass//<(string Folder, string Filename, string Extension)>
     {
         private readonly string outputPath;
 
@@ -18,10 +18,15 @@ namespace VideoUtilities
 
         public override void Setup() => DoSetup(null);
 
-        protected override string CreateOutput((string Folder, string Filename, string Extension) obj, int index) => $"{outputPath}\\{obj.Filename}_reduced{obj.Extension}";
-
-        protected override string CreateArguments((string Folder, string Filename, string Extension) obj, int index, ref string output)
+        protected override string CreateOutput(int index, object obj)
         {
+            var(_, filename, extension) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
+            return $"{outputPath}\\{filename}_reduced{extension}";
+        }
+
+        protected override string CreateArguments(int index, ref string output, object obj)
+        {
+            var (folder, filename, extension) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
             var overwrite = false;
             if (File.Exists(output))
             {
@@ -33,14 +38,14 @@ namespace VideoUtilities
                 overwrite = args.Result;
                 if (!overwrite)
                 {
-                    var filename = Path.GetFileNameWithoutExtension(output);
-                    output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
+                    var filename2 = Path.GetFileNameWithoutExtension(output);
+                    output = $"{Path.GetDirectoryName(output)}\\{filename2}[0]{Path.GetExtension(output)}";
                 }
             }
-            return $"{(overwrite ? "-y" : string.Empty)} -i \"{obj.Folder}\\{obj.Filename}{obj.Extension}\" -vcodec libx264 -crf 28 \"{output}\"";
+            return $"{(overwrite ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" -vcodec libx264 -crf 28 \"{output}\"";
         }
 
-        protected override TimeSpan? GetDuration((string Folder, string Filename, string Extension) obj) => null;
+        protected override TimeSpan? GetDuration(object obj) => null;
 
         protected override void CleanUp()
         {

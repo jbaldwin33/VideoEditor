@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -13,18 +14,22 @@ using MVVMFramework.ViewModels;
 
 namespace VideoUtilities
 {
-    public abstract class BaseClass<T>
+    public abstract class BaseClass
     {
         public delegate void ProgressEventHandler(object sender, ProgressEventArgs e);
         public delegate void FinishedDownloadEventHandler(object sender, FinishedEventArgs e);
         public delegate void StartedDownloadEventHandler(object sender, DownloadStartedEventArgs e);
         public delegate void ErrorEventHandler(object sender, ProgressEventArgs e);
         public delegate void MessageEventHandler(object sender, MessageEventArgs e);
+        public delegate void PreWorkFinishedEventHandler(object sender, PreWorkEventArgs e);
+        public delegate void FirstWorkFinishedEventHandler(object sender, EventArgs e);
         public event ProgressEventHandler ProgressDownload;
         public event FinishedDownloadEventHandler FinishedDownload;
         public event StartedDownloadEventHandler StartedDownload;
         public event ErrorEventHandler ErrorDownload;
         public event MessageEventHandler MessageHandler;
+        public event PreWorkFinishedEventHandler PreWorkFinished;
+        public event FirstWorkFinishedEventHandler FirstWorkFinished;
         protected Action DoAfterExit { get; set; }
         protected bool Cancelled;
         protected string LastData;
@@ -33,7 +38,7 @@ namespace VideoUtilities
         protected readonly List<ProcessClass> ProcessStuff = new List<ProcessClass>();
         protected int NumberFinished;
         protected int NumberInProcess;
-        protected IEnumerable<T> ObjectList;
+        protected IEnumerable ObjectList;
         protected bool UseYoutubeDL;
         protected bool IsList;
         private string path;
@@ -42,7 +47,7 @@ namespace VideoUtilities
         private object _lock2 = new object();
         private decimal youtubePercentage;
 
-        protected void SetList(IEnumerable<T> list)
+        protected void SetList(IEnumerable list)
         {
             ObjectList = list;
         }
@@ -75,6 +80,9 @@ namespace VideoUtilities
             }
         }
 
+        public virtual void PreWork() => throw new NotImplementedException();
+        public virtual void SecondaryWork() => throw new NotImplementedException();
+
         public virtual void Setup() => throw new NotImplementedException();
 
         protected void DoSetup(Action callback)
@@ -83,7 +91,7 @@ namespace VideoUtilities
             var i = 0;
             foreach (var obj in ObjectList)
             {
-                var output = CreateOutput(obj, i);
+                var output = CreateOutput(i, obj);
                 var process = new Process
                 {
                     EnableRaisingEvents = true,
@@ -95,7 +103,7 @@ namespace VideoUtilities
                         WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = Path.Combine(GetBinaryPath(), UseYoutubeDL ? "youtube-dl.exe" : "ffmpeg.exe"),
                         CreateNoWindow = true,
-                        Arguments = CreateArguments(obj, i, ref output)
+                        Arguments = CreateArguments(i, ref output, obj)
                     }
                 };
                 process.Exited += Process_Exited;
@@ -105,9 +113,7 @@ namespace VideoUtilities
                     process.OutputDataReceived += YoutubeOutputHandler;
                 }
                 else
-                {
                     process.ErrorDataReceived += OutputHandler;
-                }
 
                 ProcessStuff.Add(new ProcessClass(false, process, output, TimeSpan.Zero, GetDuration(obj), new ProcessClass.YoutubeProps()));
                 i++;
@@ -141,9 +147,9 @@ namespace VideoUtilities
             process.BeginErrorReadLine();
         }
 
-        protected virtual string CreateArguments(T obj, int index, ref string output) => throw new NotImplementedException();
-        protected virtual string CreateOutput(T obj, int index) => throw new NotImplementedException();
-        protected virtual TimeSpan? GetDuration(T obj) => throw new NotImplementedException();
+        protected virtual string CreateArguments(int index, ref string output, object obj) => throw new NotImplementedException();
+        protected virtual string CreateOutput(int index, object obj) => throw new NotImplementedException();
+        protected virtual TimeSpan? GetDuration(object obj) => throw new NotImplementedException();
 
         public string GetBinaryPath() => !string.IsNullOrEmpty(path) ? path : path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
 
@@ -382,8 +388,15 @@ namespace VideoUtilities
             CleanUp();
         }
 
+        protected virtual void OnPreWorkFinished(PreWorkEventArgs e) => PreWorkFinished?.Invoke(this, e);
+        protected virtual void OnFirstWorkFinished(EventArgs e) => FirstWorkFinished?.Invoke(this, e);
         protected virtual void CleanUp() => throw new NotImplementedException();
         protected virtual void ShowMessage(MessageEventArgs e) => MessageHandler?.Invoke(this, e);
+    }
+
+    public class PreWorkEventArgs : EventArgs
+    {
+        public object Argument { get; set; }
     }
 
     public class MessageEventArgs : EventArgs

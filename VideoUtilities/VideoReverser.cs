@@ -4,16 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using MVVMFramework;
 using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {
-    public class VideoReverser : BaseClass<FileInfo>
+    public class VideoReverser : BaseClass
     {
-        public event EventHandler<int> TrimFinished;
-        public event EventHandler ReverseFinished;
-        
         private readonly string sourceFolder;
         private readonly string filenameWithoutExtension;
         private readonly string fileExtension;
@@ -30,7 +26,7 @@ namespace VideoUtilities
             Cancelled = false;
         }
 
-        public void TrimSections()
+        public override void PreWork()
         {
             try
             {
@@ -66,8 +62,8 @@ namespace VideoUtilities
                     var hdDirectoryInWhichToSearch = new DirectoryInfo(sourceFolder);
                     var filesInDir = hdDirectoryInWhichToSearch.GetFiles().Where(file => regex.IsMatch(Path.GetFileNameWithoutExtension(file.Name))).ToList();
                     SetList(filesInDir);
-                    DoSetup(OnReverseFinished);
-                    OnTrimFinished(filesInDir.Count);
+                    DoSetup(() => OnFirstWorkFinished(EventArgs.Empty));
+                    OnPreWorkFinished(new PreWorkEventArgs{Argument = filesInDir.Count});
                 };
                 process.Start();
                 process.BeginErrorReadLine();
@@ -83,18 +79,15 @@ namespace VideoUtilities
             }
         }
 
-        private void OnTrimFinished(int count) => TrimFinished?.Invoke(this, count);
-        private void OnReverseFinished() => ReverseFinished?.Invoke(this, EventArgs.Empty);
+        protected override string CreateArguments(int index, ref string output, object obj)
+            => $"-y -i \"{((FileInfo)obj).FullName}\" -vf reverse -af areverse -map 0 \"{output}\"";
 
-        protected override string CreateArguments(FileInfo obj, int index, ref string output)
-            => $"-y -i \"{obj.FullName}\" -vf reverse -af areverse -map 0 \"{output}\"";
-
-        protected override string CreateOutput(FileInfo obj, int index)
+        protected override string CreateOutput(int index, object obj)
             => $"{sourceFolder}\\reversed_temp{index:000}{fileExtension}";
 
-        protected override TimeSpan? GetDuration(FileInfo obj) => null;
+        protected override TimeSpan? GetDuration(object obj) => null;
 
-        public void ConcatSections()
+        public override void SecondaryWork()
         {
             try
             {

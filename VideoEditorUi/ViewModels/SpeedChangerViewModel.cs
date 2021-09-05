@@ -1,41 +1,30 @@
 ﻿using System;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
-using MVVMFramework;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
-using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SpeedChangerViewModel : ViewModel
+    public class SpeedChangerViewModel : VideoViewModel
     {
-        private CSVideoPlayer.VideoPlayerWPF player;
+        #region Fields and props
+
         private bool changeSpeed;
         private double currentSpeed;
         private string speedLabel;
         private string inputPath;
         private bool fileLoaded;
-        private bool canFormat;
         private int flipScale;
         private int rotateNumber;
         private RelayCommand flipCommand;
         private RelayCommand rotateCommand;
         private RelayCommand selectFileCommand;
         private RelayCommand formatCommand;
-        private ProgressBarViewModel progressBarViewModel;
-        private VideoSpeedChanger formatter;
-
-        public CSVideoPlayer.VideoPlayerWPF Player
-        {
-            get => player;
-            set => SetProperty(ref player, value);
-        }
 
         public bool ChangeSpeed
         {
@@ -50,7 +39,6 @@ namespace VideoEditorUi.ViewModels
             {
                 SetProperty(ref currentSpeed, value);
                 SpeedLabel = $"{value}x";
-                CanFormat = value != 1;
             }
         }
 
@@ -71,11 +59,6 @@ namespace VideoEditorUi.ViewModels
             get => fileLoaded;
             set => SetProperty(ref fileLoaded, value);
         }
-        public bool CanFormat
-        {
-            get => canFormat;
-            set => SetProperty(ref canFormat, value);
-        }
 
         public int FlipScale
         {
@@ -89,20 +72,21 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref rotateNumber, value);
         }
 
-        public ProgressBarViewModel ProgressBarViewModel
-        {
-            get => progressBarViewModel;
-            set => SetProperty(ref progressBarViewModel, value);
-        }
+        #endregion
 
         public Slider SpeedSlider { get; set; }
         public StackPanel VideoStackPanel { get; set; }
 
+        #region Commands
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
-        public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, FormatCommandCanExecute));
+        public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, () => FileLoaded));
         public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
         public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
+
+        #endregion
+
+        #region Labels
 
         public string FormatLabel => new FormatLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
@@ -111,26 +95,23 @@ namespace VideoEditorUi.ViewModels
         public string RotateLabel => new RotateLabelTranslatable();
         public string VideoSpeedLabel => new VideoSpeedLabelTranslatable();
 
-        public SpeedChangerViewModel() { }
-
-        public override void OnLoaded()
-        {
-            FlipScale = 1;
-            SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
-            SpeedSlider.Value = 1;
-            SpeedLabel = "1x";
-            base.OnLoaded();
-        }
+        #endregion
 
         public override void OnUnloaded()
         {
-            UtilityClass.ClosePlayer(player);
+            UtilityClass.ClosePlayer(Player);
             FileLoaded = false;
             SpeedSlider.ValueChanged -= SpeedSlider_ValueChanged;
             base.OnUnloaded();
         }
 
-        private bool FormatCommandCanExecute() => FileLoaded && CanFormat;
+        protected override void Initialize()
+        {
+            FlipScale = 1;
+            SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
+            SpeedSlider.Value = 1;
+            SpeedLabel = "1x";
+        }
 
         private void SelectFileCommandExecute()
         {
@@ -144,47 +125,27 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            player.Open(new Uri(openFileDialog.FileName));
+            Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
         }
 
         private void FormatCommandExecute()
         {
-            formatter = new VideoSpeedChanger(InputPath, CurrentSpeed, ConvertToEnum());
-            formatter.StartedDownload += Converter_DownloadStarted;
-            formatter.ProgressDownload += Converter_ProgressDownload;
-            formatter.FinishedDownload += Converter_FinishedDownload;
-            formatter.ErrorDownload += Converter_ErrorDownload;
-            formatter.MessageHandler += LibraryMessageHandler;
-            ProgressBarViewModel = new ProgressBarViewModel();
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
-            {
-                try
-                {
-                    formatter.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-            formatter.Setup();
-            Task.Run(() => formatter.DoWork(new ChangingLabelTranslatable()));
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            VideoEditor = new VideoSpeedChanger(InputPath, CurrentSpeed, ConvertToEnum());
+            Execute(true, StageEnum.Primary, new ChangingLabelTranslatable());
         }
 
         private void FlipCommandExecute()
         {
-            if (FlipScale < 0)
-                FlipScale = 1;
-            else
-                FlipScale = -1;
-
-            var scaleTransform = new ScaleTransform { ScaleX = FlipScale };
-            var rotateTransform = new RotateTransform(RotateNumber * FlipScale);
-            var transformGroup = new TransformGroup();
-            transformGroup.Children.Add(rotateTransform);
-            transformGroup.Children.Add(scaleTransform);
+            FlipScale = FlipScale < 0 ? 1 : -1;
+            var transformGroup = new TransformGroup
+            {
+                Children = new TransformCollection
+                {
+                    new RotateTransform(RotateNumber * FlipScale),
+                    new ScaleTransform { ScaleX = FlipScale }
+                }
+            };
             VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
             VideoStackPanel.LayoutTransform = transformGroup;
         }
@@ -192,12 +153,14 @@ namespace VideoEditorUi.ViewModels
         private void RotateCommandExecute()
         {
             RotateNumber = (RotateNumber + 90) % 360;
-
-            var scaleTransform = new ScaleTransform { ScaleX = FlipScale };
-            var rotateTransform = new RotateTransform(RotateNumber * FlipScale);
-            var transformGroup = new TransformGroup();
-            transformGroup.Children.Add(rotateTransform);
-            transformGroup.Children.Add(scaleTransform);
+            var transformGroup = new TransformGroup
+            {
+                Children = new TransformCollection
+                {
+                    new RotateTransform(RotateNumber * FlipScale),
+                    new ScaleTransform { ScaleX = FlipScale }
+                }
+            };
             VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
             VideoStackPanel.LayoutTransform = transformGroup;
         }
@@ -221,44 +184,22 @@ namespace VideoEditorUi.ViewModels
 
         private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => CurrentSpeed = e.NewValue;
 
-        private void Converter_DownloadStarted(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
-
-        private void Converter_ProgressDownload(object sender, ProgressEventArgs e)
+        protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
-            if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
-                ProgressBarViewModel.UpdateProgressValue(e.Percentage);
-        }
-
-        private void Converter_FinishedDownload(object sender, FinishedEventArgs e)
-        {
-            CleanUp();
-            UtilityClass.ClosePlayer(player);
+            base.FinishedDownload(sender, e);
             var message = e.Cancelled
                 ? $"{new OperationCancelledTranslatable()} {e.Message}"
                 : new VideoSpeedSuccessfullyChangedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        private void Converter_ErrorDownload(object sender, ProgressEventArgs e)
+        protected override void CleanUp()
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
-            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-        }
-
-        private void LibraryMessageHandler(object sender, MessageEventArgs e)
-        {
-            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
-            ShowMessage(args);
-            e.Result = args.Result == MessageBoxResult.Yes;
-        }
-
-        private void CleanUp()
-        {
-            Navigator.Instance.CloseChildWindow.Execute(false);
             ChangeSpeed = false;
             CurrentSpeed = 1;
             Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);
             FileLoaded = false;
+            base.CleanUp();
         }
     }
 }

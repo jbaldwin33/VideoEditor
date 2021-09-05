@@ -1,28 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using CSVideoPlayer;
-using MVVMFramework;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public abstract class VideoViewModel<T> : ViewModel
+    public abstract class VideoViewModel : ViewModel
     {
-        protected List<T> ObjectList;
-        protected BaseClass<T> VideoEditor;
+        public enum StageEnum { Pre, Primary, Secondary }
+        protected BaseClass VideoEditor;
         protected ProgressBarViewModel ProgressBarViewModel;
         public VideoPlayerWPF Player;
 
-        protected VideoViewModel(BaseClass<T> videoEditor)
+        public override void OnLoaded()
         {
-            //ObjectList = list;
+            Initialize();
+            base.OnLoaded();
         }
 
         public override void OnUnloaded()
@@ -31,14 +29,45 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected void SetupEditor(BaseClass<T> videoEditor)
+        protected void SetupEditor()
         {
-            VideoEditor = videoEditor;
             VideoEditor.StartedDownload += StartedDownload;
             VideoEditor.ProgressDownload += ProgressDownload;
             VideoEditor.FinishedDownload += FinishedDownload;
             VideoEditor.ErrorDownload += ErrorDownload;
             VideoEditor.MessageHandler += LibraryMessageHandler;
+        }
+
+        protected void SetupProgressBarViewModel(int count)
+        {
+            ProgressBarViewModel = new ProgressBarViewModel(count);
+            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
+            {
+                try
+                {
+                    VideoEditor.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
+        }
+
+        protected void Execute(bool doSetup, StageEnum stage, string label = "", int count = 1)
+        {
+            SetupEditor();
+            SetupProgressBarViewModel(count);
+            if (doSetup)
+                VideoEditor.Setup();
+            switch (stage)
+            {
+                case StageEnum.Pre: Task.Run(() => VideoEditor.PreWork()); break;
+                case StageEnum.Primary: Task.Run(() => VideoEditor.DoWork(label)); break;
+                case StageEnum.Secondary: Task.Run(() => VideoEditor.SecondaryWork()); break;
+                default: throw new ArgumentOutOfRangeException(nameof(stage), stage, null);
+            }
+            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         protected void StartedDownload(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
@@ -49,6 +78,8 @@ namespace VideoEditorUi.ViewModels
                 ProgressBarViewModel.UpdateProgressValue(e.Percentage, e.ProcessIndex);
         }
 
+        protected virtual void Initialize() => throw new NotImplementedException();
+
         protected virtual void FinishedDownload(object sender, FinishedEventArgs e)
         {
             CleanUp();
@@ -56,7 +87,7 @@ namespace VideoEditorUi.ViewModels
                 UtilityClass.ClosePlayer(Player);
         }
 
-        protected void ErrorDownload(object sender, ProgressEventArgs e)
+        protected virtual void ErrorDownload(object sender, ProgressEventArgs e)
         {
             CleanUp();
             ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
@@ -69,6 +100,6 @@ namespace VideoEditorUi.ViewModels
             e.Result = args.Result == MessageBoxResult.Yes;
         }
 
-        protected virtual void CleanUp() => throw new NotImplementedException();
+        protected virtual void CleanUp() => Navigator.Instance.CloseChildWindow.Execute(false);
     }
 }
