@@ -1,4 +1,4 @@
-﻿<framework:ViewBaseControl x:Class="VideoEditorUi.Views.SplitterView"
+﻿<framework:ViewBaseControl x:Class="VideoEditorUi.Views.ChapterAdderView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -54,24 +54,16 @@
           <controls:DefaultButton Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
           <controls:DefaultButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
           <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
-        </StackPanel>
-        <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-          <CheckBox Content="{Binding OutputFormatLabel}" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-          <ComboBox IsEditable="False" IsReadOnly="True" Width="80" HorizontalAlignment="Left" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-          <CheckBox Content="{Binding ReEncodeQuestionLabel}" IsChecked="{Binding ReEncodeVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}" />
-          <CheckBox Content="{Binding CombineSectionsLabel}" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+          <controls:DefaultButton Command="{Binding ImportCommand}" Content="{Binding ImportLabel}" FontSize="12"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center">
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
-          <controls:ExtraSmallButton Command="{Binding SplitCommand}" Content="{Binding SplitLabel}"/>
+          <controls:MediumButton Command="{Binding AddChapterCommand}" Content="{Binding AddChapterLabel}"/>
         </StackPanel>
         <StackPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center">
           <controls:LargeTextBox IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
           <controls:MediumButton Content="{Binding JumpToTimeLabel}" Command="{Binding JumpToTimeCommand}"/>
-        </StackPanel>
-        <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2" Margin="-20,0,0,0">
-          <controls:LargeTextBlock  Height="140" Width="220" FontSize="13" TextWrapping="Wrap" Text="{Binding ReEncodeComment}"/>
         </StackPanel>
       </Grid>
     </StackPanel>

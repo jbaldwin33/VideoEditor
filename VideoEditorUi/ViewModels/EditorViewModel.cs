@@ -16,6 +16,7 @@ namespace VideoEditorUi.ViewModels
         protected BaseClass VideoEditor;
         protected ProgressBarViewModel ProgressBarViewModel;
         public VideoPlayerWPF Player;
+        private bool editorInitialized;
 
         public override void OnLoaded()
         {
@@ -25,17 +26,22 @@ namespace VideoEditorUi.ViewModels
 
         public override void OnUnloaded()
         {
-            UtilityClass.ClosePlayer(Player);
+            if (Player != null)
+                UtilityClass.ClosePlayer(Player);
             base.OnUnloaded();
         }
 
         protected void SetupEditor()
         {
+            if (editorInitialized)
+                return;
+
             VideoEditor.StartedDownload += StartedDownload;
             VideoEditor.ProgressDownload += ProgressDownload;
             VideoEditor.FinishedDownload += FinishedDownload;
             VideoEditor.ErrorDownload += ErrorDownload;
             VideoEditor.MessageHandler += LibraryMessageHandler;
+            editorInitialized = true;
         }
 
         protected void SetupProgressBarViewModel(int count)
@@ -100,6 +106,10 @@ namespace VideoEditorUi.ViewModels
             e.Result = args.Result == MessageBoxResult.Yes;
         }
 
-        protected virtual void CleanUp() => Navigator.Instance.CloseChildWindow.Execute(false);
+        protected virtual void CleanUp()
+        {
+            Navigator.Instance.CloseChildWindow.Execute(false);
+            editorInitialized = false;
+        }
     }
 }

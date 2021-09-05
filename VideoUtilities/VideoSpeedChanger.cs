@@ -25,7 +25,6 @@ namespace VideoUtilities
         {
             obj = obj as string;
             var filter = string.Empty;
-            var overwrite = false;
             switch (scaleRotate)
             {
                 case Enums.ScaleRotate.NoSNoR: break;
@@ -39,22 +38,7 @@ namespace VideoUtilities
                 default: throw new ArgumentOutOfRangeException(nameof(scaleRotate), scaleRotate, null);
             }
 
-            if (File.Exists(output))
-            {
-                var args = new MessageEventArgs
-                {
-                    Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
-                };
-                ShowMessage(args);
-                overwrite = args.Result;
-                if (!overwrite)
-                {
-                    var filename = Path.GetFileNameWithoutExtension(output);
-                    output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
-                }
-            }
-
-            return $"{(overwrite ? "-y" : string.Empty)} -i \"{obj}\" -filter_complex \"[0:v]setpts={1 / newSpeed}*PTS{filter}[v];[0:a]atempo={newSpeed}[a]\" -map \"[v]\" -map \"[a]\" \"{output}\"";
+            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{obj}\" -filter_complex \"[0:v]setpts={1 / newSpeed}*PTS{filter}[v];[0:a]atempo={newSpeed}[a]\" -map \"[v]\" -map \"[a]\" \"{output}\"";
         }
 
         protected override TimeSpan? GetDuration(object obj) => null;

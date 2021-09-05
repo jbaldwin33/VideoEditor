@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System.Globalization;
+using System.Threading;
+using System.Windows;
 using MVVMFramework.Views;
 using MVVMFramework;
 using MVVMFramework.Localization;
@@ -17,6 +19,7 @@ namespace VideoEditorUi
             var types = new[]
             {
                 (typeof(SplitterViewModel), new SplitterTranslatable()),
+                (typeof(ChapterAdderViewModel), new ChapterAdderTranslatable()),
                 (typeof(SpeedChangerViewModel), new SpeedChangerTranslatable()),
                 (typeof(ReverseViewModel), new ReverserTranslatable()),
                 (typeof(MergerViewModel), new MergerTranslatable()),

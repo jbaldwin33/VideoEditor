@@ -1,25 +1,23 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using Microsoft.Win32;
+using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Views;
 using VideoUtilities;
-using static VideoUtilities.Enums;
 using static VideoEditorUi.Utilities.UtilityClass;
-using Path = System.IO.Path;
-using MVVMFramework.Localization;
 
 namespace VideoEditorUi.ViewModels
 {
-    public class SplitterViewModel : EditorViewModel
+    public class ChapterAdderViewModel : EditorViewModel
     {
         #region Fields and props
 
@@ -30,8 +28,9 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand stopCommand;
         private RelayCommand startCommand;
         private RelayCommand endCommand;
-        private RelayCommand splitCommand;
+        private RelayCommand addChapterCommand;
         private RelayCommand selectFileCommand;
+        private RelayCommand importCommand;
         private RelayCommand rectCommand;
         private RelayCommand jumpToTimeCommand;
         private Slider slider;
@@ -41,15 +40,9 @@ namespace VideoEditorUi.ViewModels
         private string currentTimeString;
         private bool startTimeSet;
         private bool fileLoaded;
-        private bool reEncodeVideo;
         private string inputPath;
         private ObservableCollection<SectionViewModel> sectionViewModels;
         private ObservableCollection<RectClass> rectCollection;
-        private List<FormatTypeViewModel> formats;
-        private FormatEnum formatType;
-        private bool canCombine;
-        private bool combineVideo;
-        private bool outputDifferentFormat;
         private string textInput;
         private bool timesImported;
 
@@ -58,7 +51,7 @@ namespace VideoEditorUi.ViewModels
             get => slider;
             set => SetProperty(ref slider, value);
         }
-        
+
         public TimeSpan StartTime
         {
             get => startTime;
@@ -98,11 +91,6 @@ namespace VideoEditorUi.ViewModels
             get => fileLoaded;
             set => SetProperty(ref fileLoaded, value);
         }
-        public bool ReEncodeVideo
-        {
-            get => reEncodeVideo;
-            set => SetProperty(ref reEncodeVideo, value);
-        }
 
         public string InputPath
         {
@@ -116,47 +104,12 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref sectionViewModels, value);
         }
 
-
         public ObservableCollection<RectClass> RectCollection
         {
             get => rectCollection;
             set => SetProperty(ref rectCollection, value);
         }
 
-        public FormatEnum FormatType
-        {
-            get => formatType;
-            set => SetProperty(ref formatType, value);
-        }
-
-        public List<FormatTypeViewModel> Formats
-        {
-            get => formats;
-            set => SetProperty(ref formats, value);
-        }
-
-        public bool CanCombine
-        {
-            get => canCombine;
-            set => SetProperty(ref canCombine, value);
-        }
-
-        public bool CombineVideo
-        {
-            get => combineVideo;
-            set => SetProperty(ref combineVideo, value);
-        }
-
-        public bool OutputDifferentFormat
-        {
-            get => outputDifferentFormat;
-            set
-            {
-                SetProperty(ref outputDifferentFormat, value);
-                ReEncodeVideo = value;
-            }
-        }
-        
         public string TextInput
         {
             get => textInput;
@@ -171,7 +124,6 @@ namespace VideoEditorUi.ViewModels
 
         #endregion
 
-
         #region  Labels
 
         public string PlayLabel => new PlayLabelTranslatable();
@@ -181,13 +133,11 @@ namespace VideoEditorUi.ViewModels
         public string StopLabel => new StopLabelTranslatable();
         public string StartLabel => new StartTimeLabelTranslatable();
         public string EndLabel => new EndTimeLabelTranslatable();
-        public string SplitLabel => new SplitLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
-        public string CombineSectionsLabel => new CombineSectionsQuestionTranslatable();
-        public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
-        public string ReEncodeQuestionLabel => new ReEncodeQuestionTranslatable();
-        public string ReEncodeComment => new ReEncodeCommentTranslatable();
+        public string AddChapterLabel => new AddChapterTranslatable();
         public string ConfirmLabel => new ConfirmTranslatable();
+        public string ImportLabel => new ImportLabelTranslatable();
+        public string AddChaptersLabel => new AddChaptersMessageTranslatable();
         public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
         public string TagText => new EnterTitleTranslatable();
 
@@ -202,14 +152,16 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand StopCommand => stopCommand ?? (stopCommand = new RelayCommand(StopCommandExecute, () => FileLoaded));
         public RelayCommand StartCommand => startCommand ?? (startCommand = new RelayCommand(StartCommandExecute, () => !StartTimeSet && FileLoaded && !TimesImported));
         public RelayCommand EndCommand => endCommand ?? (endCommand = new RelayCommand(EndCommandExecute, () => StartTimeSet && !TimesImported));
-        public RelayCommand SplitCommand => splitCommand ?? (splitCommand = new RelayCommand(SplitCommandExecute, () => SectionViewModels?.Count > 0));
+        public RelayCommand AddChapterCommand => addChapterCommand ?? (addChapterCommand = new RelayCommand(AddChapterCommandExecute, () => (SectionViewModels?.Count > 0 || TimesImported)));
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
+        public RelayCommand ImportCommand => importCommand ?? (importCommand = new RelayCommand(ImportCommandExecute, () => FileLoaded));
         public RelayCommand RectCommand => rectCommand ?? (rectCommand = new RelayCommand(RectCommandExecute, () => true));
         public RelayCommand JumpToTimeCommand => jumpToTimeCommand ?? (jumpToTimeCommand = new RelayCommand(JumpToTimeCommandExecute, () => FileLoaded));
 
 
         #endregion
 
+        private string importedFile;
         private static readonly object _lock = new object();
         public Action<TimeSpan> PositionChanged;
 
@@ -217,30 +169,25 @@ namespace VideoEditorUi.ViewModels
         {
             FileLoaded = false;
             TimesImported = false;
-            SectionViewModels.CollectionChanged -= Times_CollectionChanged;
             base.OnUnloaded();
         }
 
         protected override void Initialize()
         {
-            CanCombine = false;
             StartTimeSet = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
             PositionChanged = time => CurrentTimeString = time.ToString("hh':'mm':'ss':'fff");
             SectionViewModels = new ObservableCollection<SectionViewModel>();
             RectCollection = new ObservableCollection<RectClass>();
-            Formats = FormatTypeViewModel.CreateViewModels();
-            FormatType = FormatEnum.avi;
-            SectionViewModels.CollectionChanged += Times_CollectionChanged;
 
             BindingOperations.EnableCollectionSynchronization(RectCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(SectionViewModels, _lock);
         }
 
-        private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = SectionViewModels.Count > 1;
-
         private void PlayCommandExecute() => Player.Play();
+        private void PauseCommandExecute() => Player.Pause();
+        private void StopCommandExecute() => Player.Stop();
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
@@ -261,14 +208,19 @@ namespace VideoEditorUi.ViewModels
             SetPlayerPosition(Player, slider.Value);
         }
 
-        private void PauseCommandExecute() => Player.Pause();
-
-        private void StopCommandExecute() => Player.Stop();
-        private void SplitCommandExecute()
+        private void AddChapterCommandExecute()
         {
-            VideoEditor = new VideoSplitter(SectionViewModels.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
-            VideoEditor.FirstWorkFinished += Splitter_SplitFinished;
-            Execute(true, StageEnum.Primary, new SplittingLabelTranslatable(), SectionViewModels.Count);
+            if (SectionViewModels.Any(t => string.IsNullOrEmpty(t.Title)))
+            {
+                ShowMessage(new MessageBoxEventArgs(new InsufficientTitlesTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                return;
+            }
+
+            VideoEditor = TimesImported
+                ? new VideoChapterAdder(InputPath, importChapterFile: importedFile)
+                : new VideoChapterAdder(InputPath, SectionViewModels.Select(t => new Tuple<TimeSpan, TimeSpan, string>(t.StartTime, t.EndTime, t.Title)).ToList());
+            VideoEditor.FirstWorkFinished += Adder_GetMetadataFinished;
+            Execute(true, StageEnum.Primary, new GettingMetadataMessageTranslatable());
         }
 
         private void StartCommandExecute()
@@ -276,7 +228,6 @@ namespace VideoEditorUi.ViewModels
             StartTimeSet = true;
             StartTime = GetPlayerPosition(Player);
         }
-
         private void EndCommandExecute()
         {
             if (GetPlayerPosition(Player) <= StartTime)
@@ -288,6 +239,9 @@ namespace VideoEditorUi.ViewModels
             }
             EndTime = GetPlayerPosition(Player);
             AddRectangle();
+
+            new ChapterTitleDialogView(this, new AddChapterTitleTranslatable()) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
+            TextInput = TextInput.Replace(',', '_').Replace(':', '_');
             SectionViewModels.Add(new SectionViewModel(StartTime, EndTime, TextInput));
             TextInput = string.Empty;
             StartTimeSet = false;
@@ -310,14 +264,36 @@ namespace VideoEditorUi.ViewModels
             Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
             ResetAll();
+
+            if (!canAddChapters())
+                ShowMessage(new MessageBoxEventArgs($"Chapter markers are only compatible with the following formats: {string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))}", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));//todo
+
+            bool canAddChapters() => FormatTypeViewModel.ChapterMarkerCompatibleFormats.Contains((Enums.FormatEnum)Enum.Parse(typeof(Enums.FormatEnum), Path.GetExtension(openFileDialog.FileName).Substring(1)));
         }
-        
+
+        private void ImportCommandExecute()
+        {
+            ShowMessage(new MessageBoxEventArgs($"{new ChapterFileFormatMessageTranslatable()}\nStartTime,Title\n00:00:00,Chapter 1\n00:30:14,Chapter 2", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+            var openFileDialog = new OpenFileDialog
+            {
+                Filter = "Text Files|*.txt",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+            };
+
+            if (openFileDialog.ShowDialog() == false)
+                return;
+
+            ResetAll();
+            importedFile = openFileDialog.FileName;
+            TimesImported = true;
+        }
+
         private void RectCommandExecute(object obj)
         {
             var rect = obj as RectClass;
             var args = new MessageBoxEventArgs(new DeleteSectionConfirmTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
-            if (args.Result != MessageBoxResult.Yes) 
+            if (args.Result != MessageBoxResult.Yes)
                 return;
 
             var index = RectCollection.IndexOf(rect);
@@ -352,15 +328,16 @@ namespace VideoEditorUi.ViewModels
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
             TimesImported = false;
+            importedFile = string.Empty;
             ClearAllRectangles();
         }
-        
+
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
             base.FinishedDownload(sender, e);
             var message = e.Cancelled
                 ? $"{new OperationCancelledTranslatable()} {e.Message}"
-                : new VideoSuccessfullySplitTranslatable();
+                : new ChaptersSuccessfullyAddedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
@@ -370,62 +347,17 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs($"{new ChapterAdderTryAgainTranslatable(Path.GetDirectoryName(InputPath))}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
-        private void Splitter_SplitFinished(object sender, EventArgs e)
+        private void Adder_GetMetadataFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             Execute(false, StageEnum.Secondary);
         }
-        
+
         protected override void CleanUp()
         {
-            CombineVideo = false;
-            OutputDifferentFormat = false;
-            ReEncodeVideo = false;
             FileLoaded = false;
-            FormatType = FormatEnum.avi;
             ResetAll();
             base.CleanUp();
-        }
-    }
-
-    public class RectClass
-    {
-        public Thickness Margin { get; set; }
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public HorizontalAlignment HorizontalAlignment { get; set; }
-        public SolidColorBrush Fill { get; set; }
-        public RelayCommand RectCommand { get; set; }
-    }
-
-    public class SectionViewModel : ViewModel
-    {
-        private TimeSpan startTime;
-        private TimeSpan endTime;
-        private string title;
-
-        public TimeSpan StartTime
-        {
-            get => startTime;
-            set => SetProperty(ref startTime, value);
-        }
-
-        public TimeSpan EndTime
-        {
-            get => endTime;
-            set => SetProperty(ref endTime, value);
-        }
-        public string Title
-        {
-            get => title;
-            set => SetProperty(ref title, value);
-        }
-
-        public SectionViewModel(TimeSpan start, TimeSpan end, string title)
-        {
-            StartTime = start;
-            EndTime = end;
-            Title = title;
         }
     }
 }

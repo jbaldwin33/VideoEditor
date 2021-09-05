@@ -60,22 +60,7 @@ namespace VideoUtilities
             {
                 OnDownloadStarted(new DownloadStartedEventArgs { Label = new SettingMetadataMessageTranslatable() });
                 var outputPath = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_withchapters{extension}");
-                var overwrite = false;
-                if (File.Exists(outputPath))
-                {
-                    var args2 = new MessageEventArgs
-                    {
-                        Message = $"The file {Path.GetFileName(outputPath)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"//todo
-                    };
-                    ShowMessage(args2);
-                    overwrite = args2.Result;
-                    if (!overwrite)
-                    {
-                        var filename = Path.GetFileNameWithoutExtension(outputPath);
-                        outputPath = $"{Path.GetDirectoryName(outputPath)}\\{filename}[0]{Path.GetExtension(outputPath)}";
-                    }
-                }
-                var args = $"{(overwrite ? "-y" : string.Empty)} -i \"{fullInputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\"";
+                var args = $"{(CheckOverwrite(ref outputPath) ? "-y" : string.Empty)} -i \"{fullInputPath}\" -i \"{metadataFile}\" -map_metadata 1 -codec copy \"{outputPath}\"";
                 AddProcess(args, outputPath, null, true);
             }
             catch (Exception ex)

@@ -40,22 +40,7 @@ namespace VideoUtilities
         protected override string CreateArguments(int index, ref string output, object obj)
         {
             var (startTime, endTime, _) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
-            var overwrite = false;
-            if (File.Exists(output))
-            {
-                var args = new MessageEventArgs
-                {
-                    Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
-                };
-                ShowMessage(args);
-                overwrite = args.Result;
-                if (!overwrite)
-                {
-                    var filename = Path.GetFileNameWithoutExtension(output);
-                    output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
-                }
-            }
-            return $"{(overwrite ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {startTime.TotalSeconds} -to {endTime.TotalSeconds} \"{output}\"";
+            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {startTime.TotalSeconds} -to {endTime.TotalSeconds} \"{output}\"";
         }
 
         protected override string CreateOutput(int index, object obj) => $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{index + 1}{(outputDifferentFormat ? outputFormat : extension)}";

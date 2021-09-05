@@ -296,6 +296,25 @@ namespace VideoUtilities
             }
         }
 
+        protected bool CheckOverwrite(ref string output)
+        {
+            if (!File.Exists(output)) 
+                return false;
+
+            var args = new MessageEventArgs
+            {
+                Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"//todo
+            };
+            ShowMessage(args);
+            if (args.Result) 
+                return true;
+
+            var filename = Path.GetFileNameWithoutExtension(output);
+            output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
+
+            return args.Result;
+        }
+
         protected void ErrorReceivedHandler(object sender, DataReceivedEventArgs e)
         {
             if (!string.IsNullOrEmpty(e.Data))

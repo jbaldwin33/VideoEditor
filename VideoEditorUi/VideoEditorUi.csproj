@@ -99,6 +99,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utilities\RectangleExtensions.cs" />
+    <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
     <Compile Include="ViewModels\DownloaderViewModel.cs" />
     <Compile Include="ViewModels\SizeReducerViewModel.cs" />
     <Compile Include="ViewModels\MergerViewModel.cs" />
@@ -129,6 +130,9 @@
     </Compile>
     <Compile Include="Views\ProgressBarView.xaml.cs">
       <DependentUpon>ProgressBarView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ChapterAdderView.xaml.cs">
+      <DependentUpon>ChapterAdderView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SplitterView.xaml.cs">
       <DependentUpon>SplitterView.xaml</DependentUpon>
@@ -164,6 +168,10 @@
     <Page Include="Views\ProgressBarView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\ChapterAdderView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\SplitterView.xaml">
       <Generator>MSBuild:Compile</Generator>

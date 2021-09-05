@@ -12,6 +12,9 @@
       <DataTemplate DataType="{x:Type viewModels:SplitterViewModel}">
         <views:SplitterView/>
       </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:ChapterAdderViewModel}">
+        <views:ChapterAdderView/>
+      </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:SpeedChangerViewModel}">
         <views:SpeedChangerView/>
       </DataTemplate>

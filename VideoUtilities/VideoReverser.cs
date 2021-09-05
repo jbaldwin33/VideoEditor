@@ -105,22 +105,7 @@ namespace VideoUtilities
 
                 var output = $"{sourceFolder}\\{filenameWithoutExtension}_reversed{fileExtension}";
                 var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
-                var overwrite = false;
-                if (File.Exists(output))
-                {
-                    var args2 = new MessageEventArgs
-                    {
-                        Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
-                    };
-                    ShowMessage(args2);
-                    overwrite = args2.Result;
-                    if (!overwrite)
-                    {
-                        var filename = Path.GetFileNameWithoutExtension(output);
-                        output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
-                    }
-                }
-                var args = $"{(overwrite ? "-y" : string.Empty)} -safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"";
+                var args = $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"";
                 AddProcess(args, output, duration, true);
             }
             catch (Exception ex)

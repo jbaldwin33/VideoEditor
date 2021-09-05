@@ -43,24 +43,7 @@ namespace VideoUtilities
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
-            var overwrite = false;
-            if (File.Exists(output))
-            {
-                var args = new MessageEventArgs
-                {
-                    Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"
-                };
-                ShowMessage(args);
-                overwrite = args.Result;
-            }
-            var sb = new StringBuilder();
-            if (overwrite)
-                sb.Append("-y ");
-            else
-            {
-                var filename = Path.GetFileNameWithoutExtension(output);
-                output = $"{Path.GetDirectoryName(output)}\\{filename}[0]{Path.GetExtension(output)}";
-            }
+            var sb = new StringBuilder($"{(CheckOverwrite(ref output) ? "-y" : string.Empty)}");
             var ext = files.First().extension;
             if (files.All(f => f.extension == ext))
                 sb.Append($"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
