@@ -1,10 +1,9 @@
-﻿using System.Globalization;
-using System.Threading;
+﻿using System;
 using System.Windows;
 using MVVMFramework.Views;
-using MVVMFramework;
 using MVVMFramework.Localization;
 using VideoEditorUi.ViewModels;
+using static VideoEditorUi.Utilities.GlobalExceptionHandler;
 
 namespace VideoEditorUi
 {
@@ -15,6 +14,9 @@ namespace VideoEditorUi
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            Dispatcher.UnhandledException += DispatcherOnUnhandledException;
+            Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
             //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ja-JP");
             var types = new[]
             {
@@ -31,5 +33,4 @@ namespace VideoEditorUi
             base.OnStartup(e);
         }
     }
-
 }

@@ -240,7 +240,7 @@ namespace VideoEditorUi.ViewModels
             EndTime = GetPlayerPosition(Player);
             AddRectangle();
 
-            new ChapterTitleDialogView(this, new AddChapterTitleTranslatable()) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
+            new ChapterTitleDialogView(this) { Title = new AddChapterTitleTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
             TextInput = TextInput.Replace(',', '_').Replace(':', '_');
             SectionViewModels.Add(new SectionViewModel(StartTime, EndTime, TextInput));
             TextInput = string.Empty;

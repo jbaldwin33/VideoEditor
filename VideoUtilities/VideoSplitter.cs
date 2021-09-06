@@ -20,7 +20,7 @@ namespace VideoUtilities
         private readonly string fullInputPath;
         private readonly bool doReEncode;
         private string tempFile;
-        private object _lock = new object();
+        private readonly object _lock = new object();
 
         public VideoSplitter(List<(TimeSpan, TimeSpan, string)> times, string fullPath, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
         {

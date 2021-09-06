@@ -129,13 +129,18 @@ namespace VideoEditorUi.ViewModels
 
         private void AddUrlCommandExecute()
         {
-            new ChapterTitleDialogView(this, new AddUrlLabelTranslatable()) { WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
+            new ChapterTitleDialogView(this) { Title = new AddUrlLabelTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
             UrlCollection.Add(TextInput);
             TextInput = string.Empty;
         }
 
         private void DownloadCommandExecute()
         {
+            if (string.IsNullOrEmpty(OutputPath))
+            {
+                ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+                return;
+            }
             VideoEditor = new VideoDownloader(UrlCollection.Select(f => f).ToList(), OutputPath, $"{FormatType}", IsPlaylist);
             Execute(true, StageEnum.Primary, new DownloadingLabelTranslatable(), UrlCollection.Count);
         }

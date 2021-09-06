@@ -190,6 +190,11 @@ namespace VideoEditorUi.ViewModels
 
         private void MergeCommandExecute()
         {
+            if (string.IsNullOrEmpty(OutputPath))
+            {
+                ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+                return;
+            }
             var outExt = FileViewModels.Any(f => f.extension.Contains("mp4"))
                 ? ".mp4"
                 : MultipleExtensions

@@ -142,12 +142,22 @@ namespace VideoEditorUi.ViewModels
 
         private void ReduceSizeCommandExecute()
         {
+            if (string.IsNullOrEmpty(OutputPath))
+            {
+                ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+                return;
+            }
             VideoEditor = new VideoSizeReducer(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), OutputPath);
             Execute(true, StageEnum.Primary, new ReducingSizeLabelTranslatable(), FileCollection.Count);
         }
 
         private void ConvertCommandExecute()
         {
+            if (string.IsNullOrEmpty(OutputPath))
+            {
+                ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+                return;
+            }
             VideoEditor = new VideoConverter(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), $".{FormatType}");
             Execute(true, StageEnum.Primary, new ConvertingLabelTranslatable(), FileCollection.Count);
         }

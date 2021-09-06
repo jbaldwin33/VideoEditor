@@ -43,7 +43,7 @@ namespace VideoUtilities
                         WindowStyle = ProcessWindowStyle.Hidden,
                         FileName = Path.Combine(GetBinaryPath(), "ffmpeg.exe"),
                         CreateNoWindow = true,
-                        Arguments = $"-hide_banner -err_detect ignore_err -i {fullInputPath} -r 24 -codec:v libx264 -crf 18 -vsync 1  -codec:a aac  -ac 2  -ar 48k  -f segment   -preset fast  -segment_format mpegts  -segment_time 10 -force_key_frames  \"expr: gte(t, n_forced * 10)\" {output}"
+                        Arguments = $"-hide_banner -err_detect ignore_err -i \"{fullInputPath}\" -r 24 -codec:v libx264 -crf 18 -vsync 1  -codec:a aac  -ac 2  -ar 48k  -f segment   -preset fast  -segment_format mpegts  -segment_time 10 -force_key_frames  \"expr: gte(t, n_forced * 10)\" \"{output}\""
                         //Arguments = $"-y -i \"{fullInputPath}\" -map 0 -segment_time 7 -reset_timestamps 1 -f segment \"{output}\""
                     }
                 };
