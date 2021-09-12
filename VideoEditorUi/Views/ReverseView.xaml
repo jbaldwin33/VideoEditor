@@ -13,7 +13,7 @@
       <RowDefinition Height="1.5*"/>
       <RowDefinition Height="1.2*"/>
     </Grid.RowDefinitions>
-    <StackPanel>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
       <cSVideoPlayer:VideoPlayerWPF Grid.Row="0" x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" Height="250"/>
     </StackPanel>
     <controls:DefaultTextBlock Grid.Row="0" VerticalAlignment="Center" FontSize="20" Text="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
