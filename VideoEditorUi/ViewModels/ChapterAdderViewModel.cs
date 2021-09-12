@@ -39,7 +39,6 @@ namespace VideoEditorUi.ViewModels
         private string startTimeString;
         private string currentTimeString;
         private bool startTimeSet;
-        private bool fileLoaded;
         private string inputPath;
         private ObservableCollection<SectionViewModel> sectionViewModels;
         private ObservableCollection<RectClass> rectCollection;
@@ -84,12 +83,6 @@ namespace VideoEditorUi.ViewModels
         {
             get => startTimeSet;
             set => SetProperty(ref startTimeSet, value);
-        }
-
-        public bool FileLoaded
-        {
-            get => fileLoaded;
-            set => SetProperty(ref fileLoaded, value);
         }
 
         public string InputPath
@@ -140,6 +133,7 @@ namespace VideoEditorUi.ViewModels
         public string AddChaptersLabel => new AddChaptersMessageTranslatable();
         public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
         public string TagText => new EnterTitleTranslatable();
+        public string DragFileLabel => new DragFileTranslatable();
 
         #endregion
 
@@ -185,9 +179,6 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(SectionViewModels, _lock);
         }
 
-        private void PlayCommandExecute() => Player.Play();
-        private void PauseCommandExecute() => Player.Pause();
-        private void StopCommandExecute() => Player.Stop();
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
@@ -266,7 +257,7 @@ namespace VideoEditorUi.ViewModels
             ResetAll();
 
             if (!canAddChapters())
-                ShowMessage(new MessageBoxEventArgs($"Chapter markers are only compatible with the following formats: {string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))}", MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));//todo
+                ShowMessage(new MessageBoxEventArgs(new ChapterMarkerCompatibleFormatsTranslatable(string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
 
             bool canAddChapters() => FormatTypeViewModel.ChapterMarkerCompatibleFormats.Contains((Enums.FormatEnum)Enum.Parse(typeof(Enums.FormatEnum), Path.GetExtension(openFileDialog.FileName).Substring(1)));
         }

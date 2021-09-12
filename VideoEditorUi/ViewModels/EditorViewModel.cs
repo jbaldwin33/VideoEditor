@@ -13,14 +13,24 @@ namespace VideoEditorUi.ViewModels
     public abstract class EditorViewModel : ViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
+
+        private bool fileLoaded;
+        private bool editorInitialized;
         protected BaseClass VideoEditor;
         protected ProgressBarViewModel ProgressBarViewModel;
+        public Action<string[]> DragFiles;
         public VideoPlayerWPF Player;
-        private bool editorInitialized;
+
+        public bool FileLoaded
+        {
+            get => fileLoaded;
+            set => SetProperty(ref fileLoaded, value);
+        }
 
         public override void OnLoaded()
         {
             Initialize();
+            DragFiles = DragFilesCallback;
             base.OnLoaded();
         }
 
@@ -76,6 +86,10 @@ namespace VideoEditorUi.ViewModels
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
+        protected void PlayCommandExecute() => Player.Play();
+        protected void PauseCommandExecute() => Player.Pause();
+        protected void StopCommandExecute() => Player.Stop();
+
         protected void StartedDownload(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
 
         protected void ProgressDownload(object sender, ProgressEventArgs e)
@@ -85,6 +99,7 @@ namespace VideoEditorUi.ViewModels
         }
 
         protected virtual void Initialize() => throw new NotImplementedException();
+        protected virtual void DragFilesCallback(string[] files) => throw new NotImplementedException();
 
         protected virtual void FinishedDownload(object sender, FinishedEventArgs e)
         {

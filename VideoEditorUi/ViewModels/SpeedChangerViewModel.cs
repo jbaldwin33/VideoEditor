@@ -18,7 +18,6 @@ namespace VideoEditorUi.ViewModels
         private double currentSpeed;
         private string speedLabel;
         private string inputPath;
-        private bool fileLoaded;
         private int flipScale;
         private int rotateNumber;
         private RelayCommand flipCommand;
@@ -54,12 +53,6 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref inputPath, value);
         }
 
-        public bool FileLoaded
-        {
-            get => fileLoaded;
-            set => SetProperty(ref fileLoaded, value);
-        }
-
         public int FlipScale
         {
             get => flipScale;
@@ -90,10 +83,10 @@ namespace VideoEditorUi.ViewModels
 
         public string FormatLabel => new FormatLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
-        public string NoFileLabel => new NoFileSelectedTranslatable();
         public string FlipLabel => new FlipLabelTranslatable();
         public string RotateLabel => new RotateLabelTranslatable();
         public string VideoSpeedLabel => new VideoSpeedLabelTranslatable();
+        public string DragFileLabel => new DragFileTranslatable();
 
         #endregion
 

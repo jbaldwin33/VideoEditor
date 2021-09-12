@@ -10,12 +10,15 @@
         mc:Ignorable="d"
         d:DesignHeight="480" d:DesignWidth="800">
 
-  <Grid Margin="10">
+  <Grid Margin="10" AllowDrop="True" Drop="Grid_OnDrop" Background="{StaticResource SharedBackgroundBrush}" DragEnter="DropBorder_OnDragEnter" DragLeave="DropBorder_OnPreviewDragLeave">
     <Grid.RowDefinitions>
       <RowDefinition Height="1.5*" />
       <RowDefinition Height="1.2*" />
     </Grid.RowDefinitions>
-    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center"/>
+    <controls:DefaultTextBlock VerticalAlignment="Center" FontSize="20" Text="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+      <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Height="250"/>
+    </StackPanel>
     <StackPanel Orientation="Vertical" Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>

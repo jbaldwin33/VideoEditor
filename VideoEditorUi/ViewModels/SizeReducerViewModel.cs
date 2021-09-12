@@ -106,8 +106,6 @@ namespace VideoEditorUi.ViewModels
 
         private static readonly object _lock = new object();
 
-        public Action<string[]> DragFiles;
-
         public override void OnUnloaded()
         {
             FileCollection.Clear();
@@ -120,11 +118,11 @@ namespace VideoEditorUi.ViewModels
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             FileCollection = new ObservableCollection<string>();
-
-            DragFiles = files => files.ToList().ForEach(FileCollection.Add);
             BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
         }
-        
+
+        protected override void DragFilesCallback(string[] files) => files.ToList().ForEach(FileCollection.Add);
+
         private void SelectFileCommandExecute()
         {
             var openFileDialog = new OpenFileDialog

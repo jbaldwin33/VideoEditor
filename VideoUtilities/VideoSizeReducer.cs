@@ -19,13 +19,13 @@ namespace VideoUtilities
 
         protected override string CreateOutput(int index, object obj)
         {
-            var(_, filename, extension) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
+            var(_, filename, extension) = (ValueTuple<string, string, string>)obj;
             return $"{outputPath}\\{filename}_reduced{extension}";
         }
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
-            var (folder, filename, extension) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
+            var (folder, filename, extension) = (ValueTuple<string, string, string>)obj;
             return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" -vcodec libx264 -crf 28 \"{output}\"";
         }
 

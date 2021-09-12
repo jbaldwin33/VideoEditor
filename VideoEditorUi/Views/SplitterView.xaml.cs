@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CSVideoPlayer;
+using MVVMFramework.Controls;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
@@ -45,7 +46,7 @@ namespace VideoEditorUi.Views
             thumb.MouseEnter -= Thumb_MouseEnter;
             base.ViewBaseControl_Unloaded(sender, e);
         }
-        
+
         private void timer_Tick(object sender, EventArgs e)
         {
             if (!isDragging)
@@ -79,6 +80,18 @@ namespace VideoEditorUi.Views
                 SetPlayerPosition(player, slider.Value);
                 viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
             }
+        }
+
+        private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);
+
+        private void DropBorder_OnDragEnter(object sender, DragEventArgs e)
+        {
+            DragDropHelper.SetIsDragOver((DependencyObject)sender, true);
+        }
+
+        private void DropBorder_OnPreviewDragLeave(object sender, DragEventArgs e)
+        {
+            DragDropHelper.SetIsDragOver((DependencyObject)sender, false);
         }
     }
 }

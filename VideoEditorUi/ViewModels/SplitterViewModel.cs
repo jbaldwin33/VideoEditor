@@ -40,7 +40,6 @@ namespace VideoEditorUi.ViewModels
         private string startTimeString;
         private string currentTimeString;
         private bool startTimeSet;
-        private bool fileLoaded;
         private bool reEncodeVideo;
         private string inputPath;
         private ObservableCollection<SectionViewModel> sectionViewModels;
@@ -93,11 +92,6 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref startTimeSet, value);
         }
 
-        public bool FileLoaded
-        {
-            get => fileLoaded;
-            set => SetProperty(ref fileLoaded, value);
-        }
         public bool ReEncodeVideo
         {
             get => reEncodeVideo;
@@ -190,6 +184,7 @@ namespace VideoEditorUi.ViewModels
         public string ConfirmLabel => new ConfirmTranslatable();
         public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
         public string TagText => new EnterTitleTranslatable();
+        public string DragFileLabel => new DragFileTranslatable();
 
         #endregion
 
@@ -238,9 +233,17 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(SectionViewModels, _lock);
         }
 
+        protected override void DragFilesCallback(string[] files)
+        {
+            InputPath = files[0];
+            GetDetails(Player, files[0]);
+            Player.Open(new Uri(files[0]));
+            FileLoaded = true;
+            ResetAll();
+        }
+
         private void Times_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e) => CanCombine = SectionViewModels.Count > 1;
 
-        private void PlayCommandExecute() => Player.Play();
         private void SeekBackCommandExecute()
         {
             slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
@@ -261,9 +264,6 @@ namespace VideoEditorUi.ViewModels
             SetPlayerPosition(Player, slider.Value);
         }
 
-        private void PauseCommandExecute() => Player.Pause();
-
-        private void StopCommandExecute() => Player.Stop();
         private void SplitCommandExecute()
         {
             VideoEditor = new VideoSplitter(SectionViewModels.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
@@ -340,19 +340,14 @@ namespace VideoEditorUi.ViewModels
             double mapToRange(double toConvert, double maxRange1, double maxRange2) => toConvert * (maxRange1 / maxRange2);
         }
 
-        private void ClearAllRectangles()
-        {
-            RectCollection.Clear();
-            SectionViewModels.Clear();
-        }
-
         private void ResetAll()
         {
             StartTimeSet = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
             CurrentTimeString = "00:00:00:000";
             TimesImported = false;
-            ClearAllRectangles();
+            RectCollection.Clear();
+            SectionViewModels.Clear();
         }
         
         protected override void FinishedDownload(object sender, FinishedEventArgs e)

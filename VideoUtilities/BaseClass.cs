@@ -263,7 +263,7 @@ namespace VideoUtilities
             if (ProcessStuff[index].YoutubeProperties.Downloaded > ProcessStuff[index].YoutubeProperties.ToDownload)
             {
                 Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = "This playlist is empty. No videos were downloaded" });
+                OnDownloadError(new ProgressEventArgs { Error = new PlaylistEmptyTranslatable() });
                 return;
             }
 
@@ -283,15 +283,6 @@ namespace VideoUtilities
             }
             youtubePercentage = perc;
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = perc, Data = outLine.Data });
-
-            // is it finished?
-            if (perc < 100)
-                return;
-
-            if (perc == 100 && !ProcessStuff[index].Finished && ProcessStuff[index].YoutubeProperties.ToDownload == ProcessStuff[index].YoutubeProperties.Downloaded)
-            {
-                OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
-            }
         }
 
         protected bool CheckOverwrite(ref string output)
@@ -301,7 +292,7 @@ namespace VideoUtilities
 
             var args = new MessageEventArgs
             {
-                Message = $"The file {Path.GetFileName(output)} already exists. Overwrite? (Select \"No\" to output to a different file name.)"//todo
+                Message = new FileAlreadyExistsTranslatable(Path.GetFileName(output))
             };
             ShowMessage(args);
             if (args.Result) 

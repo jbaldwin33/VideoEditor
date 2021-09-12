@@ -9,8 +9,6 @@ namespace VideoUtilities
 {
     public class VideoSplitter : BaseClass
     {
-        public event EventHandler SplitFinished;
-
         private readonly string sourceFolder;
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
@@ -59,7 +57,7 @@ namespace VideoUtilities
                 tempFile = Path.Combine(sourceFolder, $"temp_section_filenames{Guid.NewGuid()}.txt");
                 File.WriteAllLines(tempFile, ProcessStuff.Select(x => $"file '{x.Output}'"));
                 var combinedFile = $"{sourceFolder}\\{sourceFileWithoutExtension}_combined{(outputDifferentFormat ? outputFormat : extension)}";
-                var args = $"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{combinedFile}\"";
+                var args = $"{(CheckOverwrite(ref combinedFile) ? "-y" : string.Empty)} -safe 0 -f concat -i \"{tempFile}\" -c copy \"{combinedFile}\"";
                 var duration = ProcessStuff.Aggregate(TimeSpan.Zero, (current, processClass) => current + processClass.Duration.Value);
                 AddProcess(args, combinedFile, duration, true);
             }
@@ -90,7 +88,7 @@ namespace VideoUtilities
         protected override void OnFirstWorkFinished(EventArgs e)
         {
             if (combineVideo)
-                SplitFinished?.Invoke(this, e);
+                base.OnFirstWorkFinished(e);
             else
                 OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
         }

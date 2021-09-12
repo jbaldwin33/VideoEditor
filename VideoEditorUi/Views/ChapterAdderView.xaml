@@ -10,11 +10,12 @@
         mc:Ignorable="d"
         d:DesignHeight="480" d:DesignWidth="800">
 
-  <Grid Margin="10">
+  <Grid Margin="10" AllowDrop="True" Drop="Grid_OnDrop" Background="Transparent">
     <Grid.RowDefinitions>
       <RowDefinition Height="1.5*" />
       <RowDefinition Height="1.2*" />
     </Grid.RowDefinitions>
+    <controls:DefaultTextBlock VerticalAlignment="Center" FontSize="20" Text="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
     <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center"/>
     <StackPanel Orientation="Vertical" Grid.Row="1">
       <Grid>
@@ -24,13 +25,8 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="*"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Slider Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10">
+        <Slider Grid.Row="0" HorizontalAlignment="Left" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+        <Grid Grid.Row="0" HorizontalAlignment="Left" Margin="0,0,0,10">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
           </Grid.RowDefinitions>
@@ -47,7 +43,7 @@
             </ItemsControl.ItemTemplate>
           </ItemsControl>
         </Grid>
-        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
           <controls:DefaultButton Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}"/>
           <controls:DefaultButton Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
           <controls:DefaultButton Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}"/>
@@ -56,12 +52,12 @@
           <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
           <controls:DefaultButton Command="{Binding ImportCommand}" Content="{Binding ImportLabel}" FontSize="12"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
           <controls:MediumButton Command="{Binding AddChapterCommand}" Content="{Binding AddChapterLabel}"/>
         </StackPanel>
-        <StackPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="3" HorizontalAlignment="Center">
           <controls:LargeTextBox IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
           <controls:MediumButton Content="{Binding JumpToTimeLabel}" Command="{Binding JumpToTimeCommand}"/>
         </StackPanel>

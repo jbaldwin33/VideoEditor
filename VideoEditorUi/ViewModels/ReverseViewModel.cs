@@ -13,7 +13,6 @@ namespace VideoEditorUi.ViewModels
         #region Fields and props
 
         private string inputPath;
-        private bool fileLoaded;
         private RelayCommand selectFileCommand;
         private RelayCommand reverseCommand;
 
@@ -21,12 +20,6 @@ namespace VideoEditorUi.ViewModels
         {
             get => inputPath;
             set => SetProperty(ref inputPath, value);
-        }
-
-        public bool FileLoaded
-        {
-            get => fileLoaded;
-            set => SetProperty(ref fileLoaded, value);
         }
 
         #endregion
@@ -42,7 +35,7 @@ namespace VideoEditorUi.ViewModels
 
         public string ReverseLabel => new ReverseLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
-        public string NoFileLabel => new NoFileSelectedTranslatable();
+        public string DragFileLabel => new DragFileTranslatable();
 
         #endregion
 

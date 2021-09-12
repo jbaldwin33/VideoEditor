@@ -125,7 +125,6 @@ namespace VideoEditorUi.ViewModels
         #endregion
 
         private static readonly object _lock = new object();
-        public Action<string[]> DragFiles;
 
         public override void OnUnloaded()
         {
@@ -142,17 +141,16 @@ namespace VideoEditorUi.ViewModels
             Formats = FormatTypeViewModel.CreateViewModels();
             FileCollection.CollectionChanged += FileCollection_CollectionChanged;
             FormatType = FormatEnum.avi;
-
-            DragFiles = files =>
-            {
-                FileViewModels.AddRange(files.Select(CreateFileViewModel));
-                var safeFileNames = files.Select(Path.GetFileName);
-                foreach (var file in safeFileNames)
-                    FileCollection.Add(file);
-            };
-
             BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
             BindingOperations.EnableCollectionSynchronization(FileViewModels, _lock);
+        }
+
+        protected override void DragFilesCallback(string[] files)
+        {
+            FileViewModels.AddRange(files.Select(CreateFileViewModel));
+            var safeFileNames = files.Select(Path.GetFileName);
+            foreach (var file in safeFileNames)
+                FileCollection.Add(file);
         }
 
         private void FileCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

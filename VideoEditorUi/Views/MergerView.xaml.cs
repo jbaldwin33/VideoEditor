@@ -19,16 +19,6 @@ namespace VideoEditorUi.Views
             viewModel = Navigator.Instance.CurrentViewModel as MergerViewModel;
         }
 
-        private void ImagePanel_Drop(object sender, DragEventArgs e)
-        {
-            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) 
-                return;
-
-            var files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files == null || !files.Any(f => FormatTypeViewModel.IsVideoFile($".{Path.GetExtension(f)}")))
-                MessageBox.Show("cant add non video");//todo
-            else
-                viewModel.DragFiles?.Invoke(files);
-        }
+        private void ImagePanel_Drop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);
     }
 }

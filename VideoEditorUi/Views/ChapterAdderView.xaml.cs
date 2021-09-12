@@ -45,7 +45,7 @@ namespace VideoEditorUi.Views
             thumb.MouseEnter -= Thumb_MouseEnter;
             base.ViewBaseControl_Unloaded(sender, e);
         }
-        
+
         private void timer_Tick(object sender, EventArgs e)
         {
             if (!isDragging)
@@ -80,5 +80,7 @@ namespace VideoEditorUi.Views
                 viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
             }
         }
+
+        private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);
     }
 }
