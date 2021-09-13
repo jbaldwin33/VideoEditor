@@ -16,6 +16,7 @@ using static VideoUtilities.Enums;
 using static VideoEditorUi.Utilities.UtilityClass;
 using Path = System.IO.Path;
 using MVVMFramework.Localization;
+using System.Windows.Input;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -239,6 +240,7 @@ namespace VideoEditorUi.ViewModels
             GetDetails(Player, files[0]);
             Player.Open(new Uri(files[0]));
             FileLoaded = true;
+            CommandManager.InvalidateRequerySuggested();
             ResetAll();
         }
 

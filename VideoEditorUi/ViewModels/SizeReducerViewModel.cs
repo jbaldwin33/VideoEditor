@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
@@ -48,7 +49,7 @@ namespace VideoEditorUi.ViewModels
             get => outputPath;
             set => SetProperty(ref outputPath, value);
         }
-        
+
         public ObservableCollection<string> FileCollection
         {
             get => fileCollection;
@@ -121,7 +122,11 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(FileCollection, _lock);
         }
 
-        protected override void DragFilesCallback(string[] files) => files.ToList().ForEach(FileCollection.Add);
+        protected override void DragFilesCallback(string[] files)
+        {
+            files.ToList().ForEach(FileCollection.Add);
+            CommandManager.InvalidateRequerySuggested();
+        }
 
         private void SelectFileCommandExecute()
         {

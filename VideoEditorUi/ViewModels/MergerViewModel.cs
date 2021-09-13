@@ -11,6 +11,7 @@ using VideoUtilities;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using static VideoUtilities.Enums;
+using System.Windows.Input;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -151,6 +152,7 @@ namespace VideoEditorUi.ViewModels
             var safeFileNames = files.Select(Path.GetFileName);
             foreach (var file in safeFileNames)
                 FileCollection.Add(file);
+            CommandManager.InvalidateRequerySuggested();
         }
 
         private void FileCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

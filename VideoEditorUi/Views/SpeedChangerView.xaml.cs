@@ -1,4 +1,6 @@
 ﻿using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using MVVMFramework.ViewNavigator;
 using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
@@ -22,5 +24,8 @@ namespace VideoEditorUi.Views
         }
 
         private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);
+        private void OnDragEnter(object sender, DragEventArgs e) => ControlMethods.SetBackgroundBrush(sender as Label, false);
+
+        private void OnPreviewDragLeave(object sender, DragEventArgs e) => ControlMethods.SetBackgroundBrush(sender as Label, true);
     }
 }

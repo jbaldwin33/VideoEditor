@@ -10,15 +10,13 @@
         mc:Ignorable="d"
         d:DesignHeight="480" d:DesignWidth="800">
 
-  <Grid Margin="10" AllowDrop="True" Drop="Grid_OnDrop" Background="{StaticResource SharedBackgroundBrush}" DragEnter="DropBorder_OnDragEnter" DragLeave="DropBorder_OnPreviewDragLeave">
+  <Grid Margin="10">
     <Grid.RowDefinitions>
       <RowDefinition Height="1.5*" />
       <RowDefinition Height="1.2*" />
     </Grid.RowDefinitions>
-    <controls:DefaultTextBlock VerticalAlignment="Center" FontSize="20" Text="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}"/>
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-      <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Height="250"/>
-    </StackPanel>
+    <Label AllowDrop="True" Drop="Grid_OnDrop" Height="240" Width="700" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="20" Content="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}" DragEnter="OnDragEnter" DragLeave="OnPreviewDragLeave"/>
+    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
     <StackPanel Orientation="Vertical" Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>
