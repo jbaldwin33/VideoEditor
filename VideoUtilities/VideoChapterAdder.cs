@@ -14,19 +14,19 @@ namespace VideoUtilities
         private readonly string sourceFolder;
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
+        private readonly List<Tuple<TimeSpan, TimeSpan, string>> timeList;
 
         public VideoChapterAdder(string fullPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
         {
             Cancelled = false;
             fullInputPath = fullPath;
+            chapterFile = importChapterFile;
+            timeList = times;
             sourceFolder = Path.GetDirectoryName(fullInputPath);
             sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
             extension = Path.GetExtension(fullInputPath);
             metadataFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_metadataFile.txt");
-            if (string.IsNullOrEmpty(importChapterFile))
-                CreateChapterFile(times, sourceFolder, sourceFileWithoutExtension);
-            else
-                chapterFile = importChapterFile;
+            
             SetList(new[] { fullPath });
         }
 
@@ -37,6 +37,12 @@ namespace VideoUtilities
                 WriteToMetadata();
                 OnFirstWorkFinished(EventArgs.Empty);
             });
+        }
+
+        public override void PreWork()
+        {
+            if (string.IsNullOrEmpty(chapterFile))
+                CreateChapterFile(timeList, sourceFolder, sourceFileWithoutExtension);
         }
 
         protected override string CreateOutput(int index, object obj) => metadataFile;

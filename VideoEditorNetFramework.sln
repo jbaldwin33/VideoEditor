@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorUi", "VideoEdito
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoUtilities", "VideoUtilities\VideoUtilities.csproj", "{96A8755D-750E-40F7-9677-EB5AFEF558B0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFVideoPlayer", "WPFVideoPlayer\WPFVideoPlayer.csproj", "{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		All|Any CPU = All|Any CPU
@@ -44,6 +46,18 @@ Global
 		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|x86.ActiveCfg = Release|Any CPU
 		{96A8755D-750E-40F7-9677-EB5AFEF558B0}.Release|x86.Build.0 = Release|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.All|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.All|Any CPU.Build.0 = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.All|x86.ActiveCfg = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.All|x86.Build.0 = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Debug|x86.Build.0 = Debug|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|x86.ActiveCfg = Release|Any CPU
+		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

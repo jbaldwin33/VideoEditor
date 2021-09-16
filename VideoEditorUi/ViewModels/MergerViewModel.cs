@@ -201,6 +201,7 @@ namespace VideoEditorUi.ViewModels
                     ? $".{FormatType}"
                     : FileViewModels[0].extension;
             VideoEditor = new VideoMerger(FileViewModels, OutputPath, outExt);
+            VideoEditor.PreWork();
             Execute(true, StageEnum.Primary, new MergingLabelTranslatable());
         }
 

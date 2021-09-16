@@ -210,6 +210,7 @@ namespace VideoEditorUi.ViewModels
             VideoEditor = TimesImported
                 ? new VideoChapterAdder(InputPath, importChapterFile: importedFile)
                 : new VideoChapterAdder(InputPath, SectionViewModels.Select(t => new Tuple<TimeSpan, TimeSpan, string>(t.StartTime, t.EndTime, t.Title)).ToList());
+            VideoEditor.PreWork();
             VideoEditor.FirstWorkFinished += Adder_GetMetadataFinished;
             Execute(true, StageEnum.Primary, new GettingMetadataMessageTranslatable());
         }

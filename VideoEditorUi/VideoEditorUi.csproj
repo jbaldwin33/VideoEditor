@@ -56,7 +56,7 @@
     <TargetZone>LocalIntranet</TargetZone>
   </PropertyGroup>
   <PropertyGroup>
-    <GenerateManifests>true</GenerateManifests>
+    <GenerateManifests>false</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
@@ -68,10 +68,11 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>appkey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>96D101237C7D049F10B4D623DDB6DC0B9F0A08CA</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>4AE38A83FBB0A773123709C6525E5786D6FEBB7E</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
     <ManifestKeyFile>VideoEditorUi_TemporaryKey.pfx</ManifestKeyFile>
@@ -218,7 +219,6 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="appkey.snk" />
     <None Include="packages.config" />
     <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">

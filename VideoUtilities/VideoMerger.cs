@@ -12,11 +12,11 @@ namespace VideoUtilities
     public class VideoMerger : BaseClass
     {
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
-        private readonly TimeSpan totalDuration;
         private readonly string tempFile;
         private readonly string outputPath;
         private readonly string outputExtension;
         private readonly List<(string sourceFolder, string filename, string extension)> files;
+        private TimeSpan totalDuration;
 
         public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outPath, string outExt)
         {
@@ -25,18 +25,22 @@ namespace VideoUtilities
             outputPath = outPath;
             outputExtension = outExt;
             files = fileViewModels;
-            GetMetadata(fileViewModels);
-            foreach (var meta in metadataClasses)
-                totalDuration += meta.format.duration;
-
             tempFile = Path.Combine(outputPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
-            using (var writeText = new StreamWriter(tempFile))
-                for (var i = 0; i < fileViewModels.Count; i++)
-                    writeText.WriteLine($"file '{fileViewModels[i].sourceFolder}\\{fileViewModels[i].filename}{fileViewModels[i].extension}'");
+            
             SetList(new[] { "" });
         }
 
         public override void Setup() => DoSetup(null);
+        public override void PreWork()
+        {
+            GetMetadata(files);
+            foreach (var meta in metadataClasses)
+                totalDuration += meta.format.duration;
+
+            using (var writeText = new StreamWriter(tempFile))
+                for (var i = 0; i < files.Count; i++)
+                    writeText.WriteLine($"file '{files[i].sourceFolder}\\{files[i].filename}{files[i].extension}'");
+        }
 
         protected override string CreateOutput(int index, object obj)
             => $"{outputPath}\\Merged_File{outputExtension}";
