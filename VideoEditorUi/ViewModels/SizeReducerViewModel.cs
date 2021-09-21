@@ -132,7 +132,7 @@ namespace VideoEditorUi.ViewModels
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "All Video Files|*.wmv;*.avi;*.mpg;*.mpeg;*.mp4;*.mov;*.m4a;*.mkv;*.ts;*.WMV;*.AVI;*.MPG;*.MPEG;*.MP4;*.MOV;*.M4A;*.MKV;*.TS",
+                Filter = "All Video Files|*.wmv;*.avi;*.mpg;*.mpeg;*.mp4;*.mov;*.m4a;*.mkv;*.ts;*.webm;*.WMV;*.AVI;*.MPG;*.MPEG;*.MP4;*.MOV;*.M4A;*.MKV;*.TS;*.WEBM",
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
                 Multiselect = true
             };

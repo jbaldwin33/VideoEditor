@@ -15,8 +15,6 @@ namespace VideoEditorUi
         protected override void OnStartup(StartupEventArgs e)
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
-            Dispatcher.UnhandledException += DispatcherOnUnhandledException;
-            Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
             //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ja-JP");
             var types = new[]
             {

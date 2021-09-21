@@ -7,15 +7,6 @@ namespace VideoEditorUi.Utilities
 {
     public static class GlobalExceptionHandler
     {
-        public static void Current_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-        {
-            MessageBox.Show(UnravelException(e.Exception), new UnhandledExceptionTranslatable(), MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
-        public static void DispatcherOnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
-        {
-            MessageBox.Show(UnravelException(e.Exception), new UnhandledExceptionTranslatable(), MessageBoxButton.OK, MessageBoxImage.Error);
-        }
 
         public static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {

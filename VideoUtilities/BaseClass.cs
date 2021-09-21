@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
@@ -14,6 +15,8 @@ namespace VideoUtilities
 {
     public abstract class BaseClass
     {
+        #region Events and fields
+
         public delegate void ProgressEventHandler(object sender, ProgressEventArgs e);
         public delegate void FinishedDownloadEventHandler(object sender, FinishedEventArgs e);
         public delegate void StartedDownloadEventHandler(object sender, DownloadStartedEventArgs e);
@@ -28,22 +31,35 @@ namespace VideoUtilities
         public event MessageEventHandler MessageHandler;
         public event PreWorkFinishedEventHandler PreWorkFinished;
         public event FirstWorkFinishedEventHandler FirstWorkFinished;
-        protected Action DoAfterExit { get; set; }
+        protected Action DoAfterProcessExit;
         protected bool Cancelled;
-        protected string LastData;
         protected bool Failed;
+        protected List<string> ErrorData = new List<string>();
         protected readonly List<ProcessClass> CurrentProcess = new List<ProcessClass>();
         protected readonly List<ProcessClass> ProcessStuff = new List<ProcessClass>();
-        private readonly List<int> keepOutputList = new List<int>();
-        private readonly object _lock = new object();
-        private readonly object _lock2 = new object();
         protected int NumberFinished;
         protected int NumberInProcess;
         protected IEnumerable ObjectList;
         protected bool UseYoutubeDL;
         protected bool IsList;
-        private string path;
+        private readonly List<int> keepOutputList = new List<int>();
+        private readonly object _lock = new object();
+        private readonly object _lock2 = new object();
+        private string binaryPath;
         private decimal youtubePercentage;
+        private string[] errorWords =
+        {
+            "ERROR",
+            "Could not",
+            "Invalid",
+            "No such",
+            "does not exist",
+            "Failed to",
+            "cannot",
+            "Too many"
+        };
+
+        #endregion
 
         protected void SetList(IEnumerable list)
         {
@@ -85,7 +101,7 @@ namespace VideoUtilities
 
         protected void DoSetup(Action callback)
         {
-            DoAfterExit = callback;
+            DoAfterProcessExit = callback;
             var i = 0;
             foreach (var obj in ObjectList)
             {
@@ -149,12 +165,15 @@ namespace VideoUtilities
         protected virtual string CreateOutput(int index, object obj) => throw new NotImplementedException();
         protected virtual TimeSpan? GetDuration(object obj) => throw new NotImplementedException();
 
-        public string GetBinaryPath() => !string.IsNullOrEmpty(path) ? path : path = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
+        public string GetBinaryPath() => !string.IsNullOrEmpty(binaryPath) ? binaryPath : binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
 
         protected virtual void OutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
         {
             if (Cancelled)
                 return;
+
+            if (string.IsNullOrEmpty(outLine.Data))
+                ShowErrorData();
 
             var info = new ComputerInfo();
             var availableMemory = info.AvailablePhysicalMemory / (1024f * 1024f * 1024f);
@@ -170,11 +189,10 @@ namespace VideoUtilities
             if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished || IsFinished(outLine.Data))
                 return;
 
-            LastData = outLine.Data;
-            if (outLine.Data.Contains("ERROR"))
+            if (errorWords.Any(word => outLine.Data.Contains(word)))
             {
                 Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
+                ErrorData.Add(outLine.Data);
                 return;
             }
 
@@ -225,10 +243,10 @@ namespace VideoUtilities
             if (outLine.Data.Contains("Finished downloading playlist"))
                 ProcessStuff[index].YoutubeProperties.Downloaded++;
 
-            if (outLine.Data.Contains("ERROR"))
+            if (errorWords.Any(word => outLine.Data.Contains(word)))
             {
                 Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = outLine.Data });
+                ErrorData.Add(outLine.Data);
                 return;
             }
 
@@ -287,7 +305,7 @@ namespace VideoUtilities
 
         protected bool CheckOverwrite(ref string output)
         {
-            if (!File.Exists(output)) 
+            if (!File.Exists(output))
                 return false;
 
             var args = new MessageEventArgs
@@ -295,7 +313,7 @@ namespace VideoUtilities
                 Message = new FileAlreadyExistsTranslatable(Path.GetFileName(output))
             };
             ShowMessage(args);
-            if (args.Result) 
+            if (args.Result)
                 return true;
 
             var filename = Path.GetFileNameWithoutExtension(output);
@@ -324,7 +342,7 @@ namespace VideoUtilities
 
             if (processClass.Process.ExitCode != 0 && !Cancelled)
             {
-                OnDownloadError(new ProgressEventArgs { Error = LastData });
+                ShowErrorData();
                 return;
             }
 
@@ -334,14 +352,23 @@ namespace VideoUtilities
                 return;
 
             ProcessStuff[index].Finished = true;
-            if (DoAfterExit != null)
+            if (DoAfterProcessExit != null)
             {
-                var action = DoAfterExit;
-                DoAfterExit = null;
+                var action = DoAfterProcessExit;
+                DoAfterProcessExit = null;
                 action?.Invoke();
             }
             else
                 OnDownloadFinished(new FinishedEventArgs { Cancelled = Cancelled });
+        }
+
+        private void ShowErrorData()
+        {
+            if (ErrorData.Count == 0)
+                return;
+            var sb = new StringBuilder();
+            ErrorData.ForEach(error => sb.Append($"{error}\n"));
+            OnDownloadError(new ProgressEventArgs { Error = sb.ToString() });
         }
 
         protected void CloseProcess(Process p, bool kill)

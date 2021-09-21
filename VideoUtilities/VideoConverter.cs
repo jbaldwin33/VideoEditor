@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace VideoUtilities
 {
@@ -27,7 +26,8 @@ namespace VideoUtilities
         protected override string CreateArguments(int index, ref string output, object obj)
         {
             var (folder, filename, extension) = (ValueTuple<string, string, string>)obj;
-            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" -c:a copy -c:v copy \"{output}\"";
+            var copyClause = extension == ".webm" && outExtension == ".mp4" ? string.Empty : "-c:a copy -c:v copy";
+            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" {copyClause} \"{output}\"";
         }
 
         protected override TimeSpan? GetDuration(object obj) => null;

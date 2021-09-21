@@ -16,6 +16,8 @@ namespace VideoEditorUi.ViewModels
 
         private bool fileLoaded;
         private bool editorInitialized;
+        private bool isPlaying;
+
         protected BaseClass VideoEditor;
         protected ProgressBarViewModel ProgressBarViewModel;
         public Action<string[]> DragFiles;
@@ -26,6 +28,13 @@ namespace VideoEditorUi.ViewModels
             get => fileLoaded;
             set => SetProperty(ref fileLoaded, value);
         }
+
+        public bool IsPlaying
+        {
+            get => isPlaying;
+            set => SetProperty(ref isPlaying, value);
+        }
+
 
         public override void OnLoaded()
         {
@@ -86,9 +95,14 @@ namespace VideoEditorUi.ViewModels
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
-        protected void PlayCommandExecute() => Player.Play();
-        protected void PauseCommandExecute() => Player.Pause();
-        protected void StopCommandExecute() => Player.Stop();
+        protected void PlayCommandExecute()
+        {
+            if (!IsPlaying)
+                Player.Play();
+            else
+                Player.Pause();
+            IsPlaying = !IsPlaying;
+        }
 
         protected void StartedDownload(object sender, DownloadStartedEventArgs e) => ProgressBarViewModel.UpdateLabel(e.Label);
 

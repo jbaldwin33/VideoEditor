@@ -78,6 +78,9 @@
     <ManifestKeyFile>VideoEditorUi_TemporaryKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ControlzEx">
+      <HintPath>..\DLLs\ControlzEx.dll</HintPath>
+    </Reference>
     <Reference Include="CSVideoPlayer, Version=1.0.3.0, Culture=neutral, PublicKeyToken=0d3d56fad5dc7027, processorArchitecture=MSIL">
       <HintPath>..\DLLs\CSVideoPlayer.dll</HintPath>
       <SpecificVersion>False</SpecificVersion>
@@ -85,8 +88,14 @@
     <Reference Include="FFmpeg.AutoGen">
       <HintPath>..\DLLs\FFmpeg.AutoGen.dll</HintPath>
     </Reference>
+    <Reference Include="MahApps.Metro.IconPacks.Core">
+      <HintPath>..\DLLs\MahApps.Metro.IconPacks.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="MahApps.Metro.IconPacks.Material">
+      <HintPath>..\DLLs\MahApps.Metro.IconPacks.Material.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.0\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
@@ -94,8 +103,15 @@
     <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Xaml.Behaviors">
+      <HintPath>..\DLLs\Microsoft.Xaml.Behaviors.dll</HintPath>
+    </Reference>
     <Reference Include="MVVMFramework">
       <HintPath>..\DLLs\MVVMFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\DLLs\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
@@ -108,7 +124,8 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="VideoUtilities">
+    <Reference Include="VideoUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\VideoUtilities.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />

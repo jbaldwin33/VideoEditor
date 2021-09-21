@@ -6,6 +6,7 @@
         xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
         xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
         xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+        xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:utilities="clr-namespace:VideoEditorUi.Utilities"
         mc:Ignorable="d"
         d:DesignHeight="480" d:DesignWidth="800">
@@ -44,11 +45,15 @@
           </ItemsControl>
         </Grid>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-          <controls:DefaultButton Command="{Binding SeekBackCommand}" Content="{Binding SeekBackLabel}"/>
-          <controls:DefaultButton Command="{Binding PlayCommand}" Content="{Binding PlayLabel}"/>
-          <controls:DefaultButton Command="{Binding SeekForwardCommand}" Content="{Binding SeekForwardLabel}"/>
-          <controls:DefaultButton Command="{Binding PauseCommand}" Content="{Binding PauseLabel}"/>
-          <controls:DefaultButton Command="{Binding StopCommand}" Content="{Binding StopLabel}"/>
+          <controls:DefaultButton Command="{Binding SeekBackCommand}">
+            <metro:Material Kind="Rewind5"/>
+          </controls:DefaultButton>
+          <controls:DefaultButton Command="{Binding PlayCommand}">
+            <metro:Material Kind="PlayPause"/>
+          </controls:DefaultButton>
+          <controls:DefaultButton Command="{Binding SeekForwardCommand}">
+            <metro:Material Kind="FastForward5"/>
+          </controls:DefaultButton>
           <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
           <controls:DefaultButton Command="{Binding ImportCommand}" Content="{Binding ImportLabel}" FontSize="12"/>
         </StackPanel>

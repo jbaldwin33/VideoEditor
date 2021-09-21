@@ -1,11 +1,12 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
+using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {
@@ -26,7 +27,7 @@ namespace VideoUtilities
             outputExtension = outExt;
             files = fileViewModels;
             tempFile = Path.Combine(outputPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
-            
+
             SetList(new[] { "" });
         }
 
@@ -35,11 +36,20 @@ namespace VideoUtilities
         {
             GetMetadata(files);
             foreach (var meta in metadataClasses)
+            {
+                if (meta.format == null)
+                {
+                    CancelOperation("Error getting metadata for video files. Please make sure the video files are not corrupted.");//todo
+                    return;
+                }
                 totalDuration += meta.format.duration;
+            }
 
             using (var writeText = new StreamWriter(tempFile))
                 for (var i = 0; i < files.Count; i++)
                     writeText.WriteLine($"file '{files[i].sourceFolder}\\{files[i].filename}{files[i].extension}'");
+            Setup();
+            DoWork(new MergingLabelTranslatable());
         }
 
         protected override string CreateOutput(int index, object obj)
@@ -72,6 +82,7 @@ namespace VideoUtilities
 
         public void GetMetadata(List<(string folder, string name, string extension)> files)
         {
+            var jsonSerializer = new JsonSerializer();
             for (int i = 0; i < files.Count; i++)
             {
                 var info = new ProcessStartInfo
@@ -91,7 +102,7 @@ namespace VideoUtilities
                 var result = process.StandardOutput;
                 process.Dispose();
                 using (var reader = new JsonTextReader(result))
-                    metadataClasses.Add(new JsonSerializer().Deserialize<MetadataClass>(reader));
+                    metadataClasses.Add(jsonSerializer.Deserialize<MetadataClass>(reader));
             }
         }
 

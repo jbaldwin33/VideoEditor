@@ -24,8 +24,6 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand seekBackCommand;
         private RelayCommand playCommand;
         private RelayCommand seekForwardCommand;
-        private RelayCommand pauseCommand;
-        private RelayCommand stopCommand;
         private RelayCommand startCommand;
         private RelayCommand endCommand;
         private RelayCommand addChapterCommand;
@@ -119,11 +117,6 @@ namespace VideoEditorUi.ViewModels
 
         #region  Labels
 
-        public string PlayLabel => new PlayLabelTranslatable();
-        public string SeekBackLabel => new SeekBackLabelTranslatable();
-        public string SeekForwardLabel => new SeekForwardLabelTranslatable();
-        public string PauseLabel => new PauseLabelTranslatable();
-        public string StopLabel => new StopLabelTranslatable();
         public string StartLabel => new StartTimeLabelTranslatable();
         public string EndLabel => new EndTimeLabelTranslatable();
         public string SelectFileLabel => new SelectFileLabelTranslatable();
@@ -142,8 +135,6 @@ namespace VideoEditorUi.ViewModels
         public RelayCommand SeekBackCommand => seekBackCommand ?? (seekBackCommand = new RelayCommand(SeekBackCommandExecute, () => FileLoaded));
         public RelayCommand SeekForwardCommand => seekForwardCommand ?? (seekForwardCommand = new RelayCommand(SeekForwardCommandExecute, () => FileLoaded));
         public RelayCommand PlayCommand => playCommand ?? (playCommand = new RelayCommand(PlayCommandExecute, () => FileLoaded));
-        public RelayCommand PauseCommand => pauseCommand ?? (pauseCommand = new RelayCommand(PauseCommandExecute, () => FileLoaded));
-        public RelayCommand StopCommand => stopCommand ?? (stopCommand = new RelayCommand(StopCommandExecute, () => FileLoaded));
         public RelayCommand StartCommand => startCommand ?? (startCommand = new RelayCommand(StartCommandExecute, () => !StartTimeSet && FileLoaded && !TimesImported));
         public RelayCommand EndCommand => endCommand ?? (endCommand = new RelayCommand(EndCommandExecute, () => StartTimeSet && !TimesImported));
         public RelayCommand AddChapterCommand => addChapterCommand ?? (addChapterCommand = new RelayCommand(AddChapterCommandExecute, () => (SectionViewModels?.Count > 0 || TimesImported)));

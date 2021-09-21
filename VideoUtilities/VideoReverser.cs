@@ -52,7 +52,7 @@ namespace VideoUtilities
                 var stuff = new ProcessClass(false, process, output, TimeSpan.Zero, null);
                 ProcessStuff.Add(stuff);
                 CurrentProcess.Add(stuff);
-                DoAfterExit = () =>
+                DoAfterProcessExit = () =>
                 {
                     ProcessStuff.Clear();
                     CurrentProcess.Clear();
@@ -63,7 +63,7 @@ namespace VideoUtilities
                     var filesInDir = hdDirectoryInWhichToSearch.GetFiles().Where(file => regex.IsMatch(Path.GetFileNameWithoutExtension(file.Name))).ToList();
                     SetList(filesInDir);
                     DoSetup(() => OnFirstWorkFinished(EventArgs.Empty));
-                    OnPreWorkFinished(new PreWorkEventArgs{Argument = filesInDir.Count});
+                    OnPreWorkFinished(new PreWorkEventArgs { Argument = filesInDir.Count });
                 };
                 process.Start();
                 process.BeginErrorReadLine();
@@ -114,7 +114,7 @@ namespace VideoUtilities
                 OnDownloadError(new ProgressEventArgs { Error = ex.Message });
             }
         }
-        
+
         public override void CancelOperation(string cancelMessage)
         {
             base.CancelOperation(cancelMessage);
