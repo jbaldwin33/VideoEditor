@@ -17,8 +17,6 @@ namespace VideoEditorUi.ViewModels
     {
         #region Fields and props
 
-        private List<FormatTypeViewModel> formats;
-        private FormatEnum formatType;
         private string outputPath;
         private RelayCommand addUrlCommand;
         private RelayCommand downloadCommand;
@@ -27,28 +25,16 @@ namespace VideoEditorUi.ViewModels
         private string textInput;
         private string selectedFile;
         private bool fileSelected;
-        private bool isPlaylist;
-        private ObservableCollection<string> urlCollection;
-
-        public List<FormatTypeViewModel> Formats
-        {
-            get => formats;
-            set => SetProperty(ref formats, value);
-        }
-
-        public FormatEnum FormatType
-        {
-            get => formatType;
-            set => SetProperty(ref formatType, value);
-        }
+        private ObservableCollection<UrlClass> urlCollection;
+        private bool extractAudio;
 
         public string OutputPath
         {
             get => outputPath;
             set => SetProperty(ref outputPath, value);
         }
-        
-        public ObservableCollection<string> UrlCollection
+
+        public ObservableCollection<UrlClass> UrlCollection
         {
             get => urlCollection;
             set => SetProperty(ref urlCollection, value);
@@ -76,11 +62,13 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref fileSelected, value);
         }
 
-        public bool IsPlaylist
+        public bool ExtractAudio
         {
-            get => isPlaylist;
-            set => SetProperty(ref isPlaylist, value);
+            get => extractAudio;
+            set => SetProperty(ref extractAudio, value);
         }
+
+        public Action AddUrl;
 
         #endregion
 
@@ -104,9 +92,10 @@ namespace VideoEditorUi.ViewModels
         public string OutputFolderLabel => new OutputFolderLabelTranslatable();
         public string DownloadLabel => new DownloadLabelTranslatable();
         public string ConvertFormatLabel => new ConvertFormatLabelTranslatable();
-        public string IsPlaylistLabel => new IsPlaylistTranslatable();
+        public string ExtractAudioLabel => new DownloadAudioOnlyTranslatable();
         public string TagText => new EnterUrlTranslatable();
-        public string ConfirmLabel => new ConfirmTranslatable();
+        public string AddLabel => new AddTranslatable();
+        public string CancelLabel => new CancelTranslatable();
 
         #endregion
 
@@ -120,19 +109,16 @@ namespace VideoEditorUi.ViewModels
 
         protected override void Initialize()
         {
-            Formats = FormatTypeViewModel.CreateViewModels();
-            FormatType = FormatEnum.avi;
-            UrlCollection = new ObservableCollection<string>();
-
+            AddUrl = () =>
+            {
+                UrlCollection.Add(new UrlClass(TextInput, IsPlaylist(TextInput)));
+                TextInput = string.Empty;
+            };
+            UrlCollection = new ObservableCollection<UrlClass>();
             BindingOperations.EnableCollectionSynchronization(UrlCollection, _lock);
         }
 
-        private void AddUrlCommandExecute()
-        {
-            new ChapterTitleDialogView(this) { Title = new AddUrlLabelTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
-            UrlCollection.Add(TextInput);
-            TextInput = string.Empty;
-        }
+        private void AddUrlCommandExecute() => new UrlDialogView(this).ShowDialog();
 
         private void DownloadCommandExecute()
         {
@@ -141,11 +127,13 @@ namespace VideoEditorUi.ViewModels
                 ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
                 return;
             }
-            VideoEditor = new VideoDownloader(UrlCollection.Select(f => f).ToList(), OutputPath, $"{FormatType}", IsPlaylist);
-            Execute(true, StageEnum.Primary, new DownloadingLabelTranslatable(), UrlCollection.Count);
+            var urls = UrlCollection.OrderByDescending(u => u.IsPlaylist);
+            VideoEditor = new VideoDownloader(urls.Select(u => (u.Url, u.IsPlaylist)), ExtractAudio, OutputPath);
+            Setup(true, UrlCollection.Count, urls.ToList());
+            Execute(StageEnum.Primary, new DownloadingLabelTranslatable());
         }
 
-        private void RemoveExecute() => UrlCollection.Remove(SelectedFile);
+        private void RemoveExecute() => UrlCollection.Remove(UrlCollection.First(u => u.Url == SelectedFile));
 
         private void SelectOutputFolderCommandExecute()
         {
@@ -161,11 +149,13 @@ namespace VideoEditorUi.ViewModels
             OutputPath = openFolderDialog.FileName;
         }
 
+        private bool IsPlaylist(string url) => url.Contains("playlist");
+
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
             base.FinishedDownload(sender, e);
             var message = e.Cancelled
-                ? $"{new OperationCancelledTranslatable()} {e.Message}"
+                ? $"{new OperationCancelledTranslatable()}\n{e.Message}"
                 : new VideoSuccessfullyDownloadedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
@@ -173,9 +163,21 @@ namespace VideoEditorUi.ViewModels
         protected override void CleanUp()
         {
             UrlCollection.Clear();
-            FormatType = FormatEnum.avi;
+            ExtractAudio = false;
             OutputPath = null;
             base.CleanUp();
+        }
+
+        public class UrlClass
+        {
+            public string Url { get; set; }
+            public bool IsPlaylist { get; set; }
+
+            public UrlClass(string url, bool isPlaylist)
+            {
+                Url = isPlaylist || !url.Contains("list") ? url : url.Substring(0, url.IndexOf("list") - 1);
+                IsPlaylist = isPlaylist;
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
 using CSVideoPlayer;
@@ -50,41 +51,16 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected void SetupEditor()
-        {
-            if (editorInitialized)
-                return;
-
-            VideoEditor.StartedDownload += StartedDownload;
-            VideoEditor.ProgressDownload += ProgressDownload;
-            VideoEditor.FinishedDownload += FinishedDownload;
-            VideoEditor.ErrorDownload += ErrorDownload;
-            VideoEditor.MessageHandler += LibraryMessageHandler;
-            editorInitialized = true;
-        }
-
-        protected void SetupProgressBarViewModel(int count)
-        {
-            ProgressBarViewModel = new ProgressBarViewModel(count);
-            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
-            {
-                try
-                {
-                    VideoEditor.CancelOperation(string.Empty);
-                }
-                catch (Exception ex)
-                {
-                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
-                }
-            };
-        }
-
-        protected void Execute(bool doSetup, StageEnum stage, string label = "", int count = 1)
+        protected void Setup(bool doSetup, int count = 1, List<DownloaderViewModel.UrlClass> urlCollection = null)
         {
             SetupEditor();
-            SetupProgressBarViewModel(count);
+            SetupProgressBarViewModel(count, urlCollection);
             if (doSetup)
                 VideoEditor.Setup();
+        }
+
+        protected void Execute(StageEnum stage, string label = "")
+        {
             switch (stage)
             {
                 case StageEnum.Pre: Task.Run(() => VideoEditor.PreWork()); break;
@@ -111,6 +87,8 @@ namespace VideoEditorUi.ViewModels
             if (e.Percentage > ProgressBarViewModel.ProgressBarCollection[e.ProcessIndex].ProgressValue)
                 ProgressBarViewModel.UpdateProgressValue(e.Percentage, e.ProcessIndex);
         }
+
+        protected void UpdatePlaylist(object sender, PlaylistEventArgs e) => ProgressBarViewModel.ProgressBarCollection[e.Index].UpdatePlaylist(e.Current, e.Total);
 
         protected virtual void Initialize() => throw new NotImplementedException();
         protected virtual void DragFilesCallback(string[] files) => throw new NotImplementedException();
@@ -139,6 +117,36 @@ namespace VideoEditorUi.ViewModels
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             editorInitialized = false;
+        }
+
+        private void SetupEditor()
+        {
+            if (editorInitialized)
+                return;
+
+            VideoEditor.StartedDownload += StartedDownload;
+            VideoEditor.ProgressDownload += ProgressDownload;
+            VideoEditor.FinishedDownload += FinishedDownload;
+            VideoEditor.ErrorDownload += ErrorDownload;
+            VideoEditor.MessageHandler += LibraryMessageHandler;
+            VideoEditor.UpdatePlaylist += UpdatePlaylist;
+            editorInitialized = true;
+        }
+
+        private void SetupProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> playlists)
+        {
+            ProgressBarViewModel = new ProgressBarViewModel(count, playlists);
+            ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
+            {
+                try
+                {
+                    VideoEditor.CancelOperation(string.Empty);
+                }
+                catch (Exception ex)
+                {
+                    ShowMessage(new MessageBoxEventArgs(ex.Message, MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+                }
+            };
         }
     }
 }

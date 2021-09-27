@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
              xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              d:DesignHeight="480" d:DesignWidth="800">
   <Grid>
@@ -43,7 +44,9 @@
       </ListView>
     </StackPanel>
     <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
-      <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+      <controls:DefaultButton Command="{Binding SelectFileCommand}" VerticalAlignment="Center" HorizontalAlignment="Center">
+        <metro:Material Kind="FolderOpen"/>
+      </controls:DefaultButton>
     </StackPanel>
     <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,1,0,0">
       <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ConvertFormatLabel}" GroupName="radioGroup" IsChecked="{Binding ConverterSelected}"/>

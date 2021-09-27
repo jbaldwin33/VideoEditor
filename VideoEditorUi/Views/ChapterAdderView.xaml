@@ -54,7 +54,9 @@
           <controls:DefaultButton Command="{Binding SeekForwardCommand}">
             <metro:Material Kind="FastForward5"/>
           </controls:DefaultButton>
-          <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
+          <controls:DefaultButton Command="{Binding SelectFileCommand}" FontSize="12">
+            <metro:Material Kind="FolderOpen"/>
+          </controls:DefaultButton>
           <controls:DefaultButton Command="{Binding ImportCommand}" Content="{Binding ImportLabel}" FontSize="12"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">

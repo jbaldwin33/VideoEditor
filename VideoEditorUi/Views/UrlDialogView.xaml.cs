@@ -1,34 +1,40 @@
-﻿using System;
+﻿using MVVMFramework.Localization;
+using MVVMFramework.ViewModels;
+using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using MVVMFramework.Localization;
-using MVVMFramework.ViewModels;
+using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views
 {
     /// <summary>
-    /// Interaction logic for ChapterTitleDialog.xaml
+    /// Interaction logic for UrlDialogView.xaml
     /// </summary>
-    public partial class ChapterTitleDialogView : Window
+    public partial class UrlDialogView : Window
     {
-        public ChapterTitleDialogView(ViewModel vm)
+        private readonly DownloaderViewModel viewModel;
+        public UrlDialogView(ViewModel vm)
         {
             InitializeComponent();
+            Title = new AddUrlLabelTranslatable();
+            WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            Owner = Application.Current.MainWindow;
             DataContext = vm;
-            Loaded += ChapterTitleDialogView_Loaded;
+            viewModel = vm as DownloaderViewModel;
+            Loaded += UrlDialogView_Loaded;
         }
 
-        private void ChapterTitleDialogView_Loaded(object sender, RoutedEventArgs e)
+        private void UrlDialogView_Loaded(object sender, RoutedEventArgs e)
         {
             var hwnd = new WindowInteropHelper(this).Handle;
             SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
         }
 
-        private void ButtonBase_ConfirmClick(object sender, RoutedEventArgs e)
+        private void ButtonBase_AddClick(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(inputText.Text))
-                DialogResult = true;
+                viewModel.AddUrl?.Invoke();
             else
                 MessageBox.Show(new TextCannotBeEmptyTranslatable(), new InformationLabelTranslatable(), MessageBoxButton.OK, MessageBoxImage.Information);
         }

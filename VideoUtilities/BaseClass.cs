@@ -24,6 +24,7 @@ namespace VideoUtilities
         public delegate void MessageEventHandler(object sender, MessageEventArgs e);
         public delegate void PreWorkFinishedEventHandler(object sender, PreWorkEventArgs e);
         public delegate void FirstWorkFinishedEventHandler(object sender, EventArgs e);
+        public delegate void UpdatePlaylistEventHandler(object sender, PlaylistEventArgs e);
         public event ProgressEventHandler ProgressDownload;
         public event FinishedDownloadEventHandler FinishedDownload;
         public event StartedDownloadEventHandler StartedDownload;
@@ -31,6 +32,7 @@ namespace VideoUtilities
         public event MessageEventHandler MessageHandler;
         public event PreWorkFinishedEventHandler PreWorkFinished;
         public event FirstWorkFinishedEventHandler FirstWorkFinished;
+        public event UpdatePlaylistEventHandler UpdatePlaylist;
         protected Action DoAfterProcessExit;
         protected bool Cancelled;
         protected bool Failed;
@@ -41,7 +43,7 @@ namespace VideoUtilities
         protected int NumberInProcess;
         protected IEnumerable ObjectList;
         protected bool UseYoutubeDL;
-        protected bool IsList;
+        protected List<bool> IsList = new List<bool>();
         private readonly List<int> keepOutputList = new List<int>();
         private readonly object _lock = new object();
         private readonly object _lock2 = new object();
@@ -98,6 +100,9 @@ namespace VideoUtilities
         public virtual void SecondaryWork() => throw new NotImplementedException();
 
         public virtual void Setup() => throw new NotImplementedException();
+
+        public void UpdateForPlaylist(int index, int current, int total, bool isPlaylist)
+            => UpdatePlaylist?.Invoke(this, new PlaylistEventArgs { Index = index, Current = current, Total = total, IsPlaylist = isPlaylist });
 
         protected void DoSetup(Action callback)
         {
@@ -243,6 +248,11 @@ namespace VideoUtilities
             if (outLine.Data.Contains("Finished downloading playlist"))
                 ProcessStuff[index].YoutubeProperties.Downloaded++;
 
+            if (ProcessStuff[index].YoutubeProperties.Downloaded > 0 &&
+                ProcessStuff[index].YoutubeProperties.ToDownload > 0 &&
+                ProcessStuff[index].YoutubeProperties.Downloaded == ProcessStuff[index].YoutubeProperties.ToDownload)
+                return;
+
             if (errorWords.Any(word => outLine.Data.Contains(word)))
             {
                 Failed = true;
@@ -276,13 +286,7 @@ namespace VideoUtilities
                     ProcessStuff[index].YoutubeProperties.Downloaded = int.Parse(b) - 1;
                 if (c.Length > 0)
                     ProcessStuff[index].YoutubeProperties.ToDownload = int.Parse(c);
-            }
-
-            if (ProcessStuff[index].YoutubeProperties.Downloaded > ProcessStuff[index].YoutubeProperties.ToDownload)
-            {
-                Failed = true;
-                OnDownloadError(new ProgressEventArgs { Error = new PlaylistEmptyTranslatable() });
-                return;
+                UpdateForPlaylist(index, ProcessStuff[index].YoutubeProperties.Downloaded + 1, ProcessStuff[index].YoutubeProperties.ToDownload, IsList[index]);
             }
 
             var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
@@ -290,8 +294,8 @@ namespace VideoUtilities
                 return;
 
             // fire the process event
-            var perc = IsList
-              ? Convert.ToDecimal(ProcessStuff[index].YoutubeProperties.Downloaded / ProcessStuff[index].YoutubeProperties.ToDownload * 100)
+            var perc = IsList[index]
+              ? GetPercentageForList(outLine.Data, index)
               : Convert.ToDecimal(Regex.Match(outLine.Data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
 
             if (perc > 100 || perc < 0)
@@ -324,8 +328,10 @@ namespace VideoUtilities
 
         protected void ErrorReceivedHandler(object sender, DataReceivedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(e.Data))
-                OnDownloadError(new ProgressEventArgs { Error = e.Data });
+            if (string.IsNullOrEmpty(e.Data))
+                return;
+            Failed = true;
+            CancelOperation(e.Data);
         }
 
         protected void Process_Exited(object sender, EventArgs e)
@@ -369,6 +375,14 @@ namespace VideoUtilities
             var sb = new StringBuilder();
             ErrorData.ForEach(error => sb.Append($"{error}\n"));
             OnDownloadError(new ProgressEventArgs { Error = sb.ToString() });
+        }
+
+        private decimal GetPercentageForList(string data, int index)
+        {
+            var val = Convert.ToDecimal(Regex.Match(data, @"\b\d+([\.,]\d+)?").Value, System.Globalization.CultureInfo.InvariantCulture);
+            var downloaded = Convert.ToDecimal((float)ProcessStuff[index].YoutubeProperties.Downloaded);
+            var toDownload = ProcessStuff[index].YoutubeProperties.ToDownload;
+            return (val + (100 * downloaded)) / toDownload;
         }
 
         protected void CloseProcess(Process p, bool kill)
@@ -458,6 +472,14 @@ namespace VideoUtilities
         public int ProcessIndex { get; set; }
         public bool Cancelled { get; set; }
         public string Message { get; set; }
+    }
+
+    public class PlaylistEventArgs : EventArgs
+    {
+        public int Index { get; set; }
+        public int Current { get; set; }
+        public int Total { get; set; }
+        public bool IsPlaylist { get; set; }
     }
 
     public class ProcessClass

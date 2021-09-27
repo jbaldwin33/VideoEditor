@@ -201,7 +201,8 @@ namespace VideoEditorUi.ViewModels
                     ? $".{FormatType}"
                     : FileViewModels[0].extension;
             VideoEditor = new VideoMerger(FileViewModels, OutputPath, outExt);
-            Execute(false, StageEnum.Pre);
+            Setup(false);
+            Execute(StageEnum.Pre);
         }
 
         private void MoveUpExecute()

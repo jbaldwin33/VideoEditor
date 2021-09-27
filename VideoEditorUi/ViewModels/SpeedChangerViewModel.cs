@@ -82,9 +82,6 @@ namespace VideoEditorUi.ViewModels
         #region Labels
 
         public string FormatLabel => new FormatLabelTranslatable();
-        public string SelectFileLabel => new SelectFileLabelTranslatable();
-        public string FlipLabel => new FlipLabelTranslatable();
-        public string RotateLabel => new RotateLabelTranslatable();
         public string VideoSpeedLabel => new VideoSpeedLabelTranslatable();
         public string DragFileLabel => new DragFileTranslatable();
 
@@ -125,7 +122,8 @@ namespace VideoEditorUi.ViewModels
         private void FormatCommandExecute()
         {
             VideoEditor = new VideoSpeedChanger(InputPath, CurrentSpeed, ConvertToEnum());
-            Execute(true, StageEnum.Primary, new ChangingLabelTranslatable());
+            Setup(true);
+            Execute(StageEnum.Primary, new ChangingLabelTranslatable());
         }
 
         private void FlipCommandExecute()

@@ -170,7 +170,6 @@ namespace VideoEditorUi.ViewModels
         public string StartLabel => new StartTimeLabelTranslatable();
         public string EndLabel => new EndTimeLabelTranslatable();
         public string SplitLabel => new SplitLabelTranslatable();
-        public string SelectFileLabel => new SelectFileLabelTranslatable();
         public string CombineSectionsLabel => new CombineSectionsQuestionTranslatable();
         public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
         public string ReEncodeQuestionLabel => new ReEncodeQuestionTranslatable();
@@ -261,7 +260,8 @@ namespace VideoEditorUi.ViewModels
         {
             VideoEditor = new VideoSplitter(SectionViewModels.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
             VideoEditor.FirstWorkFinished += Splitter_SplitFinished;
-            Execute(true, StageEnum.Primary, new SplittingLabelTranslatable(), SectionViewModels.Count);
+            Setup(true, SectionViewModels.Count);
+            Execute(StageEnum.Primary, new SplittingLabelTranslatable());
         }
 
         private void StartCommandExecute()
@@ -361,7 +361,8 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_SplitFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Execute(false, StageEnum.Secondary);
+            Setup(false);
+            Execute(StageEnum.Secondary);
         }
         
         protected override void CleanUp()

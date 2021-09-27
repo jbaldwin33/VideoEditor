@@ -151,7 +151,8 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
             VideoEditor = new VideoSizeReducer(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), OutputPath);
-            Execute(true, StageEnum.Primary, new ReducingSizeLabelTranslatable(), FileCollection.Count);
+            Setup(true, FileCollection.Count);
+            Execute(StageEnum.Primary, new ReducingSizeLabelTranslatable());
         }
 
         private void ConvertCommandExecute()
@@ -162,7 +163,8 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
             VideoEditor = new VideoConverter(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), $".{FormatType}");
-            Execute(true, StageEnum.Primary, new ConvertingLabelTranslatable(), FileCollection.Count);
+            Setup(true, FileCollection.Count);
+            Execute(StageEnum.Primary, new ConvertingLabelTranslatable());
         }
         private void RemoveExecute() => FileCollection.Remove(SelectedFile);
 

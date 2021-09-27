@@ -119,9 +119,9 @@ namespace VideoEditorUi.ViewModels
 
         public string StartLabel => new StartTimeLabelTranslatable();
         public string EndLabel => new EndTimeLabelTranslatable();
-        public string SelectFileLabel => new SelectFileLabelTranslatable();
         public string AddChapterLabel => new AddChapterTranslatable();
         public string ConfirmLabel => new ConfirmTranslatable();
+        public string CancelLabel => new CancelTranslatable();
         public string ImportLabel => new ImportLabelTranslatable();
         public string AddChaptersLabel => new AddChaptersMessageTranslatable();
         public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
@@ -203,7 +203,8 @@ namespace VideoEditorUi.ViewModels
                 : new VideoChapterAdder(InputPath, SectionViewModels.Select(t => new Tuple<TimeSpan, TimeSpan, string>(t.StartTime, t.EndTime, t.Title)).ToList());
             VideoEditor.PreWork();
             VideoEditor.FirstWorkFinished += Adder_GetMetadataFinished;
-            Execute(true, StageEnum.Primary, new GettingMetadataMessageTranslatable());
+            Setup(true);
+            Execute(StageEnum.Primary, new GettingMetadataMessageTranslatable());
         }
 
         private void StartCommandExecute()
@@ -333,7 +334,8 @@ namespace VideoEditorUi.ViewModels
         private void Adder_GetMetadataFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Execute(false, StageEnum.Secondary);
+            Setup(false);
+            Execute(StageEnum.Secondary);
         }
 
         protected override void CleanUp()

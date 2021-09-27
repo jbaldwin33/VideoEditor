@@ -1,17 +1,17 @@
-﻿<Window x:Class="VideoEditorUi.Views.ChapterTitleDialogView"
+﻿<Window x:Class="VideoEditorUi.Views.UrlDialogView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VideoEditorUi.Views" 
+        xmlns:local="clr-namespace:VideoEditorUi.Views"
         xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         mc:Ignorable="d"
-        Height="200" Width="300" WindowStartupLocation="CenterOwner">
+        Title="UrlDialogView" Height="200" Width="300" WindowStartupLocation="CenterOwner">
   <Grid>
     <controls:DefaultStackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical">
       <TextBox Name="inputText" Tag="{Binding TagText}" TextAlignment="Left" Text="{Binding TextInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource placeHolder}" Width="150" Height="25" Margin="0,0,0,10"/>
       <controls:DefaultStackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <controls:SmallButton Content="{Binding ConfirmLabel}" Click="ButtonBase_ConfirmClick" />
+        <controls:SmallButton Content="{Binding AddLabel}" Click="ButtonBase_AddClick" />
         <controls:SmallButton Content="{Binding CancelLabel}" Click="ButtonBase_CancelClick" />
       </controls:DefaultStackPanel>
     </controls:DefaultStackPanel>

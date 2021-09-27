@@ -72,7 +72,8 @@ namespace VideoEditorUi.ViewModels
             VideoEditor = new VideoReverser(InputPath);
             VideoEditor.PreWorkFinished += Reverser_TrimFinished;
             VideoEditor.FirstWorkFinished += Reverser_ReverseFinished;
-            Execute(false, StageEnum.Pre);
+            Setup(false);
+            Execute(StageEnum.Pre);
         }
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
@@ -87,13 +88,15 @@ namespace VideoEditorUi.ViewModels
         private void Reverser_TrimFinished(object sender, PreWorkEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Execute(false, StageEnum.Primary, new ReversingSectionsLabelTranslatable(), (int)e.Argument);
+            Setup(false, (int)e.Argument);
+            Execute(StageEnum.Primary, new ReversingSectionsLabelTranslatable());
         }
 
         private void Reverser_ReverseFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Execute(false, StageEnum.Secondary);
+            Setup(false);
+            Execute(StageEnum.Secondary);
         }
 
         protected override void CleanUp()

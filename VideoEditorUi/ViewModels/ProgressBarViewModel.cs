@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
@@ -30,11 +32,11 @@ namespace VideoEditorUi.ViewModels
 
         public string CancelLabel => new CancelLabelTranslatable();
 
-        public ProgressBarViewModel(int count)
+        public ProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> playlists)
         {
             ProgressBarCollection = new ObservableCollection<ProgressViewModel>();
             for (var i = 0; i < count; i++)
-                ProgressBarCollection.Add(new ProgressViewModel(i + 1, count));
+                ProgressBarCollection.Add(new ProgressViewModel(i + 1, count, playlists.Count, playlists[i].IsPlaylist));
         }
 
         public void UpdateProgressValue(decimal value, int index = 0) => ProgressBarCollection[index].UpdateProgress(value);
@@ -54,6 +56,8 @@ namespace VideoEditorUi.ViewModels
         private string videoIndexLabel;
         private decimal progressValue;
         private bool showLabel;
+        private string playlistCounter;
+        private bool showPlaylistCounter;
 
         public string VideoIndexLabel
         {
@@ -78,13 +82,28 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref showLabel, value);
         }
 
-
-        public ProgressViewModel(int index, int total)
+        public string PlaylistCounter
         {
-            ShowLabel = total != 1;
-            VideoIndexLabel = $"{new VideoCounterLabelTranslatable(index, total)}:";
+            get => playlistCounter;
+            set => SetProperty(ref playlistCounter, value);
+        }
+
+        public bool ShowPlaylistCounter
+        {
+            get => showPlaylistCounter;
+            set => SetProperty(ref showPlaylistCounter, value);
+        }
+
+
+        public ProgressViewModel(int index, int total, int playlistCount, bool isPlaylist)
+        {
+            ShowLabel = total != 1 || isPlaylist;
+            VideoIndexLabel = isPlaylist 
+                ? $"{new PlaylistCounterLabelTranslatable(1, playlistCount)}:"
+                : $"{new VideoCounterLabelTranslatable(index, total)}:";
         }
 
         public void UpdateProgress(decimal progress) => ProgressValue = progress;
+        public void UpdatePlaylist(int index, int total) => VideoIndexLabel = $"{new PlaylistCounterLabelTranslatable(index, total)}:";
     }
 }

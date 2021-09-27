@@ -1,30 +1,32 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace VideoUtilities
 {
     public class VideoDownloader : BaseClass
     {
-        private readonly string extension;
         private readonly string destinationFolder;
+        private readonly bool extractAudio;
 
-        public VideoDownloader(List<string> urls, string output, string ext, bool isList = false)
+        public VideoDownloader(IEnumerable<(string, bool)> urls, bool justAudio, string output)
         {
             UseYoutubeDL = true;
-            IsList = isList;
+            IsList.AddRange(urls.Select(u => u.Item2));
+            extractAudio = justAudio;
             destinationFolder = output;
-            extension = ext;
             SetList(urls);
         }
 
-        protected override string CreateOutput(int index, object obj) => Path.Combine(destinationFolder, $"%(title)s.{extension}");
+        protected override string CreateOutput(int index, object obj) => Path.Combine(destinationFolder, $"%(title)s.%(ext)s");
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
-            return IsList
-                ? string.Format($"--continue  --no-overwrites --restrict-filenames --no-part --playlist-start 1 --yes-playlist \"{obj}\" -o {output}")
-                : string.Format($"--continue  --no-overwrites --restrict-filenames --no-part -f best --add-metadata {obj} -o \"{output}\"");
+            var (url, isList) = (ValueTuple<string, bool>)obj;
+            return isList 
+                ? string.Format($"--continue --no-overwrites --restrict-filenames {(extractAudio ? "--extract-audio --audio-format mp3" : string.Empty)} --no-part -f best --playlist-start 1 --yes-playlist \"{url}\" -o {output}")
+                : string.Format($"--continue --no-overwrites --restrict-filenames {(extractAudio ? "--extract-audio --audio-format mp3" : string.Empty)} --no-part -f best --add-metadata {url} -o \"{output}\"");
         }
 
         protected override TimeSpan? GetDuration(object obj) => null;

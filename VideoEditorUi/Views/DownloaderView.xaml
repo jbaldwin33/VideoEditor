@@ -25,7 +25,7 @@
       <controls:SmallButton Content="{Binding RemoveLabel}" Command="{Binding RemoveCommand}" IsEnabled="{Binding FileSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
     </StackPanel>
     <StackPanel Grid.Row="0" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-      <ListView ItemsSource="{Binding UrlCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
+      <ListView ItemsSource="{Binding UrlCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" DisplayMemberPath="Url" SelectedValuePath="Url" SelectedValue="{Binding SelectedFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Extended" Height="200" Width="240">
         <ListView.ItemsPanel>
           <ItemsPanelTemplate>
             <StackPanel Orientation="Vertical"/>
@@ -45,13 +45,13 @@
     <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
       <controls:LargeButton Command="{Binding AddUrlCommand}" Content="{Binding AddUrlLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
     </StackPanel>
-    <!--<StackPanel Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" Margin="0,1,0,0">
-      <CheckBox Content="{Binding IsPlaylistLabel}" IsChecked="{Binding IsPlaylist, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-    </StackPanel>-->
-    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+    <StackPanel Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" Margin="0,1,0,0">
+      <CheckBox Content="{Binding ExtractAudioLabel}" IsChecked="{Binding ExtractAudio, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    </StackPanel>
+    <!--<StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
       <controls:DefaultTextBlock Text="{Binding OutputFormatLabel}"/>
       <ComboBox IsEditable="False" IsReadOnly="True" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
-    </StackPanel>
+    </StackPanel>-->
     <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
       <controls:LargeTextBox IsReadOnly="True" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20"/>
       <controls:LargeButton Content="{Binding OutputFolderLabel}" Command="{Binding SelectOutputFolderCommand}"/>

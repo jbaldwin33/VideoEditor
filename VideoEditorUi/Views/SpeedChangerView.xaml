@@ -6,6 +6,7 @@
              xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
              xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
              xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              d:DesignHeight="480" d:DesignWidth="800">
   <Grid Margin="10">
@@ -27,11 +28,17 @@
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
-          <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+          <controls:LargeButton Command="{Binding SelectFileCommand}" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <metro:Material Kind="FolderOpen"/>
+          </controls:LargeButton>
         </StackPanel>
         <StackPanel Grid.Row="1" HorizontalAlignment="Center" Orientation="Horizontal">
-          <controls:SmallButton Command="{Binding FlipCommand}" Content="{Binding FlipLabel}"/>
-          <controls:SmallButton Command="{Binding RotateCommand}" Content="{Binding RotateLabel}"/>
+          <controls:SmallButton Command="{Binding FlipCommand}">
+            <metro:Material Kind="FlipHorizontal"/>
+          </controls:SmallButton>
+          <controls:SmallButton Command="{Binding RotateCommand}">
+            <metro:RemixIcon Kind="ClockwiseLine"/>
+          </controls:SmallButton>
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.RowSpan="2" Orientation="Vertical" HorizontalAlignment="Center">
           <controls:MediumTextBlock Text="{Binding VideoSpeedLabel}"/>

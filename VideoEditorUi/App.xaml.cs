@@ -18,13 +18,13 @@ namespace VideoEditorUi
             //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ja-JP");
             var types = new[]
             {
-                (typeof(SplitterViewModel), new SplitterTranslatable()),
-                (typeof(ChapterAdderViewModel), new ChapterAdderTranslatable()),
-                (typeof(SpeedChangerViewModel), new SpeedChangerTranslatable()),
-                (typeof(ReverseViewModel), new ReverserTranslatable()),
-                (typeof(MergerViewModel), new MergerTranslatable()),
-                (typeof(SizeReducerViewModel), $"{new ConverterTranslatable()}/{new ReduceSizeTranslatable()}"),
-                (typeof(DownloaderViewModel), new DownloaderTranslatable())
+                (typeof(SplitterViewModel), new SplitterTranslatable(), true),
+                (typeof(ChapterAdderViewModel), new ChapterAdderTranslatable(), true),
+                (typeof(SpeedChangerViewModel), new SpeedChangerTranslatable(), true),
+                (typeof(ReverseViewModel), new ReverserTranslatable(), true),
+                (typeof(MergerViewModel), new MergerTranslatable(), true),
+                (typeof(SizeReducerViewModel), $"{new ConverterTranslatable()}/{new ReduceSizeTranslatable()}", true),
+                (typeof(DownloaderViewModel), new DownloaderTranslatable(), true)
             };
             var window = new BaseWindowView(types) { Title = new VideoEditorTranslatable() };
             window.Show();

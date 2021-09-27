@@ -59,7 +59,9 @@
           <controls:DefaultButton Command="{Binding SeekForwardCommand}">
             <metro:Material Kind="FastForward5"/>
           </controls:DefaultButton>
-          <controls:DefaultButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}" FontSize="12"/>
+          <controls:DefaultButton Command="{Binding SelectFileCommand}" FontSize="12">
+            <metro:Material Kind="FolderOpen"/>
+          </controls:DefaultButton>
         </StackPanel>
         <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
           <CheckBox Content="{Binding OutputFormatLabel}" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />

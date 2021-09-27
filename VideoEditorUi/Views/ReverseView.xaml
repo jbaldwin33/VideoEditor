@@ -6,6 +6,7 @@
              xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
              xmlns:framework="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework"
              xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer"
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
              mc:Ignorable="d" 
              d:DesignHeight="480" d:DesignWidth="800">
   <Grid Margin="10">
@@ -22,7 +23,9 @@
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
       <StackPanel Grid.Row="0" HorizontalAlignment="Center">
-        <controls:LargeButton Command="{Binding SelectFileCommand}" Content="{Binding SelectFileLabel}"/>
+        <controls:DefaultButton Command="{Binding SelectFileCommand}">
+          <metro:Material Kind="FolderOpen"/>
+        </controls:DefaultButton>
       </StackPanel>
       <StackPanel Grid.Row="2" HorizontalAlignment="Center">
         <controls:MediumButton Command="{Binding ReverseCommand}" Content="{Binding ReverseLabel}"/>
