@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.WindowsAPICodePack.Dialogs;
@@ -27,6 +29,7 @@ namespace VideoEditorUi.ViewModels
         private bool fileSelected;
         private ObservableCollection<UrlClass> urlCollection;
         private bool extractAudio;
+        private bool addedVisible;
 
         public string OutputPath
         {
@@ -68,6 +71,13 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref extractAudio, value);
         }
 
+        public bool AddedVisible
+        {
+            get => addedVisible;
+            set => SetProperty(ref addedVisible, value);
+        }
+
+
         public Action AddUrl;
 
         #endregion
@@ -96,6 +106,8 @@ namespace VideoEditorUi.ViewModels
         public string TagText => new EnterUrlTranslatable();
         public string AddLabel => new AddTranslatable();
         public string CancelLabel => new CancelTranslatable();
+        public string UrlAddedLabel => new UrlAddedTranslatable();
+        public string UrlCommentLabel => new AddUrlsForVideoPlaylistTranslatable();
 
         #endregion
 
@@ -113,6 +125,7 @@ namespace VideoEditorUi.ViewModels
             {
                 UrlCollection.Add(new UrlClass(TextInput, IsPlaylist(TextInput)));
                 TextInput = string.Empty;
+                Task.Run(ToggleLabel);
             };
             UrlCollection = new ObservableCollection<UrlClass>();
             BindingOperations.EnableCollectionSynchronization(UrlCollection, _lock);
@@ -150,6 +163,13 @@ namespace VideoEditorUi.ViewModels
         }
 
         private bool IsPlaylist(string url) => url.Contains("playlist");
+
+        private void ToggleLabel()
+        {
+            AddedVisible = true;
+            Thread.Sleep(2000);
+            AddedVisible = false;
+        }
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {

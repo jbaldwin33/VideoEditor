@@ -9,11 +9,13 @@
         Title="UrlDialogView" Height="200" Width="300" WindowStartupLocation="CenterOwner">
   <Grid>
     <controls:DefaultStackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical">
+      <controls:LargeTextBlock Text="{Binding UrlCommentLabel}" Width="250"/>
       <TextBox Name="inputText" Tag="{Binding TagText}" TextAlignment="Left" Text="{Binding TextInput, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource placeHolder}" Width="150" Height="25" Margin="0,0,0,10"/>
       <controls:DefaultStackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
         <controls:SmallButton Content="{Binding AddLabel}" Click="ButtonBase_AddClick" />
         <controls:SmallButton Content="{Binding CancelLabel}" Click="ButtonBase_CancelClick" />
       </controls:DefaultStackPanel>
+      <controls:MediumTextBlock Text="{Binding UrlAddedLabel}" Visibility="{Binding AddedVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToHiddenVisConverter}}"/>
     </controls:DefaultStackPanel>
   </Grid>
 </Window>
