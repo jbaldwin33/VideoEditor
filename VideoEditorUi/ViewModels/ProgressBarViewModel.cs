@@ -11,7 +11,7 @@ namespace VideoEditorUi.ViewModels
     public class ProgressBarViewModel : ViewModel
     {
         public event EventHandler OnCancelledHandler;
-        
+
         private string progressLabel;
         private RelayCommand cancelCommand;
         private ObservableCollection<ProgressViewModel> progressBarCollection;
@@ -32,11 +32,21 @@ namespace VideoEditorUi.ViewModels
 
         public string CancelLabel => new CancelLabelTranslatable();
 
-        public ProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> playlists)
+        public ProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> urls)
         {
             ProgressBarCollection = new ObservableCollection<ProgressViewModel>();
             for (var i = 0; i < count; i++)
-                ProgressBarCollection.Add(new ProgressViewModel(i + 1, count, playlists.Count, playlists[i].IsPlaylist));
+            {
+                if (urls == null)
+                    ProgressBarCollection.Add(new ProgressViewModel(i + 1, count));
+                else
+                {
+                    var numberOfPlaylists = urls.Count(p => p.IsPlaylist);
+                    var index = urls[i].IsPlaylist ? 1 : i + 1 - numberOfPlaylists;
+                    var total = urls[i].IsPlaylist ? count : count - numberOfPlaylists;
+                    ProgressBarCollection.Add(new ProgressViewModel(index, total, urls[i].IsPlaylist));
+                }
+            }
         }
 
         public void UpdateProgressValue(decimal value, int index = 0) => ProgressBarCollection[index].UpdateProgress(value);
@@ -55,9 +65,8 @@ namespace VideoEditorUi.ViewModels
     {
         private string videoIndexLabel;
         private decimal progressValue;
+        private string progressValueString;
         private bool showLabel;
-        private string playlistCounter;
-        private bool showPlaylistCounter;
 
         public string VideoIndexLabel
         {
@@ -71,10 +80,18 @@ namespace VideoEditorUi.ViewModels
             set
             {
                 SetProperty(ref progressValue, value);
+                ProgressValueString = $"{value:0.00}%";
                 if (value >= 100)
                     VideoIndexLabel = new CompleteLabelTranslatable();
             }
         }
+
+        public string ProgressValueString
+        {
+            get => progressValueString;
+            set => SetProperty(ref progressValueString, value);
+        }
+
 
         public bool ShowLabel
         {
@@ -82,24 +99,21 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref showLabel, value);
         }
 
-        public string PlaylistCounter
+        //for video
+        public ProgressViewModel(int index, int total)
         {
-            get => playlistCounter;
-            set => SetProperty(ref playlistCounter, value);
+            ProgressValueString = "0.00%";
+            ShowLabel = total != 1;
+            VideoIndexLabel = $"{new VideoCounterLabelTranslatable(index, total)}:";
         }
 
-        public bool ShowPlaylistCounter
+        //for video and playlist
+        public ProgressViewModel(int index, int total, bool isPlaylist)
         {
-            get => showPlaylistCounter;
-            set => SetProperty(ref showPlaylistCounter, value);
-        }
-
-
-        public ProgressViewModel(int index, int total, int playlistCount, bool isPlaylist)
-        {
+            ProgressValueString = "0.00%";
             ShowLabel = total != 1 || isPlaylist;
-            VideoIndexLabel = isPlaylist 
-                ? $"{new PlaylistCounterLabelTranslatable(1, playlistCount)}:"
+            VideoIndexLabel = isPlaylist
+                ? $"{new PlaylistCounterLabelTranslatable(1, 1)}:"
                 : $"{new VideoCounterLabelTranslatable(index, total)}:";
         }
 

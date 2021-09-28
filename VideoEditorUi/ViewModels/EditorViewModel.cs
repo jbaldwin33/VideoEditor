@@ -133,9 +133,9 @@ namespace VideoEditorUi.ViewModels
             editorInitialized = true;
         }
 
-        private void SetupProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> playlists)
+        private void SetupProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> urls = null)
         {
-            ProgressBarViewModel = new ProgressBarViewModel(count, playlists);
+            ProgressBarViewModel = new ProgressBarViewModel(count, urls);
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
                 try

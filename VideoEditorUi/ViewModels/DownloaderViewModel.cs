@@ -105,7 +105,7 @@ namespace VideoEditorUi.ViewModels
         public string ExtractAudioLabel => new DownloadAudioOnlyTranslatable();
         public string TagText => new EnterUrlTranslatable();
         public string AddLabel => new AddTranslatable();
-        public string CancelLabel => new CancelTranslatable();
+        public string DoneLabel => new DoneTranslatable();
         public string UrlAddedLabel => new UrlAddedTranslatable();
         public string UrlCommentLabel => new AddUrlsForVideoPlaylistTranslatable();
 

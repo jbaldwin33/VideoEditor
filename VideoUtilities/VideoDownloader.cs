@@ -25,7 +25,7 @@ namespace VideoUtilities
         {
             var (url, isList) = (ValueTuple<string, bool>)obj;
             return isList 
-                ? string.Format($"--continue --no-overwrites --restrict-filenames {(extractAudio ? "--extract-audio --audio-format mp3" : string.Empty)} --no-part -f best --playlist-start 1 --yes-playlist \"{url}\" -o {output}")
+                ? string.Format($"--continue --no-overwrites --restrict-filenames {(extractAudio ? "--extract-audio --audio-format mp3" : string.Empty)} --no-part -f best --playlist-start 1 --yes-playlist --add-metadata \"{url}\" -o {output}")
                 : string.Format($"--continue --no-overwrites --restrict-filenames {(extractAudio ? "--extract-audio --audio-format mp3" : string.Empty)} --no-part -f best --add-metadata {url} -o \"{output}\"");
         }
 

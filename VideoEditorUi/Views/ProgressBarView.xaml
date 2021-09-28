@@ -21,13 +21,12 @@
             <StackPanel Orientation="Horizontal">
               <controls:MediumTextBlock Text="{Binding VideoIndexLabel, Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding ShowLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"/>
               <ProgressBar Margin="10,0,10,10" Value="{Binding ProgressValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="100" Width="400" Height="20"/>
-              <controls:MediumTextBlock Text="{Binding PlaylistCounter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding ShowPlaylistCounter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}"/>
+              <controls:SmallTextBlock Text="{Binding ProgressValueString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
       <!--</ScrollViewer>-->
-      <!--<ProgressBar Margin="0,10,0,10" Value="{Binding ProgressValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Minimum="0" Maximum="100" Width="400" Height="20"/>-->
       <controls:MediumButton Content="{Binding CancelLabel}" Command="{Binding CancelCommand}"/>
     </StackPanel>
   </Grid>

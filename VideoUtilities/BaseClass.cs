@@ -240,7 +240,7 @@ namespace VideoUtilities
                 CancelOperation(new RamUsageLabelTranslatable($"{usedMemoryPercentage:00}"));
 
             var index = ProcessStuff.FindIndex(p => p.Process.Id == (sendingProcess as Process).Id);
-            OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Finished ? 0 : youtubePercentage, Data = ProcessStuff[index].Finished ? string.Empty : outLine.Data });
+            //OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Finished ? 0 : youtubePercentage, Data = ProcessStuff[index].Finished ? string.Empty : outLine.Data });
             // extract the percentage from process output
             if (string.IsNullOrEmpty(outLine.Data) || ProcessStuff[index].Finished)
                 return;
