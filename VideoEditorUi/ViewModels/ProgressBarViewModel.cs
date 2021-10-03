@@ -80,7 +80,7 @@ namespace VideoEditorUi.ViewModels
             set
             {
                 SetProperty(ref progressValue, value);
-                ProgressValueString = $"{value:0.00}%";
+                ProgressValueString = value > 100 ? "100.0%" : $"{value:0.0}%";
                 if (value >= 100)
                     VideoIndexLabel = new CompleteLabelTranslatable();
             }
@@ -102,7 +102,7 @@ namespace VideoEditorUi.ViewModels
         //for video
         public ProgressViewModel(int index, int total)
         {
-            ProgressValueString = "0.00%";
+            ProgressValueString = "0.0%";
             ShowLabel = total != 1;
             VideoIndexLabel = $"{new VideoCounterLabelTranslatable(index, total)}:";
         }
@@ -110,7 +110,7 @@ namespace VideoEditorUi.ViewModels
         //for video and playlist
         public ProgressViewModel(int index, int total, bool isPlaylist)
         {
-            ProgressValueString = "0.00%";
+            ProgressValueString = "0.0%";
             ShowLabel = total != 1 || isPlaylist;
             VideoIndexLabel = isPlaylist
                 ? $"{new PlaylistCounterLabelTranslatable(1, 1)}:"

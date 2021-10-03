@@ -49,6 +49,7 @@ namespace VideoUtilities
         private readonly object _lock2 = new object();
         private string binaryPath;
         private decimal youtubePercentage;
+        protected string OutputPath;
         private string[] errorWords =
         {
             "ERROR",
@@ -289,8 +290,7 @@ namespace VideoUtilities
                 UpdateForPlaylist(index, ProcessStuff[index].YoutubeProperties.Downloaded + 1, ProcessStuff[index].YoutubeProperties.ToDownload, IsList[index]);
             }
 
-            var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
-            if (!pattern.IsMatch(outLine.Data) && ((ProcessStuff[index].YoutubeProperties.Downloaded == 0 && ProcessStuff[index].YoutubeProperties.ToDownload == 0) || (ProcessStuff[index].YoutubeProperties.ToDownload != 0 && ProcessStuff[index].YoutubeProperties.Downloaded != ProcessStuff[index].YoutubeProperties.ToDownload)))
+            if (!PatternMatch(outLine.Data) && ((ProcessStuff[index].YoutubeProperties.Downloaded == 0 && ProcessStuff[index].YoutubeProperties.ToDownload == 0) || (ProcessStuff[index].YoutubeProperties.ToDownload != 0 && ProcessStuff[index].YoutubeProperties.Downloaded != ProcessStuff[index].YoutubeProperties.ToDownload)))
                 return;
 
             // fire the process event
@@ -305,6 +305,14 @@ namespace VideoUtilities
             }
             youtubePercentage = perc;
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = perc, Data = outLine.Data });
+        }
+
+        private bool PatternMatch(string data)
+        {
+            var pattern = new Regex(@"\b\d+([\.,]\d+)?", RegexOptions.None);
+            return data.Contains("Downloading playlist:")
+                ? pattern.IsMatch(data.Substring(0, data.IndexOf(':')))
+                : pattern.IsMatch(data);
         }
 
         protected bool CheckOverwrite(ref string output)
@@ -425,6 +433,11 @@ namespace VideoUtilities
         protected virtual void OnDownloadFinished(FinishedEventArgs e)
         {
             FinishedDownload?.Invoke(this, e);
+            if (!e.Cancelled)
+            {
+                Process.Start("explorer.exe", $"/select,\"{OutputPath}\"");
+                //open
+            }
             CleanUp();
         }
 

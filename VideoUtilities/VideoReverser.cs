@@ -24,6 +24,7 @@ namespace VideoUtilities
             fileExtension = Path.GetExtension(fullPath);
             Failed = false;
             Cancelled = false;
+            OutputPath = $"{sourceFolder}\\{filenameWithoutExtension}_reversed{fileExtension}";
         }
 
         public override void PreWork()

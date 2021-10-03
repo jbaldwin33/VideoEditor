@@ -19,6 +19,7 @@ namespace VideoUtilities
         public VideoChapterAdder(string fullPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
         {
             Cancelled = false;
+            OutputPath = fullPath;
             fullInputPath = fullPath;
             chapterFile = importChapterFile;
             timeList = times;

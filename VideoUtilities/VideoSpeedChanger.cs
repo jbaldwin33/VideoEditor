@@ -12,6 +12,7 @@ namespace VideoUtilities
         {
             Failed = false;
             Cancelled = false;
+            OutputPath = $"{Path.GetDirectoryName(fullPath)}\\{Path.GetFileNameWithoutExtension(fullPath)}_formatted{Path.GetExtension(fullPath)}";
             scaleRotate = sr;
             newSpeed = speed;
             SetList(new[] { fullPath });

@@ -162,7 +162,7 @@ namespace VideoEditorUi.ViewModels
                 ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
                 return;
             }
-            VideoEditor = new VideoConverter(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), $".{FormatType}");
+            VideoEditor = new VideoConverter(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), $".{FormatType}", OutputPath);
             Setup(true, FileCollection.Count);
             Execute(StageEnum.Primary, new ConvertingLabelTranslatable());
         }

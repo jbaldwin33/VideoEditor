@@ -30,6 +30,9 @@
       <DataTemplate DataType="{x:Type viewModels:DownloaderViewModel}">
         <views:DownloaderView/>
       </DataTemplate>
+      <DataTemplate DataType="{x:Type viewModels:ResizerViewModel}">
+        <views:ResizeView/>
+      </DataTemplate>
       <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
         <views:ProgressBarView/>
       </DataTemplate>

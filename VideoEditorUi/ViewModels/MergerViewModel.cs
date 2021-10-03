@@ -165,7 +165,11 @@ namespace VideoEditorUi.ViewModels
                 OutputDifferentFormat = true;
             }
             else
+            {
                 CanChangeExtension = true;
+                FormatType = FormatEnum.avi;
+                OutputDifferentFormat = false;
+            }
         }
 
         private void SelectFileCommandExecute()

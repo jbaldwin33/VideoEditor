@@ -119,6 +119,7 @@
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -144,6 +145,7 @@
     <Compile Include="Utilities\RectangleExtensions.cs" />
     <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
     <Compile Include="ViewModels\DownloaderViewModel.cs" />
+    <Compile Include="ViewModels\ResizerViewModel.cs" />
     <Compile Include="ViewModels\SizeReducerViewModel.cs" />
     <Compile Include="ViewModels\MergerViewModel.cs" />
     <Compile Include="ViewModels\ReverseViewModel.cs" />
@@ -157,8 +159,14 @@
       <DependentUpon>ChapterTitleDialogView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ControlMethods.cs" />
+    <Compile Include="Views\CropWindow.xaml.cs">
+      <DependentUpon>CropWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\DownloaderView.xaml.cs">
       <DependentUpon>DownloaderView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ResizeView.xaml.cs">
+      <DependentUpon>ResizeView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SizeReducerView.xaml.cs">
       <DependentUpon>SizeReducerView.xaml</DependentUpon>
@@ -192,9 +200,17 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Views\CropWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\DownloaderView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ResizeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SizeReducerView.xaml">
       <Generator>MSBuild:Compile</Generator>

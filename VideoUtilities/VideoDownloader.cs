@@ -14,6 +14,7 @@ namespace VideoUtilities
         {
             UseYoutubeDL = true;
             IsList.AddRange(urls.Select(u => u.Item2));
+            OutputPath = destinationFolder;
             extractAudio = justAudio;
             destinationFolder = output;
             SetList(urls);

@@ -31,6 +31,7 @@ namespace VideoUtilities
             combineVideo = combine;
             outputDifferentFormat = outputDiffFormat;
             outputFormat = outFormat;
+            OutputPath = $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed1{(outputDifferentFormat ? outputFormat : extension)}";
             SetList(times);
         }
 

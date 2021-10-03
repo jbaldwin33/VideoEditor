@@ -14,7 +14,6 @@ namespace VideoUtilities
     {
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private readonly string tempFile;
-        private readonly string outputPath;
         private readonly string outputExtension;
         private readonly List<(string sourceFolder, string filename, string extension)> files;
         private TimeSpan totalDuration;
@@ -23,10 +22,10 @@ namespace VideoUtilities
         {
             Failed = false;
             Cancelled = false;
-            outputPath = outPath;
+            OutputPath = $"{outPath}\\Merged_File{outExt}";
             outputExtension = outExt;
             files = fileViewModels;
-            tempFile = Path.Combine(outputPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
+            tempFile = Path.Combine(outPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
 
             SetList(new[] { "" });
         }
@@ -53,7 +52,7 @@ namespace VideoUtilities
         }
 
         protected override string CreateOutput(int index, object obj)
-            => $"{outputPath}\\Merged_File{outputExtension}";
+            => $"{Path.GetDirectoryName(OutputPath)}\\Merged_File{outputExtension}";
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
