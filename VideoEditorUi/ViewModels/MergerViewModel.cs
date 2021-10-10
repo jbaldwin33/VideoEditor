@@ -214,10 +214,13 @@ namespace VideoEditorUi.ViewModels
             var index = FileCollection.IndexOf(SelectedFile);
             if (index == 0)
                 return;
-            var file = SelectedFile;
-            FileCollection.Remove(SelectedFile);
-            FileCollection.Insert(index - 1, file);
-            SelectedFile = file;
+            var (path, file, ext) = FileViewModels.First(f => f.filename == Path.GetFileNameWithoutExtension(SelectedFile));
+            var fileWithExt = $"{file}{ext}";
+            FileCollection.Remove(fileWithExt);
+            FileViewModels.Remove((path, file, ext));
+            FileCollection.Insert(index - 1, fileWithExt);
+            FileViewModels.Insert(index - 1, (path, file, ext));
+            SelectedFile = fileWithExt;
         }
         private void MoveDownExecute()
         {

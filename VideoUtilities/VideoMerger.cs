@@ -58,7 +58,7 @@ namespace VideoUtilities
         {
             var sb = new StringBuilder($"{(CheckOverwrite(ref output) ? "-y" : string.Empty)}");
             var ext = files.First().extension;
-            if (files.All(f => f.extension == ext))
+            if (files.All(f => f.extension == ext) && sameDimensions())
                 sb.Append($"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
             else
             {
@@ -75,6 +75,9 @@ namespace VideoUtilities
             }
 
             return sb.ToString();
+
+            bool sameDimensions() => metadataClasses.All(m => m.streams[0].width == metadataClasses[0].streams[0].width) &&
+                                     metadataClasses.All(m => m.streams[0].height == metadataClasses[0].streams[0].height);
         }
 
         protected override TimeSpan? GetDuration(object obj) => totalDuration;

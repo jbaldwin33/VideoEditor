@@ -7,20 +7,18 @@ namespace VideoUtilities
 {
     public class VideoDownloader : BaseClass
     {
-        private readonly string destinationFolder;
         private readonly bool extractAudio;
 
         public VideoDownloader(IEnumerable<(string, bool)> urls, bool justAudio, string output)
         {
             UseYoutubeDL = true;
             IsList.AddRange(urls.Select(u => u.Item2));
-            OutputPath = destinationFolder;
             extractAudio = justAudio;
-            destinationFolder = output;
+            OutputPath = output;
             SetList(urls);
         }
 
-        protected override string CreateOutput(int index, object obj) => Path.Combine(destinationFolder, $"%(title)s.%(ext)s");
+        protected override string CreateOutput(int index, object obj) => Path.Combine(OutputPath, $"%(title)s.%(ext)s");
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
