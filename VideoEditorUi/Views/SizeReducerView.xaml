@@ -43,12 +43,12 @@
         </ListView.Template>
       </ListView>
     </StackPanel>
-    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,1,0,0">
-      <controls:DefaultButton Command="{Binding SelectFileCommand}" VerticalAlignment="Center" HorizontalAlignment="Center">
+    <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+      <controls:LargeButton Command="{Binding SelectFileCommand}" VerticalAlignment="Center" HorizontalAlignment="Center">
         <metro:Material Kind="FolderOpen"/>
-      </controls:DefaultButton>
+      </controls:LargeButton>
     </StackPanel>
-    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,1,0,0">
+    <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
       <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ConvertFormatLabel}" GroupName="radioGroup" IsChecked="{Binding ConverterSelected}"/>
       <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ReduceVideoSizeLabel}" GroupName="radioGroup" />
     </StackPanel>
@@ -57,7 +57,7 @@
       <ComboBox IsEditable="False" IsReadOnly="True" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
     </StackPanel>
     <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
-      <controls:LargeTextBox IsReadOnly="True" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20" Margin="10,12,10,21"/>
+      <controls:LargeTextBox IsReadOnly="True" Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" FontSize="15" Height="20"/>
       <controls:LargeButton Content="{Binding OutputFolderLabel}" Command="{Binding SelectOutputFolderCommand}"/>
     </StackPanel>
     <StackPanel Grid.Row="5" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">

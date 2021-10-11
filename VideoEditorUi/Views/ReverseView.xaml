@@ -23,9 +23,9 @@
         <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
       <StackPanel Grid.Row="0" HorizontalAlignment="Center">
-        <controls:DefaultButton Command="{Binding SelectFileCommand}">
+        <controls:LargeButton Command="{Binding SelectFileCommand}">
           <metro:Material Kind="FolderOpen"/>
-        </controls:DefaultButton>
+        </controls:LargeButton>
       </StackPanel>
       <StackPanel Grid.Row="2" HorizontalAlignment="Center">
         <controls:MediumButton Command="{Binding ReverseCommand}" Content="{Binding ReverseLabel}"/>
