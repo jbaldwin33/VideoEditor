@@ -36,8 +36,11 @@
           <controls:LargeTextBlock Name="text1" Width="500"/>
           <controls:LargeTextBlock Name="text2" Width="500"/>
         </controls:DefaultStackPanel>
-        <controls:DefaultStackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center">
-          <controls:MediumButton Command="{Binding FormatCommand}" Content="{Binding FormatLabel}" IsEnabled="{Binding CanFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <controls:DefaultStackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
+          <controls:MediumButton Command="{Binding OpenCropWindowCommand}" Content="{Binding OpenCropWindowLabel}"/>
+        </controls:DefaultStackPanel>
+        <controls:DefaultStackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+          <controls:MediumButton Command="{Binding CropCommand}" Content="{Binding CropLabel}"/>
         </controls:DefaultStackPanel>
       </Grid>
     </StackPanel>

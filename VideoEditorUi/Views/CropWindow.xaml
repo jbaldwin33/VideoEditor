@@ -4,28 +4,39 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoEditorUi.Views"
-        xmlns:views="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework" xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+        xmlns:views="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework" 
+        xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         mc:Ignorable="d"
-        Height="720" Width="1280" WindowStartupLocation="CenterScreen">
+        Height="920" Width="1350" WindowStartupLocation="CenterScreen">
   <Grid>
     <Grid.RowDefinitions>
-      <RowDefinition Height="5*"/>
-      <RowDefinition Height="*"/>
+      <RowDefinition Height="1.5*"/>
+      <RowDefinition Height="0.3*"/>
     </Grid.RowDefinitions>
-    <Grid x:Name="gridChild" Grid.Row="0">
+    <Canvas x:Name="gridChild" Grid.Row="0">
       <CSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Center" HorizontalAlignment="Center" MediaOpened="player_MediaOpened"/>
-      <Border x:Name="border" BorderBrush="Red" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="5" MouseMove="border_MouseMove" MouseDown="border_MouseDown" MouseUp="border_MouseUp">
-        <Rectangle x:Name="recSelection" Fill="LightSalmon" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="True" MouseMove="rectangle_MouseMove" MouseDown="rectangle_MouseDown" MouseUp="rectangle_MouseUp"/>
+      <Border x:Name="border" BorderBrush="Red" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="5" Canvas.Left="0" Canvas.Top="0">
+        <!--MouseMove="border_MouseMove" MouseDown="border_MouseDown" MouseUp="border_MouseUp">-->
+        <Rectangle x:Name="recSelection" Fill="LightSalmon" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="True" MouseMove="recSelection_MouseMove" MouseDown="recSelection_MouseDown" MouseUp="recSelection_MouseUp"/>
       </Border>
-      <Rectangle x:Name="anchorLeft" Fill="Black" Height="10" Width="10" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
+      <!--<Rectangle x:Name="anchorLeft" Fill="Black" Height="10" Width="10" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
       <Rectangle x:Name="anchorTop" Fill="Black" Height="10" Width="10" HorizontalAlignment="Center" VerticalAlignment="Top" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
       <Rectangle x:Name="anchorRight" Fill="Black" Height="10" Width="10" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
-      <Rectangle x:Name="anchorBottom" Fill="Black" Height="10" Width="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
-    </Grid>
-    <controls:DefaultStackPanel Grid.Row="1" Orientation="Vertical">
-      <controls:LargeTextBlock Name="text1" Width="500"/>
-      <controls:LargeTextBlock Name="text2" Width="500"/>
-      <controls:LargeTextBlock Name="text3" Width="500"/>
+      <Rectangle x:Name="anchorBottom" Fill="Black" Height="10" Width="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>-->
+    </Canvas>
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+    <controls:DefaultStackPanel Grid.Column="0" Orientation="Vertical">
+      <controls:LargeTextBlock Text="{Binding OriginalWidthHeight, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:LargeTextBlock Text="{Binding NewWidthHeight, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:LargeTextBlock Text="{Binding Position, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
     </controls:DefaultStackPanel>
+      <controls:DefaultStackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <controls:MediumButton Content="Set crop" Click="MediumButton_Click"/>
+      </controls:DefaultStackPanel>
+    </Grid>
   </Grid>
 </Window>

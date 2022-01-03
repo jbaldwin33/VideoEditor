@@ -72,6 +72,7 @@
     <Compile Include="VideoChapterAdder.cs" />
     <Compile Include="VideoReverser.cs" />
     <Compile Include="VideoSizeReducer.cs" />
+    <Compile Include="VideoCropper.cs" />
     <Compile Include="VideoSpeedChanger.cs" />
     <Compile Include="VideoSplitter.cs" />
   </ItemGroup>

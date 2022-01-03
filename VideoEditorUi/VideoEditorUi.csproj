@@ -141,9 +141,11 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utilities\CustomAdorner.cs" />
     <Compile Include="Utilities\GlobalExceptionHandler.cs" />
     <Compile Include="Utilities\RectangleExtensions.cs" />
     <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
+    <Compile Include="ViewModels\CropWindowViewModel.cs" />
     <Compile Include="ViewModels\DownloaderViewModel.cs" />
     <Compile Include="ViewModels\ResizerViewModel.cs" />
     <Compile Include="ViewModels\SizeReducerViewModel.cs" />

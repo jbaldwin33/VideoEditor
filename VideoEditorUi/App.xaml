@@ -8,6 +8,17 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/MVVMFramework;component/Controls/ControlStyles.xaml" />
+        <ResourceDictionary>
+          <Style x:Key="ThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+              <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Thumb}">
+                  <Rectangle Fill="Black"/>
+                </ControlTemplate>
+              </Setter.Value>
+            </Setter>
+          </Style>
+        </ResourceDictionary>
       </ResourceDictionary.MergedDictionaries>
       <DataTemplate DataType="{x:Type viewModels:SplitterViewModel}">
         <views:SplitterView/>

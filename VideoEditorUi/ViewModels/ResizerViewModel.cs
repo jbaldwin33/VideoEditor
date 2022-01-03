@@ -15,8 +15,15 @@ namespace VideoEditorUi.ViewModels
 {
     public class ResizerViewModel : EditorViewModel
     {
+        #region Fields and props
+
         private string inputPath;
+        private bool canCrop;
+        private CropClass cropClass;
         private RelayCommand selectFileCommand;
+        private RelayCommand cropCommand;
+        private RelayCommand openCropWindowCommand;
+        private Window cropWindow;
 
         public string InputPath
         {
@@ -24,7 +31,62 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref inputPath, value);
         }
 
+        public bool CanCrop
+        {
+            get => canCrop;
+            set => SetProperty(ref canCrop, value);
+        }
+
+        public CropClass CropClass
+        {
+            get => cropClass;
+            set => SetProperty(ref cropClass, value);
+        }
+
+        private string originalWidthHeight;
+        private string newWidthHeight;
+        private string position;
+
+        public string OriginalWidthHeight
+        {
+            get => originalWidthHeight;
+            set => SetProperty(ref originalWidthHeight, value);
+        }
+
+        public string NewWidthHeight
+        {
+            get => newWidthHeight;
+            set => SetProperty(ref newWidthHeight, value);
+        }
+
+        public string Position
+        {
+            get => position;
+            set => SetProperty(ref position, value);
+        }
+
+
+
+
+        #endregion
+
+        #region Commands
+
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
+        public RelayCommand CropCommand => cropCommand ?? (cropCommand = new RelayCommand(CropCommandExecute, () => CropClass != null));
+        public RelayCommand OpenCropWindowCommand => openCropWindowCommand ?? (openCropWindowCommand = new RelayCommand(OpenCropWindowCommandExecute, () => FileLoaded));
+
+
+
+        #endregion
+
+        #region Labels
+
+        public string DragFileLabel => new DragFileTranslatable();
+        public string CropLabel => new CropTranslatable();
+        public string OpenCropWindowLabel => new OpenCropWindowTranslatable();
+
+        #endregion
 
         public override void OnUnloaded()
         {
@@ -54,9 +116,22 @@ namespace VideoEditorUi.ViewModels
             Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
 
-            var cropWindow = new CropWindow(openFileDialog.FileName);
+            cropWindow = new CropWindow(openFileDialog.FileName, this);
             cropWindow.Show();
         }
+
+        private void CropCommandExecute()
+        {
+            VideoEditor = new VideoCropper(InputPath, CropClass.Width, CropClass.Height, CropClass.X, CropClass.Y);
+            Setup(true);
+            Execute(StageEnum.Primary, new CroppingLabelTranslatable());
+        }
+
+        private void OpenCropWindowCommandExecute()
+        {
+            cropWindow.Show();
+        }
+
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
@@ -72,5 +147,13 @@ namespace VideoEditorUi.ViewModels
             FileLoaded = false;
             base.CleanUp();
         }
+    }
+
+    public class CropClass
+    {
+        public double Width { get; set; }
+        public double Height { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
     }
 }
