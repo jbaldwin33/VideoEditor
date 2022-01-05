@@ -11,19 +11,64 @@ namespace VideoEditorUi.Utilities
 {
     public class CustomAdorner : Adorner
     {
-        private double angle = 0.0;
-        public double TopPos, LeftPos;
-        private System.Drawing.Point transformOrigin = new System.Drawing.Point(0, 0);
-        public Border childElement;
-        private VisualCollection visualChildren;
-        public Thumb leftTop, rightTop, leftBottom, rightBottom;
+        private readonly VisualCollection visualChildren;
+        private readonly double origX;
+        private readonly double maxX;
+        private readonly double origY;
+        private readonly double maxY;
+        private readonly ResizerViewModel viewModel;
+        private readonly double angle = 0.0;
+        private readonly Thumb leftTop, rightTop, leftBottom, rightBottom;
+        private double topPos;
+        private double leftPos;
+        private double childWidth;
+        private double childHeight;
+        private Point transformOrigin = new Point(0, 0);
+        private Border childElement;
         private bool dragStarted = false;
         private bool isHorizontalDrag = false;
-        private double origX;
-        private double maxX;
-        private double origY;
-        private double maxY;
-        private ResizerViewModel viewModel;
+
+        public double TopPos
+        {
+            get => topPos;
+            set
+            {
+                topPos = value;
+                Canvas.SetTop(childElement, value);
+                viewModel.Position = $"position = ({LeftPos},{TopPos})";
+            }
+        }
+
+        public double LeftPos
+        {
+            get => leftPos;
+            set
+            {
+                leftPos = value;
+                Canvas.SetLeft(childElement, value);
+                viewModel.Position = $"position = ({LeftPos},{TopPos})";
+            }
+        }
+
+        public double ChildWidth
+        {
+            get => childWidth;
+            set
+            {
+                childWidth = childElement.Width = value;
+                viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
+            }
+        }
+
+        public double ChildHeight
+        {
+            get => childHeight;
+            set
+            {
+                childHeight = childElement.Height = value;
+                viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
+            }
+        }
 
         public CustomAdorner(UIElement element, ResizerViewModel vm) : base(element)
         {
@@ -34,68 +79,130 @@ namespace VideoEditorUi.Utilities
             maxX = origX + childElement.MaxWidth - 50;
             origY = Canvas.GetTop(childElement);
             maxY = origY + childElement.MaxHeight - 50;
+
+            if (viewModel.CropClass != null)
+                SetDimensions();
+
             CreateThumbPart(ref leftTop);
-            leftTop.DragDelta += (sender, e) =>
-            {
-                var hor = e.HorizontalChange;
-                var vert = e.VerticalChange;
-                //if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-                //{
-                //    if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
-                //    if (isHorizontalDrag) vert = hor; else hor = vert;
-                //}
-                ResizeX(hor);
-                ResizeY(vert);
-                dragStarted = false;
-                e.Handled = true;
-            };
+            leftTop.DragDelta += LeftTop_DragDelta;
             CreateThumbPart(ref rightTop);
-            rightTop.DragDelta += (sender, e) =>
-            {
-                var hor = e.HorizontalChange;
-                var vert = e.VerticalChange;
-                if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-                {
-                    if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
-                    if (isHorizontalDrag) vert = -hor; else hor = -vert;
-                }
-                ResizeWidth(hor);
-                ResizeY(vert);
-                dragStarted = false;
-                e.Handled = true;
-            };
+            rightTop.DragDelta += RightTop_DragDelta;
             CreateThumbPart(ref leftBottom);
-            leftBottom.DragDelta += (sender, e) =>
-            {
-                var hor = e.HorizontalChange;
-                var vert = e.VerticalChange;
-                if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-                {
-                    if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
-                    if (isHorizontalDrag) vert = -hor; else hor = -vert;
-                }
-                ResizeX(hor);
-                ResizeHeight(vert);
-                dragStarted = false;
-                e.Handled = true;
-            };
+            leftBottom.DragDelta += LeftBottom_DragDelta;
             CreateThumbPart(ref rightBottom);
-            rightBottom.DragDelta += (sender, e) =>
-            {
-                var hor = e.HorizontalChange;
-                var vert = e.VerticalChange;
-                if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-                {
-                    if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
-                    if (isHorizontalDrag) vert = hor; else hor = vert;
-                }
-                ResizeWidth(hor);
-                ResizeHeight(vert);
-                dragStarted = false;
-                e.Handled = true;
-            };
+            rightBottom.DragDelta += RightBottom_DragDelta;
         }
-        public void CreateThumbPart(ref Thumb cornerThumb)
+
+        #region Events
+
+        private void LeftTop_DragDelta(object sender, DragDeltaEventArgs e)
+        {
+            var hor = e.HorizontalChange;
+            var vert = e.VerticalChange;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
+                if (isHorizontalDrag) vert = hor; else hor = vert;
+            }
+            ResizeX(hor);
+            ResizeY(vert);
+            dragStarted = false;
+            e.Handled = true;
+        }
+
+        private void RightTop_DragDelta(object sender, DragDeltaEventArgs e)
+        {
+            var hor = e.HorizontalChange;
+            var vert = e.VerticalChange;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
+                if (isHorizontalDrag) vert = -hor; else hor = -vert;
+            }
+            ResizeWidth(hor);
+            ResizeY(vert);
+            dragStarted = false;
+            e.Handled = true;
+        }
+
+        private void LeftBottom_DragDelta(object sender, DragDeltaEventArgs e)
+        {
+            var hor = e.HorizontalChange;
+            var vert = e.VerticalChange;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
+                if (isHorizontalDrag) vert = -hor; else hor = -vert;
+            }
+            ResizeX(hor);
+            ResizeHeight(vert);
+            dragStarted = false;
+            e.Handled = true;
+        }
+
+        private void RightBottom_DragDelta(object sender, DragDeltaEventArgs e)
+        {
+            var hor = e.HorizontalChange;
+            var vert = e.VerticalChange;
+            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
+            {
+                if (dragStarted) isHorizontalDrag = Math.Abs(hor) > Math.Abs(vert);
+                if (isHorizontalDrag) vert = hor; else hor = vert;
+            }
+            ResizeWidth(hor);
+            ResizeHeight(vert);
+            dragStarted = false;
+            e.Handled = true;
+        }
+
+        #endregion
+
+        #region Resizing
+
+        private void ResizeWidth(double e)
+        {
+            var deltaHorizontal = Math.Min(-e, childElement.ActualWidth - childElement.MinWidth);
+            TopPos = Clamp(Canvas.GetTop(childElement) - transformOrigin.X * deltaHorizontal * Math.Sin(angle), origY, maxY);
+            LeftPos = Clamp(Canvas.GetLeft(childElement) + (deltaHorizontal * transformOrigin.X * (1 - Math.Cos(angle))), origX, maxX);
+            //Canvas.SetTop(childElement, TopPos);
+            //Canvas.SetLeft(childElement, LeftPos);
+            ChildWidth = Clamp(childWidth - deltaHorizontal, 50, childElement.MaxWidth);
+            //UpdateText();
+        }
+        private void ResizeX(double e)
+        {
+            var deltaHorizontal = Math.Min(e, childElement.ActualWidth - childElement.MinWidth);
+            TopPos = Clamp(Canvas.GetTop(childElement) + deltaHorizontal * Math.Sin(angle) - transformOrigin.X * deltaHorizontal * Math.Sin(angle), origY, maxY);
+            LeftPos = Clamp(Canvas.GetLeft(childElement) + deltaHorizontal * Math.Cos(angle) + (transformOrigin.X * deltaHorizontal * (1 - Math.Cos(angle))), origX, maxX);
+            //Canvas.SetTop(childElement, TopPos);
+            //Canvas.SetLeft(childElement, LeftPos);
+            ChildWidth = Clamp(childWidth - deltaHorizontal, 50, childElement.MaxWidth);
+            //UpdateText();
+        }
+        private void ResizeHeight(double e)
+        {
+            var deltaVertical = Math.Min(-e, childElement.ActualHeight - childElement.MinHeight);
+            TopPos = Clamp(Canvas.GetTop(childElement) + (transformOrigin.Y * deltaVertical * (1 - Math.Cos(-angle))), origY, maxY);
+            LeftPos = Clamp(Canvas.GetLeft(childElement) - deltaVertical * transformOrigin.Y * Math.Sin(-angle), origX, maxX);
+            //Canvas.SetTop(childElement, TopPos);
+            //Canvas.SetLeft(childElement, LeftPos);
+            ChildHeight = Clamp(childHeight - deltaVertical, 50, childElement.MaxHeight);
+            //UpdateText();
+        }
+        private void ResizeY(double e)
+        {
+            var deltaVertical = Math.Min(e, childElement.ActualHeight - childElement.MinHeight);
+            TopPos = Clamp(Canvas.GetTop(childElement) + deltaVertical * Math.Cos(-angle) + (transformOrigin.Y * deltaVertical * (1 - Math.Cos(-angle))), origY, maxY);
+            LeftPos = Clamp(Canvas.GetLeft(childElement) + deltaVertical * Math.Sin(-angle) - (transformOrigin.Y * deltaVertical * Math.Sin(-angle)), origX, maxX);
+            //Canvas.SetTop(childElement, TopPos);
+            //Canvas.SetLeft(childElement, LeftPos);
+            ChildHeight = Clamp(childHeight - deltaVertical, 50, childElement.MaxHeight);
+            //UpdateText();
+        }
+
+        #endregion
+
+        private void CreateThumbPart(ref Thumb cornerThumb)
         {
             var resource = FindResource("ThumbStyle") as Style;
             cornerThumb = new Thumb { Width = 10, Height = 10, Background = Brushes.Black, Style = resource };
@@ -103,63 +210,6 @@ namespace VideoEditorUi.Utilities
             visualChildren.Add(cornerThumb);
         }
 
-        private void ResizeWidth(double e)
-        {
-            var deltaHorizontal = Math.Min(-e, childElement.ActualWidth - childElement.MinWidth);
-            TopPos = Clamp(Canvas.GetTop(childElement) - transformOrigin.X * deltaHorizontal * Math.Sin(angle), origY, maxY);
-            LeftPos = Clamp(Canvas.GetLeft(childElement) + (deltaHorizontal * transformOrigin.X * (1 - Math.Cos(angle))), origX, maxX);
-            Canvas.SetTop(childElement, TopPos);
-            Canvas.SetLeft(childElement, LeftPos);
-            childElement.Width = Clamp(childElement.Width - deltaHorizontal, 50, childElement.MaxWidth);
-            viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
-            viewModel.Position = $"position = ({LeftPos},{TopPos})";
-        }
-        private void ResizeX(double e)
-        {
-            var deltaHorizontal = Math.Min(e, childElement.ActualWidth - childElement.MinWidth);
-            TopPos = Clamp(Canvas.GetTop(childElement) + deltaHorizontal * Math.Sin(angle) - transformOrigin.X * deltaHorizontal * Math.Sin(angle), origY, maxY);
-            LeftPos = Clamp(Canvas.GetLeft(childElement) + deltaHorizontal * Math.Cos(angle) + (transformOrigin.X * deltaHorizontal * (1 - Math.Cos(angle))), origX, maxX);
-            Canvas.SetTop(childElement, TopPos);
-            Canvas.SetLeft(childElement, LeftPos);
-            childElement.Width = Clamp(childElement.Width - deltaHorizontal, 50, childElement.MaxWidth);
-            viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
-            viewModel.Position = $"position = ({LeftPos},{TopPos})";
-        }
-        private void ResizeHeight(double e)
-        {
-            var deltaVertical = Math.Min(-e, childElement.ActualHeight - childElement.MinHeight);
-            TopPos = Clamp(Canvas.GetTop(childElement) + (transformOrigin.Y * deltaVertical * (1 - Math.Cos(-angle))), origY, maxY);
-            LeftPos = Clamp(Canvas.GetLeft(childElement) - deltaVertical * transformOrigin.Y * Math.Sin(-angle), origX, maxX);
-            Canvas.SetTop(childElement, TopPos);
-            Canvas.SetLeft(childElement, LeftPos);
-            childElement.Height = Clamp(childElement.Height - deltaVertical, 50, childElement.MaxHeight);
-            viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
-            viewModel.Position = $"position = ({LeftPos},{TopPos})";
-        }
-        private void ResizeY(double e)
-        {
-            var deltaVertical = Math.Min(e, childElement.ActualHeight - childElement.MinHeight);
-            TopPos = Clamp(Canvas.GetTop(childElement) + deltaVertical * Math.Cos(-angle) + (transformOrigin.Y * deltaVertical * (1 - Math.Cos(-angle))), origY, maxY);
-            LeftPos = Clamp(Canvas.GetLeft(childElement) + deltaVertical * Math.Sin(-angle) - (transformOrigin.Y * deltaVertical * Math.Sin(-angle)), origX, maxX);
-            Canvas.SetTop(childElement, TopPos);
-            Canvas.SetLeft(childElement, LeftPos);
-            childElement.Height = Clamp(childElement.Height - deltaVertical, 50, childElement.MaxHeight);
-            viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
-            viewModel.Position = $"position = ({LeftPos},{TopPos})";
-        }
-        //public void EnforceSize(FrameworkElement element)
-        //{
-        //    if (element.Width.Equals(Double.NaN))
-        //        element.Width = element.DesiredSize.Width;
-        //    if (element.Height.Equals(Double.NaN))
-        //        element.Height = element.DesiredSize.Height;
-        //    FrameworkElement parent = element.Parent as FrameworkElement;
-        //    if (parent != null)
-        //    {
-        //        element.MaxHeight = parent.ActualHeight;
-        //        element.MaxWidth = parent.ActualWidth;
-        //    }
-        //}
         protected override Size ArrangeOverride(Size finalSize)
         {
             base.ArrangeOverride(finalSize);
@@ -173,10 +223,26 @@ namespace VideoEditorUi.Utilities
             rightBottom.Arrange(new Rect(desireWidth - adornerWidth / 2 - 5, desireHeight - adornerHeight / 2 - 5, adornerWidth, adornerHeight));
             return finalSize;
         }
+
         protected override int VisualChildrenCount => visualChildren.Count;
         protected override Visual GetVisualChild(int index) => visualChildren[index];
-        //protected override void OnRender(DrawingContext drawingContext) => base.OnRender(drawingContext);
-
         private double Clamp(double val, double min, double max) => val > max ? max : val < min ? min : val;
+
+        private void SetDimensions()
+        {
+            ChildWidth = viewModel.CropClass.Width;
+            ChildHeight = viewModel.CropClass.Height;
+            LeftPos = viewModel.CropClass.X;
+            TopPos = viewModel.CropClass.Y;
+            //Canvas.SetLeft(childElement, LeftPos);
+            //Canvas.SetTop(childElement, TopPos);
+            //UpdateText();
+        }
+
+        //public void UpdateText()
+        //{
+        //    viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
+        //    viewModel.Position = $"position = ({LeftPos},{TopPos})";
+        //}
     }
 }

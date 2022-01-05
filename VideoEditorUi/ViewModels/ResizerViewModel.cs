@@ -23,7 +23,6 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand selectFileCommand;
         private RelayCommand cropCommand;
         private RelayCommand openCropWindowCommand;
-        private Window cropWindow;
 
         public string InputPath
         {
@@ -116,7 +115,7 @@ namespace VideoEditorUi.ViewModels
             Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
 
-            cropWindow = new CropWindow(openFileDialog.FileName, this);
+            var cropWindow = new CropWindow(openFileDialog.FileName, this);
             cropWindow.Show();
         }
 
@@ -129,6 +128,7 @@ namespace VideoEditorUi.ViewModels
 
         private void OpenCropWindowCommandExecute()
         {
+            var cropWindow = new CropWindow(InputPath, this);
             cropWindow.Show();
         }
 

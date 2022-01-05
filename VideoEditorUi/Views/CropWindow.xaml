@@ -13,16 +13,12 @@
       <RowDefinition Height="1.5*"/>
       <RowDefinition Height="0.3*"/>
     </Grid.RowDefinitions>
-    <Canvas x:Name="gridChild" Grid.Row="0">
-      <CSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Center" HorizontalAlignment="Center" MediaOpened="player_MediaOpened"/>
+    <CSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+
+    <Canvas x:Name="gridChild" Grid.Row="0" MouseMove="recSelection_MouseMove" MouseDown="recSelection_MouseDown" MouseUp="recSelection_MouseUp">
       <Border x:Name="border" BorderBrush="Red" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="5" Canvas.Left="0" Canvas.Top="0">
-        <!--MouseMove="border_MouseMove" MouseDown="border_MouseDown" MouseUp="border_MouseUp">-->
-        <Rectangle x:Name="recSelection" Fill="LightSalmon" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="True" MouseMove="recSelection_MouseMove" MouseDown="recSelection_MouseDown" MouseUp="recSelection_MouseUp"/>
+        <Rectangle x:Name="recSelection" Fill="LightSalmon" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="True"/>
       </Border>
-      <!--<Rectangle x:Name="anchorLeft" Fill="Black" Height="10" Width="10" HorizontalAlignment="Left" VerticalAlignment="Center" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
-      <Rectangle x:Name="anchorTop" Fill="Black" Height="10" Width="10" HorizontalAlignment="Center" VerticalAlignment="Top" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
-      <Rectangle x:Name="anchorRight" Fill="Black" Height="10" Width="10" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>
-      <Rectangle x:Name="anchorBottom" Fill="Black" Height="10" Width="10" HorizontalAlignment="Center" VerticalAlignment="Bottom" IsHitTestVisible="True" MouseDown="anchor_MouseDown" MouseUp="anchor_MouseUp" MouseMove="anchor_MouseMove"/>-->
     </Canvas>
     <Grid Grid.Row="1">
       <Grid.ColumnDefinitions>
