@@ -16,8 +16,8 @@
       <RowDefinition Height="1.5*"/>
       <RowDefinition Height="0.7*"/>
     </Grid.RowDefinitions>
-    <utilities:PlayerControl x:Name="playerControl" Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Height="310"/>
-    <StackPanel Orientation="Vertical" Grid.Row="1">
+    <utilities:PlayerControl x:Name="playerControl" Grid.Row="0" VerticalAlignment="Top" Height="310"/>
+    <Grid Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>
@@ -30,25 +30,25 @@
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Row="2" Grid.Column="0" Grid.RowSpan="2" Orientation="Vertical" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+        <StackPanel Grid.Row="0" Grid.Column="0" Grid.RowSpan="3" Orientation="Vertical" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
           <CheckBox Content="{Binding OutputFormatLabel}" IsChecked="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
           <ComboBox IsEditable="False" IsReadOnly="True" Width="80" HorizontalAlignment="Left" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
           <CheckBox Content="{Binding ReEncodeQuestionLabel}" IsChecked="{Binding ReEncodeVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding OutputDifferentFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InverseBooleanConverter}}" />
           <CheckBox Content="{Binding CombineSectionsLabel}" IsChecked="{Binding CombineVideo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanCombine, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center">
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Center">
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
           <controls:ExtraSmallButton Command="{Binding SplitCommand}" Content="{Binding SplitLabel}"/>
         </StackPanel>
-        <StackPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Center">
           <controls:LargeTextBox IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
           <controls:MediumButton Content="{Binding JumpToTimeLabel}" Command="{Binding JumpToTimeCommand}"/>
         </StackPanel>
-        <StackPanel Grid.Row="2" Grid.RowSpan="2" Grid.Column="2" Margin="-20,0,0,0">
+        <StackPanel Grid.Row="0" Grid.RowSpan="3" Grid.Column="2" HorizontalAlignment="Center">
           <controls:LargeTextBlock  Height="140" Width="220" FontSize="13" TextWrapping="Wrap" Text="{Binding ReEncodeComment}"/>
         </StackPanel>
       </Grid>
-    </StackPanel>
+    </Grid>
   </Grid>
 </framework:ViewBaseControl>
