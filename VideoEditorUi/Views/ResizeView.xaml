@@ -15,10 +15,15 @@
       <RowDefinition Height="1.2*" />
     </Grid.RowDefinitions>
     <Label AllowDrop="True" Drop="Grid_OnDrop" Height="240" Width="700" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="20" Content="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}" DragEnter="OnDragEnter" DragLeave="OnPreviewDragLeave"/>
-    <Grid x:Name="gridChild">
+    <!--<Grid x:Name="gridChild">
       <CSVideoPlayer:VideoPlayerWPF x:Name="player" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="Center" HorizontalAlignment="Center" MediaOpened="player_MediaOpened"/>
       <Rectangle x:Name="recSelection" Stroke="Red" StrokeThickness="5" Fill="Transparent" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="top" HorizontalAlignment="Left" IsHitTestVisible="True" MouseMove="ctlImage_MouseMove" MouseDown="ctlImage_MouseDown" MouseUp="ctlImage_MouseUp"/>
-    </Grid>
+    </Grid>-->
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}">
+      <controls:MediumTextBlock Text="{Binding OldSize, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:MediumTextBlock Text="{Binding NewSize, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:MediumTextBlock Text="{Binding Position, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+    </StackPanel>
     <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Grid>
         <Grid.RowDefinitions>
@@ -37,7 +42,7 @@
           <controls:LargeTextBlock Name="text2" Width="500"/>
         </controls:DefaultStackPanel>
         <controls:DefaultStackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center">
-          <controls:MediumButton Command="{Binding OpenCropWindowCommand}" Content="{Binding OpenCropWindowLabel}"/>
+          <controls:LargeButton Command="{Binding OpenCropWindowCommand}" Content="{Binding OpenCropWindowLabel}"/>
         </controls:DefaultStackPanel>
         <controls:DefaultStackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
           <controls:MediumButton Command="{Binding CropCommand}" Content="{Binding CropLabel}"/>

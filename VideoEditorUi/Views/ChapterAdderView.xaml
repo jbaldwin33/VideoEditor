@@ -14,10 +14,9 @@
   <Grid Margin="10">
     <Grid.RowDefinitions>
       <RowDefinition Height="1.5*" />
-      <RowDefinition Height="1.2*" />
+      <RowDefinition Height="0.7*" />
     </Grid.RowDefinitions>
-    <Label AllowDrop="True" Drop="Grid_OnDrop" Height="240" Width="700" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="20" Content="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}" DragEnter="OnDragEnter" DragLeave="OnPreviewDragLeave"/>
-    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" HorizontalAlignment="Center" VerticalContentAlignment="Center" Height="250"/>
+    <utilities:PlayerControl x:Name="playerControl" Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Height="310"/>
     <StackPanel Orientation="Vertical" Grid.Row="1">
       <Grid>
         <Grid.RowDefinitions>
@@ -26,39 +25,6 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <Slider Grid.Row="0" HorizontalAlignment="Left" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
-        <Grid Grid.Row="0" HorizontalAlignment="Left" Margin="0,0,0,10">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-          </Grid.RowDefinitions>
-          <ItemsControl ItemsSource="{Binding RectCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-            <ItemsControl.ItemsPanel>
-              <ItemsPanelTemplate>
-                <Grid/>
-              </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-              <DataTemplate>
-                <Rectangle utilities:ExecutesCommandOnLeftClickBehavior.Command="{Binding RectCommand}" Width="{Binding Width}" Height="{Binding Height}" Fill="{Binding Fill}" HorizontalAlignment="{Binding HorizontalAlignment}" Margin="{Binding Margin}"/>
-              </DataTemplate>
-            </ItemsControl.ItemTemplate>
-          </ItemsControl>
-        </Grid>
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-          <controls:DefaultButton Command="{Binding SeekBackCommand}">
-            <metro:Material Kind="Rewind5"/>
-          </controls:DefaultButton>
-          <controls:DefaultButton Command="{Binding PlayCommand}">
-            <metro:Material Kind="PlayPause"/>
-          </controls:DefaultButton>
-          <controls:DefaultButton Command="{Binding SeekForwardCommand}">
-            <metro:Material Kind="FastForward5"/>
-          </controls:DefaultButton>
-          <controls:DefaultButton Command="{Binding SelectFileCommand}" FontSize="12">
-            <metro:Material Kind="FolderOpen"/>
-          </controls:DefaultButton>
-          <controls:DefaultButton Command="{Binding ImportCommand}" Content="{Binding ImportLabel}" FontSize="12"/>
-        </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="2" HorizontalAlignment="Center">
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>

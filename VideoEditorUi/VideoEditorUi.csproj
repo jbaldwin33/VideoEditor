@@ -141,7 +141,10 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Utilities\CustomAdorner.cs" />
+    <Compile Include="Utilities\PlayerControl.xaml.cs">
+      <DependentUpon>PlayerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Utilities\ResizeAdorner.cs" />
     <Compile Include="Utilities\GlobalExceptionHandler.cs" />
     <Compile Include="Utilities\RectangleExtensions.cs" />
     <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
@@ -198,6 +201,10 @@
     <Compile Include="Views\UrlDialogView.xaml.cs">
       <DependentUpon>UrlDialogView.xaml</DependentUpon>
     </Compile>
+    <Page Include="Utilities\PlayerControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Views\ChapterTitleDialogView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

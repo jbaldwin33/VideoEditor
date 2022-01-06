@@ -5,7 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoEditorUi.Views"
         xmlns:views="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework" 
-        xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+        xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" 
+        xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+        xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
         Height="920" Width="1350" WindowStartupLocation="CenterScreen">
   <Grid>
@@ -13,26 +15,46 @@
       <RowDefinition Height="1.5*"/>
       <RowDefinition Height="0.3*"/>
     </Grid.RowDefinitions>
-    <CSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-
-    <Canvas x:Name="gridChild" Grid.Row="0" MouseMove="recSelection_MouseMove" MouseDown="recSelection_MouseDown" MouseUp="recSelection_MouseUp">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+      <ColumnDefinition Width="*"/>
+    </Grid.ColumnDefinitions>
+    <CSVideoPlayer:VideoPlayerWPF x:Name="player" Grid.ColumnSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+    <Canvas x:Name="gridChild" Grid.Row="0" Grid.ColumnSpan="3" MouseMove="recSelection_MouseMove" MouseDown="recSelection_MouseDown" MouseUp="recSelection_MouseUp">
       <Border x:Name="border" BorderBrush="Red" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="5" Canvas.Left="0" Canvas.Top="0">
         <Rectangle x:Name="recSelection" Fill="LightSalmon" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="True"/>
       </Border>
     </Canvas>
-    <Grid Grid.Row="1">
+    <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center">
+      <Slider HorizontalAlignment="Center" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+        <controls:DefaultButton Command="{Binding SeekBackCommand}">
+          <metro:Material Kind="Rewind5"/>
+        </controls:DefaultButton>
+        <controls:DefaultButton Command="{Binding PlayCommand}">
+          <metro:Material Kind="PlayPause"/>
+        </controls:DefaultButton>
+        <controls:DefaultButton Command="{Binding SeekForwardCommand}">
+          <metro:Material Kind="FastForward5"/>
+        </controls:DefaultButton>
+      </StackPanel>
+    </StackPanel>
+    <Grid Grid.Row="2" Grid.Column="0">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-    <controls:DefaultStackPanel Grid.Column="0" Orientation="Vertical">
-      <controls:LargeTextBlock Text="{Binding OriginalWidthHeight, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
-      <controls:LargeTextBlock Text="{Binding NewWidthHeight, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
-      <controls:LargeTextBlock Text="{Binding Position, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
-    </controls:DefaultStackPanel>
-      <controls:DefaultStackPanel Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <controls:MediumButton Content="Set crop" Click="MediumButton_Click"/>
+      <controls:DefaultStackPanel Orientation="Vertical" HorizontalAlignment="Center">
+        <controls:LargeTextBlock Text="{Binding OldSize, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+        <controls:LargeTextBlock Text="{Binding NewSize, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" />
+        <controls:LargeTextBlock Text="{Binding Position, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
       </controls:DefaultStackPanel>
     </Grid>
+    <StackPanel Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <controls:DefaultStackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <controls:MediumButton Content="Set crop" Click="MediumButton_Click"/>
+      </controls:DefaultStackPanel>
+    </StackPanel>
   </Grid>
 </Window>

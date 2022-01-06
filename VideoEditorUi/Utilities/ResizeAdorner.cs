@@ -9,7 +9,7 @@ using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Utilities
 {
-    public class CustomAdorner : Adorner
+    public class ResizeAdorner : Adorner
     {
         private readonly VisualCollection visualChildren;
         private readonly double origX;
@@ -35,7 +35,7 @@ namespace VideoEditorUi.Utilities
             {
                 topPos = value;
                 Canvas.SetTop(childElement, value);
-                viewModel.Position = $"position = ({LeftPos},{TopPos})";
+                viewModel.Position = $"Position: ({LeftPos},{TopPos})";
             }
         }
 
@@ -46,7 +46,7 @@ namespace VideoEditorUi.Utilities
             {
                 leftPos = value;
                 Canvas.SetLeft(childElement, value);
-                viewModel.Position = $"position = ({LeftPos},{TopPos})";
+                viewModel.Position = $"Position: ({LeftPos},{TopPos})";
             }
         }
 
@@ -56,7 +56,7 @@ namespace VideoEditorUi.Utilities
             set
             {
                 childWidth = childElement.Width = value;
-                viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
+                viewModel.NewSize = $"New size: {childElement.Width}x{childElement.Height}";
             }
         }
 
@@ -66,11 +66,11 @@ namespace VideoEditorUi.Utilities
             set
             {
                 childHeight = childElement.Height = value;
-                viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
+                viewModel.NewSize = $"New size: {childElement.Width}x{childElement.Height}";
             }
         }
 
-        public CustomAdorner(UIElement element, ResizerViewModel vm) : base(element)
+        public ResizeAdorner(UIElement element, ResizerViewModel vm) : base(element)
         {
             viewModel = vm;
             visualChildren = new VisualCollection(this);
@@ -164,40 +164,31 @@ namespace VideoEditorUi.Utilities
             var deltaHorizontal = Math.Min(-e, childElement.ActualWidth - childElement.MinWidth);
             TopPos = Clamp(Canvas.GetTop(childElement) - transformOrigin.X * deltaHorizontal * Math.Sin(angle), origY, maxY);
             LeftPos = Clamp(Canvas.GetLeft(childElement) + (deltaHorizontal * transformOrigin.X * (1 - Math.Cos(angle))), origX, maxX);
-            //Canvas.SetTop(childElement, TopPos);
-            //Canvas.SetLeft(childElement, LeftPos);
             ChildWidth = Clamp(childWidth - deltaHorizontal, 50, childElement.MaxWidth);
-            //UpdateText();
         }
+
         private void ResizeX(double e)
         {
             var deltaHorizontal = Math.Min(e, childElement.ActualWidth - childElement.MinWidth);
             TopPos = Clamp(Canvas.GetTop(childElement) + deltaHorizontal * Math.Sin(angle) - transformOrigin.X * deltaHorizontal * Math.Sin(angle), origY, maxY);
             LeftPos = Clamp(Canvas.GetLeft(childElement) + deltaHorizontal * Math.Cos(angle) + (transformOrigin.X * deltaHorizontal * (1 - Math.Cos(angle))), origX, maxX);
-            //Canvas.SetTop(childElement, TopPos);
-            //Canvas.SetLeft(childElement, LeftPos);
             ChildWidth = Clamp(childWidth - deltaHorizontal, 50, childElement.MaxWidth);
-            //UpdateText();
         }
+
         private void ResizeHeight(double e)
         {
             var deltaVertical = Math.Min(-e, childElement.ActualHeight - childElement.MinHeight);
             TopPos = Clamp(Canvas.GetTop(childElement) + (transformOrigin.Y * deltaVertical * (1 - Math.Cos(-angle))), origY, maxY);
             LeftPos = Clamp(Canvas.GetLeft(childElement) - deltaVertical * transformOrigin.Y * Math.Sin(-angle), origX, maxX);
-            //Canvas.SetTop(childElement, TopPos);
-            //Canvas.SetLeft(childElement, LeftPos);
             ChildHeight = Clamp(childHeight - deltaVertical, 50, childElement.MaxHeight);
-            //UpdateText();
         }
+
         private void ResizeY(double e)
         {
             var deltaVertical = Math.Min(e, childElement.ActualHeight - childElement.MinHeight);
             TopPos = Clamp(Canvas.GetTop(childElement) + deltaVertical * Math.Cos(-angle) + (transformOrigin.Y * deltaVertical * (1 - Math.Cos(-angle))), origY, maxY);
             LeftPos = Clamp(Canvas.GetLeft(childElement) + deltaVertical * Math.Sin(-angle) - (transformOrigin.Y * deltaVertical * Math.Sin(-angle)), origX, maxX);
-            //Canvas.SetTop(childElement, TopPos);
-            //Canvas.SetLeft(childElement, LeftPos);
             ChildHeight = Clamp(childHeight - deltaVertical, 50, childElement.MaxHeight);
-            //UpdateText();
         }
 
         #endregion
@@ -234,15 +225,6 @@ namespace VideoEditorUi.Utilities
             ChildHeight = viewModel.CropClass.Height;
             LeftPos = viewModel.CropClass.X;
             TopPos = viewModel.CropClass.Y;
-            //Canvas.SetLeft(childElement, LeftPos);
-            //Canvas.SetTop(childElement, TopPos);
-            //UpdateText();
         }
-
-        //public void UpdateText()
-        //{
-        //    viewModel.NewWidthHeight = $"new width and height = ({childElement.Width},{childElement.Height})";
-        //    viewModel.Position = $"position = ({LeftPos},{TopPos})";
-        //}
     }
 }

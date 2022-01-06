@@ -33,7 +33,6 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand selectFileCommand;
         private RelayCommand rectCommand;
         private RelayCommand jumpToTimeCommand;
-        private Slider slider;
         private TimeSpan startTime;
         private TimeSpan endTime;
         private string startTimeString;
@@ -50,12 +49,6 @@ namespace VideoEditorUi.ViewModels
         private bool outputDifferentFormat;
         private string textInput;
         private bool timesImported;
-
-        public Slider Slider
-        {
-            get => slider;
-            set => SetProperty(ref slider, value);
-        }
         
         public TimeSpan StartTime
         {
@@ -197,7 +190,7 @@ namespace VideoEditorUi.ViewModels
         #endregion
 
         private static readonly object _lock = new object();
-        public Action<TimeSpan> PositionChanged;
+        //public Action<TimeSpan> PositionChanged;
 
         public override void OnUnloaded()
         {
@@ -238,22 +231,22 @@ namespace VideoEditorUi.ViewModels
 
         private void SeekBackCommandExecute()
         {
-            slider.Value = slider.Value - 5000 < 0 ? 0 : slider.Value - 5000;
-            SetPlayerPosition(Player, slider.Value);
-            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
+            Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
+            SetPlayerPosition(Player, Slider.Value);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
-            slider.Value = slider.Value + 5000 > slider.Maximum ? slider.Maximum : slider.Value + 5000;
-            SetPlayerPosition(Player, slider.Value);
-            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)slider.Value).ToString("hh':'mm':'ss':'fff");
+            Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
+            SetPlayerPosition(Player, Slider.Value);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
         }
 
         private void JumpToTimeCommandExecute()
         {
             TimeSpan.TryParseExact(CurrentTimeString, "hh':'mm':'ss':'fff", CultureInfo.CurrentCulture, out var result);
-            slider.Value = result.TotalMilliseconds;
-            SetPlayerPosition(Player, slider.Value);
+            Slider.Value = result.TotalMilliseconds;
+            SetPlayerPosition(Player, Slider.Value);
         }
 
         private void SplitCommandExecute()
@@ -323,8 +316,8 @@ namespace VideoEditorUi.ViewModels
             var rect = new RectClass
             {
                 RectCommand = RectCommand,
-                Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, slider.Maximum), 0, 0, 0),
-                Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, slider.Maximum),
+                Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, Slider.Maximum), 0, 0, 0),
+                Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, Slider.Maximum),
                 Height = 5,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Fill = new SolidColorBrush(Colors.Red)

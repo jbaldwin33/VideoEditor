@@ -19,7 +19,14 @@ namespace VideoEditorUi.ViewModels
 
         private string inputPath;
         private bool canCrop;
+        private string oldSize;
+        private string newSize;
+        private string position;
+        private string aspectRatio;
         private CropClass cropClass;
+        private RelayCommand seekBackCommand;
+        private RelayCommand playCommand;
+        private RelayCommand seekForwardCommand;
         private RelayCommand selectFileCommand;
         private RelayCommand cropCommand;
         private RelayCommand openCropWindowCommand;
@@ -42,20 +49,16 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref cropClass, value);
         }
 
-        private string originalWidthHeight;
-        private string newWidthHeight;
-        private string position;
-
-        public string OriginalWidthHeight
+        public string OldSize
         {
-            get => originalWidthHeight;
-            set => SetProperty(ref originalWidthHeight, value);
+            get => oldSize;
+            set => SetProperty(ref oldSize, value);
         }
 
-        public string NewWidthHeight
+        public string NewSize
         {
-            get => newWidthHeight;
-            set => SetProperty(ref newWidthHeight, value);
+            get => newSize;
+            set => SetProperty(ref newSize, value);
         }
 
         public string Position
@@ -64,13 +67,20 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref position, value);
         }
 
-
+        public string AspectRatio
+        {
+            get => aspectRatio;
+            set => SetProperty(ref aspectRatio, value);
+        }
 
 
         #endregion
 
         #region Commands
 
+        public RelayCommand SeekBackCommand => seekBackCommand ?? (seekBackCommand = new RelayCommand(SeekBackCommandExecute, () => FileLoaded));
+        public RelayCommand SeekForwardCommand => seekForwardCommand ?? (seekForwardCommand = new RelayCommand(SeekForwardCommandExecute, () => FileLoaded));
+        public RelayCommand PlayCommand => playCommand ?? (playCommand = new RelayCommand(PlayCommandExecute, () => FileLoaded));
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand CropCommand => cropCommand ?? (cropCommand = new RelayCommand(CropCommandExecute, () => CropClass != null));
         public RelayCommand OpenCropWindowCommand => openCropWindowCommand ?? (openCropWindowCommand = new RelayCommand(OpenCropWindowCommandExecute, () => FileLoaded));
@@ -96,7 +106,20 @@ namespace VideoEditorUi.ViewModels
 
         protected override void Initialize()
         {
+            OldSize = $"Old size: 0x0";
+            NewSize = $"New size: 0x0";
+            Position = $"Starting position: (0,0)";
+        }
 
+        private void SeekBackCommandExecute()
+        {
+            Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
+        }
+        private void SeekForwardCommandExecute()
+        {
+            Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
         }
 
         private void SelectFileCommandExecute()
@@ -111,8 +134,6 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            UtilityClass.GetDetails(Player, openFileDialog.FileName);
-            Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
 
             var cropWindow = new CropWindow(openFileDialog.FileName, this);
@@ -138,13 +159,19 @@ namespace VideoEditorUi.ViewModels
             base.FinishedDownload(sender, e);
             var message = e.Cancelled
                 ? $"{new OperationCancelledTranslatable()} {e.Message}"
-                : new VideoSuccessfullyResizedTranslatable();
+                : new VideoSuccessfullyCroppedTranslatable();
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
         protected override void CleanUp()
         {
             FileLoaded = false;
+            InputPath = string.Empty;
+            CanCrop = false;
+            OldSize = $"Old size: 0x0";
+            NewSize = $"New size: 0x0";
+            Position = $"Starting position: (0,0)";
+            CropClass = null;
             base.CleanUp();
         }
     }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using CSVideoPlayer;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
@@ -14,7 +15,7 @@ namespace VideoEditorUi.ViewModels
     public abstract class EditorViewModel : ViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
-
+        private Slider slider;
         private bool fileLoaded;
         private bool editorInitialized;
         private bool isPlaying;
@@ -23,6 +24,13 @@ namespace VideoEditorUi.ViewModels
         protected ProgressBarViewModel ProgressBarViewModel;
         public Action<string[]> DragFiles;
         public VideoPlayerWPF Player;
+        public Action<TimeSpan> PositionChanged;
+
+        public Slider Slider
+        {
+            get => slider;
+            set => SetProperty(ref slider, value);
+        }
 
         public bool FileLoaded
         {

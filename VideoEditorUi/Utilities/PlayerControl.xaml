@@ -1,0 +1,68 @@
+﻿<UserControl x:Class="VideoEditorUi.Utilities.PlayerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:VideoEditorUi.Utilities" 
+             xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" 
+             xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+             xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
+             xmlns:utilities="clr-namespace:VideoEditorUi.Utilities"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="1.5*"/>
+      <RowDefinition Height="0.4*"/>
+    </Grid.RowDefinitions>
+    <Label AllowDrop="True" Drop="Grid_OnDrop" Height="240" Width="700" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="20" Content="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}" DragEnter="OnDragEnter" DragLeave="OnPreviewDragLeave"/>
+    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+    <StackPanel Orientation="Vertical" Grid.Row="1" HorizontalAlignment="Center">
+      <Grid>
+        <Grid.RowDefinitions>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Slider Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+          </Grid.RowDefinitions>
+          <ItemsControl ItemsSource="{Binding RectCollection, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <Grid/>
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Rectangle utilities:ExecutesCommandOnLeftClickBehavior.Command="{Binding RectCommand}" Width="{Binding Width}" Height="{Binding Height}" Fill="{Binding Fill}" HorizontalAlignment="{Binding HorizontalAlignment}" Margin="{Binding Margin}"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </Grid>
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Center">
+          <controls:DefaultButton Command="{Binding SeekBackCommand}">
+            <metro:Material Kind="Rewind5"/>
+          </controls:DefaultButton>
+          <controls:DefaultButton Command="{Binding PlayCommand}">
+            <metro:Material Kind="PlayPause"/>
+          </controls:DefaultButton>
+          <controls:DefaultButton Command="{Binding SeekForwardCommand}">
+            <metro:Material Kind="FastForward5"/>
+          </controls:DefaultButton>
+          <controls:DefaultButton Command="{Binding SelectFileCommand}" FontSize="12">
+            <metro:Material Kind="FolderOpen"/>
+          </controls:DefaultButton>
+        </StackPanel>
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>
