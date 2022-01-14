@@ -12,7 +12,7 @@ namespace VideoEditorUi.Views
     public partial class MergerView : ViewBaseControl
     {
         private readonly MergerViewModel viewModel;
-        public MergerView() : base(Navigator.Instance.CurrentViewModel)
+        public MergerView() : base()
         {
             InitializeComponent();
             viewModel = Navigator.Instance.CurrentViewModel as MergerViewModel;

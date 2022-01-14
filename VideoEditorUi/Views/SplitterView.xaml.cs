@@ -19,7 +19,7 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class SplitterView : ViewBaseControl
     {
-        public SplitterView() : base(Navigator.Instance.CurrentViewModel)
+        public SplitterView() : base()
         {
             InitializeComponent();
             playerControl.DataContext = DataContext;

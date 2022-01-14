@@ -10,7 +10,7 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class DownloaderView : ViewBaseControl
     {
-        public DownloaderView() : base(Navigator.Instance.CurrentViewModel)
+        public DownloaderView() : base()
         {
             InitializeComponent();
         }

@@ -13,7 +13,7 @@ namespace VideoEditorUi.Views
     public partial class ResizeView : ViewBaseControl
     {
         private ResizerViewModel viewModel;
-        public ResizeView() : base(Navigator.Instance.CurrentViewModel)
+        public ResizeView() : base()
         {
             InitializeComponent();
             viewModel = Navigator.Instance.CurrentViewModel as ResizerViewModel;

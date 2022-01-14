@@ -14,7 +14,7 @@ namespace VideoEditorUi.Views
     public partial class SizeReducerView : ViewBaseControl
     {
         private readonly SizeReducerViewModel viewModel;
-        public SizeReducerView() : base(Navigator.Instance.CurrentViewModel)
+        public SizeReducerView() : base()
         {
             InitializeComponent();
             viewModel = Navigator.Instance.CurrentViewModel as SizeReducerViewModel;

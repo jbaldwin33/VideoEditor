@@ -18,7 +18,7 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class ChapterAdderView : ViewBaseControl
     {
-        public ChapterAdderView() : base(Navigator.Instance.CurrentViewModel)
+        public ChapterAdderView() : base()
         {
             InitializeComponent();
             playerControl.DataContext = DataContext;
