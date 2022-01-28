@@ -150,6 +150,7 @@
     <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
     <Compile Include="ViewModels\CropWindowViewModel.cs" />
     <Compile Include="ViewModels\DownloaderViewModel.cs" />
+    <Compile Include="ViewModels\ImageCropViewModel.cs" />
     <Compile Include="ViewModels\ResizerViewModel.cs" />
     <Compile Include="ViewModels\SizeReducerViewModel.cs" />
     <Compile Include="ViewModels\MergerViewModel.cs" />
@@ -169,6 +170,9 @@
     </Compile>
     <Compile Include="Views\DownloaderView.xaml.cs">
       <DependentUpon>DownloaderView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ImageCropView.xaml.cs">
+      <DependentUpon>ImageCropView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ResizeView.xaml.cs">
       <DependentUpon>ResizeView.xaml</DependentUpon>
@@ -214,6 +218,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\DownloaderView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ImageCropView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

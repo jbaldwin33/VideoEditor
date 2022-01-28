@@ -157,7 +157,6 @@ namespace VideoEditorUi.ViewModels
 
         #endregion
 
-
         #region  Labels
 
         public string StartLabel => new StartTimeLabelTranslatable();

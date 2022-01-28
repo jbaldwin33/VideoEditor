@@ -36,6 +36,7 @@ namespace VideoUtilities
         protected Action DoAfterProcessExit;
         protected bool Cancelled;
         protected bool Failed;
+        protected bool ShowFile = true;
         protected List<string> ErrorData = new List<string>();
         protected readonly List<ProcessClass> CurrentProcess = new List<ProcessClass>();
         protected readonly List<ProcessClass> ProcessStuff = new List<ProcessClass>();
@@ -48,7 +49,6 @@ namespace VideoUtilities
         private readonly object _lock = new object();
         private readonly object _lock2 = new object();
         private string binaryPath;
-        private decimal youtubePercentage;
         protected string OutputPath;
         private string[] errorWords =
         {
@@ -61,6 +61,7 @@ namespace VideoUtilities
             "cannot",
             "Too many"
         };
+
 
         #endregion
 
@@ -303,7 +304,6 @@ namespace VideoUtilities
                 Console.WriteLine("weird perc {0}", perc);
                 return;
             }
-            youtubePercentage = perc;
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = perc, Data = outLine.Data });
         }
 
@@ -433,7 +433,7 @@ namespace VideoUtilities
         protected virtual void OnDownloadFinished(FinishedEventArgs e)
         {
             FinishedDownload?.Invoke(this, e);
-            if (!e.Cancelled)
+            if (!e.Cancelled && ShowFile)
             {
                 Process.Start("explorer.exe", $"/select,\"{OutputPath}\"");
                 //open

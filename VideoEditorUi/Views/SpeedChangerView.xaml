@@ -42,7 +42,7 @@
         <Label Content="{Binding SpeedLabel, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" HorizontalContentAlignment="Center" Width="170" />
       </StackPanel>
       <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
-        <controls:MediumButton Command="{Binding FormatCommand}" Content="{Binding FormatLabel}" IsEnabled="{Binding CanFormat, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <controls:MediumButton Command="{Binding FormatCommand}" Content="{Binding FormatLabel}"/>
       </StackPanel>
     </Grid>
   </Grid>

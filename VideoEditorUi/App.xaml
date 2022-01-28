@@ -44,7 +44,10 @@
       <DataTemplate DataType="{x:Type viewModels:ResizerViewModel}">
         <views:ResizeView/>
       </DataTemplate>
-      <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
+            <DataTemplate DataType="{x:Type viewModels:ImageCropViewModel}">
+                <views:ImageCropView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:ProgressBarViewModel}">
         <views:ProgressBarView/>
       </DataTemplate>
     </ResourceDictionary>
