@@ -12,10 +12,9 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class ChapterTitleDialogView : Window
     {
-        public ChapterTitleDialogView(ViewModel vm)
+        public ChapterTitleDialogView()
         {
             InitializeComponent();
-            DataContext = vm;
             Loaded += ChapterTitleDialogView_Loaded;
         }
 

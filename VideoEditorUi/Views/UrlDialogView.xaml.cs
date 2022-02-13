@@ -13,16 +13,19 @@ namespace VideoEditorUi.Views
     /// </summary>
     public partial class UrlDialogView : Window
     {
-        private readonly DownloaderViewModel viewModel;
-        public UrlDialogView(ViewModel vm)
+        private DownloaderViewModel viewModel;
+        public UrlDialogView()
         {
             InitializeComponent();
             Title = new AddUrlLabelTranslatable();
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             Owner = Application.Current.MainWindow;
-            DataContext = vm;
-            viewModel = vm as DownloaderViewModel;
             Loaded += UrlDialogView_Loaded;
+        }
+
+        public void Initialize()
+        {
+            viewModel = DataContext as DownloaderViewModel;
         }
 
         private void UrlDialogView_Loaded(object sender, RoutedEventArgs e)

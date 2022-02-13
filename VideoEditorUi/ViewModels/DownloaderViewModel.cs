@@ -131,7 +131,12 @@ namespace VideoEditorUi.ViewModels
             BindingOperations.EnableCollectionSynchronization(UrlCollection, _lock);
         }
 
-        private void AddUrlCommandExecute() => new UrlDialogView(this).ShowDialog();
+        private void AddUrlCommandExecute()
+        {
+            var view = new UrlDialogView { DataContext = this };
+            view.Initialize();
+            view.ShowDialog();
+        }
 
         private void DownloadCommandExecute()
         {

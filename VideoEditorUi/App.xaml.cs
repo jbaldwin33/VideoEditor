@@ -14,7 +14,7 @@ namespace VideoEditorUi
     /// </summary>
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        private void Application_Startup(object sender, StartupEventArgs e)
         {
             //AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ja-JP");
@@ -32,7 +32,6 @@ namespace VideoEditorUi
             };
             var window = new BaseWindowView(types) { Title = new VideoEditorTranslatable() };
             window.Show();
-            base.OnStartup(e);
         }
     }
 }

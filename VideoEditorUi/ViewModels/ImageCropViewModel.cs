@@ -22,10 +22,10 @@ namespace VideoEditorUi.ViewModels
         private string newSize;
         private string position;
         private string aspectRatio;
-        private bool fileLoaded;
+        //private bool fileLoaded;
         private RelayCommand selectFileCommand;
         private RelayCommand cropCommand;
-        private RelayCommand openCropWindowCommand;
+        //private RelayCommand openCropWindowCommand;
         private bool padHeight;
         private double? movePos;
         private double? width;

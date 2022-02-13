@@ -139,7 +139,6 @@ namespace VideoEditorUi.ViewModels
 
         private string importedFile;
         private static readonly object _lock = new object();
-        public Action<TimeSpan> PositionChanged;
 
         public override void OnUnloaded()
         {
@@ -215,7 +214,7 @@ namespace VideoEditorUi.ViewModels
             EndTime = UtilityClass.GetPlayerPosition(Player);
             AddRectangle();
 
-            new ChapterTitleDialogView(this) { Title = new AddChapterTitleTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
+            new ChapterTitleDialogView { DataContext = this, Title = new AddChapterTitleTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
             TextInput = TextInput.Replace(',', '_').Replace(':', '_');
             SectionViewModels.Add(new SectionViewModel(StartTime, EndTime, TextInput));
             TextInput = string.Empty;

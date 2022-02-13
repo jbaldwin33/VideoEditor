@@ -22,10 +22,10 @@ namespace VideoEditorUi.Views
         private bool isDragging = false;
         private double totalWidth;
         private double totalHeight;
-        private double origCanvasLeft;
-        private double origCanvasTop;
-        private Point clickPosition;
-        private TranslateTransform originTT;
+        //private double origCanvasLeft;
+        //private double origCanvasTop;
+        //private Point clickPosition;
+        //private TranslateTransform originTT;
         private Thumb _thumb;
         private Thumb thumb => _thumb ?? (_thumb = (slider.Template.FindName("PART_Track", slider) as Track)?.Thumb);
         private DispatcherTimer timer;
@@ -63,8 +63,8 @@ namespace VideoEditorUi.Views
                     ChildWidth = border.Width,
                     ChildHeight = border.Height
                 };
-                origCanvasLeft = Canvas.GetLeft(border);
-                origCanvasTop = Canvas.GetTop(border);
+                //origCanvasLeft = Canvas.GetLeft(border);
+                //origCanvasTop = Canvas.GetTop(border);
                 adornerLayer.Add(Adorner);
             };
         }
