@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31515.178
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32112.339
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorUi", "VideoEditorUi\VideoEditorUi.csproj", "{1C4D3A71-B899-44B9-8F6B-0DD848D46411}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -11,6 +11,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoUtilities", "VideoUtilities\VideoUtilities.csproj", "{96A8755D-750E-40F7-9677-EB5AFEF558B0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFVideoPlayer", "WPFVideoPlayer\WPFVideoPlayer.csproj", "{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorTests", "VideoEditorTests\VideoEditorTests.csproj", "{5859F923-19F0-4D12-9EE1-152E4D59E83B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +60,18 @@ Global
 		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|x86.ActiveCfg = Release|Any CPU
 		{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}.Release|x86.Build.0 = Release|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.All|Any CPU.ActiveCfg = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.All|Any CPU.Build.0 = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.All|x86.ActiveCfg = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.All|x86.Build.0 = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Debug|x86.Build.0 = Debug|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Release|x86.ActiveCfg = Release|Any CPU
+		{5859F923-19F0-4D12-9EE1-152E4D59E83B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

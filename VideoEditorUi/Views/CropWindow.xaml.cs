@@ -33,7 +33,7 @@ namespace VideoEditorUi.Views
         public CropWindow(string filename, ResizerViewModel vm)
         {
             InitializeComponent();
-            UtilityClass.GetDetails(player, filename);
+            UtilityClass.Instance.GetDetails(player, filename);
             player.Open(new Uri(filename));
 
             var width = double.Parse(player.mediaProperties.Streams.Stream[0].Width);
@@ -80,7 +80,7 @@ namespace VideoEditorUi.Views
         private void timer_Tick(object sender, EventArgs e)
         {
             if (!isDragging)
-                slider.Value = UtilityClass.GetPlayerPosition(player).TotalMilliseconds;
+                slider.Value = UtilityClass.Instance.GetPlayerPosition(player).TotalMilliseconds;
         }
 
         private void slider_DragStarted(object sender, DragStartedEventArgs e) => isDragging = true;
@@ -88,8 +88,8 @@ namespace VideoEditorUi.Views
         private void slider_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             isDragging = false;
-            UtilityClass.SetPlayerPosition(player, slider.Value);
-            resizerViewModel.PositionChanged?.Invoke(UtilityClass.GetPlayerPosition(player));
+            UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
+            resizerViewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
         }
 
         private void Player_MediaOpened(object sender, MediaOpenedEventArgs e)
@@ -107,8 +107,8 @@ namespace VideoEditorUi.Views
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                UtilityClass.SetPlayerPosition(player, slider.Value);
-                resizerViewModel.PositionChanged?.Invoke(UtilityClass.GetPlayerPosition(player));
+                UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
+                resizerViewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
             }
         }
 

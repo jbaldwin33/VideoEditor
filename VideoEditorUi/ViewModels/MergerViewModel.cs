@@ -119,7 +119,7 @@ namespace VideoEditorUi.ViewModels
         public string SelectFileLabel => new SelectFileLabelTranslatable();
         public string MoveUpLabel => new MoveUpLabelTranslatable();
         public string MoveDownLabel => new MoveDownLabelTranslatable();
-        public string RemoveLabel => new RemoveLabelTranslatable();
+        public string RemoveLabel => new RemoveSelectedLabelTranslatable();
         public string OutputFormatLabel => new OutputFormatQuestionTranslatable();
         public string OutputFolderLabel => new OutputFolderLabelTranslatable();
 
@@ -233,10 +233,14 @@ namespace VideoEditorUi.ViewModels
             SelectedFile = file;
         }
 
-        private void RemoveExecute()
+        private void RemoveExecute(object param)
         {
-            FileViewModels.Remove(FileViewModels.First(f => f.filename.Contains(Path.GetFileNameWithoutExtension(SelectedFile))));
-            FileCollection.Remove(SelectedFile);
+            var items = ((System.Collections.IList)param).Cast<string>().ToList();
+            for (var i = 0; i < items.Count; i++)
+            {
+                FileViewModels.Remove(FileViewModels.First(f => f.filename.Contains(Path.GetFileNameWithoutExtension(items[i]))));
+                FileCollection.Remove(items[i]);
+            }
         }
 
         private void SelectOutputFolderCommandExecute()
@@ -262,14 +266,17 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            FileCollection.Clear();
-            FileViewModels.Clear();
-            FormatType = FormatEnum.avi;
-            OutputDifferentFormat = false;
-            OutputPath = null;
-            base.CleanUp();
+            if (!isError)
+            {
+                FileCollection.Clear();
+                FileViewModels.Clear();
+                FormatType = FormatEnum.avi;
+                OutputDifferentFormat = false;
+                OutputPath = null;
+            }
+            base.CleanUp(isError);
         }
     }
 }

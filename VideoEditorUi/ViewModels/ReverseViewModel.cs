@@ -99,11 +99,14 @@ namespace VideoEditorUi.ViewModels
             Execute(StageEnum.Secondary);
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            InputPath = string.Empty;
-            FileLoaded = false;
-            base.CleanUp();
+            if (!isError)
+            {
+                InputPath = string.Empty;
+                FileLoaded = false;
+            }
+            base.CleanUp(isError);
         }
     }
 }

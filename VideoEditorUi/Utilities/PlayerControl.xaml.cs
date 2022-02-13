@@ -18,7 +18,6 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using VideoEditorUi.ViewModels;
 using VideoEditorUi.Views;
-using static VideoEditorUi.Utilities.UtilityClass;
 
 namespace VideoEditorUi.Utilities
 {
@@ -44,7 +43,7 @@ namespace VideoEditorUi.Utilities
             viewModel.Slider = slider;
             timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             timer.Tick += timer_Tick;
-            InitializePlayer(player);
+            UtilityClass.Instance.InitializePlayer(player);
             viewModel.Player = player;
             player.MediaOpened += Player_MediaOpened;
             player.MediaEnded += Player_MediaEnded;
@@ -64,7 +63,7 @@ namespace VideoEditorUi.Utilities
         private void timer_Tick(object sender, EventArgs e)
         {
             if (!isDragging)
-                slider.Value = GetPlayerPosition(player).TotalMilliseconds;
+                slider.Value = UtilityClass.Instance.GetPlayerPosition(player).TotalMilliseconds;
         }
 
         private void slider_DragStarted(object sender, DragStartedEventArgs e) => isDragging = true;
@@ -72,8 +71,8 @@ namespace VideoEditorUi.Utilities
         private void slider_DragCompleted(object sender, DragCompletedEventArgs e)
         {
             isDragging = false;
-            SetPlayerPosition(player, slider.Value);
-            viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
+            UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
+            viewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
         }
 
         private void Player_MediaOpened(object sender, MediaOpenedEventArgs e)
@@ -91,8 +90,8 @@ namespace VideoEditorUi.Utilities
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {
-                SetPlayerPosition(player, slider.Value);
-                viewModel.PositionChanged?.Invoke(GetPlayerPosition(player));
+                UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
+                viewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
             }
         }
 

@@ -180,12 +180,15 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            UrlCollection.Clear();
-            ExtractAudio = false;
-            OutputPath = null;
-            base.CleanUp();
+            if (!isError)
+            {
+                UrlCollection.Clear();
+                ExtractAudio = false;
+                OutputPath = null;
+            }
+            base.CleanUp(isError);
         }
 
         public class UrlClass

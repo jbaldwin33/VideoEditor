@@ -20,6 +20,7 @@ namespace VideoEditorUi.ViewModels
         private bool editorInitialized;
         private bool isPlaying;
 
+        protected IUtilityClass UtilityClass => Utilities.UtilityClass.Instance;
         protected BaseClass VideoEditor;
         protected ProgressBarViewModel ProgressBarViewModel;
         public Action<string[]> DragFiles;
@@ -101,16 +102,11 @@ namespace VideoEditorUi.ViewModels
         protected virtual void Initialize() => throw new NotImplementedException();
         protected virtual void DragFilesCallback(string[] files) => throw new NotImplementedException();
 
-        protected virtual void FinishedDownload(object sender, FinishedEventArgs e)
-        {
-            CleanUp();
-            if (Player != null)
-                UtilityClass.ClosePlayer(Player);
-        }
+        protected virtual void FinishedDownload(object sender, FinishedEventArgs e) => CleanUp(false);
 
         protected virtual void ErrorDownload(object sender, ProgressEventArgs e)
         {
-            CleanUp();
+            CleanUp(true);
             ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
@@ -121,10 +117,15 @@ namespace VideoEditorUi.ViewModels
             e.Result = args.Result == MessageBoxResult.Yes;
         }
 
-        protected virtual void CleanUp()
+        protected virtual void CleanUp(bool isError)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             editorInitialized = false;
+            if (isError)
+                return;
+
+            if (Player != null)
+                UtilityClass.ClosePlayer(Player);
         }
 
         private void SetupEditor()

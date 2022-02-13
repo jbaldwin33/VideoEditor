@@ -16,7 +16,7 @@ namespace VideoEditorUi.Views
         public ReverseView() : base()
         {
             InitializeComponent();
-            Utilities.UtilityClass.InitializePlayer(player);
+            Utilities.UtilityClass.Instance.InitializePlayer(player);
             viewModel = Navigator.Instance.CurrentViewModel as ReverseViewModel;
             viewModel.Player = player;
         }

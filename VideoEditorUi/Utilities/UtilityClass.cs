@@ -3,42 +3,53 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Threading.Tasks;
 using System.Xml.Serialization;
 using CSMediaProperties;
 using CSVideoPlayer;
 
 namespace VideoEditorUi.Utilities
 {
-    public static class UtilityClass
+    public interface IUtilityClass
     {
-        public static string GetBinaryPath()
+        void InitializePlayer(VideoPlayerWPF player);
+        void GetDetails(VideoPlayerWPF player, string name);
+        TimeSpan GetPlayerPosition(VideoPlayerWPF player);
+        void SetPlayerPosition(VideoPlayerWPF player, double newValue);
+        void ClosePlayer(VideoPlayerWPF player);
+    }
+
+    public class UtilityClass : IUtilityClass
+    {
+        private static readonly Lazy<UtilityClass> lazy = new Lazy<UtilityClass>(() => new UtilityClass());
+        public static UtilityClass Instance => lazy.Value;
+
+        public string GetBinaryPath()
         {
             var binaryPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Binaries");
             if (string.IsNullOrEmpty(binaryPath))
                 throw new Exception("Cannot read 'binaryFolder' variable from app.config / web.config.");
             return binaryPath;
         }
-        public static void InitializePlayer(VideoPlayerWPF player) => player.Init(GetBinaryPath(), "UserName", "RegKey");
+        public void InitializePlayer(VideoPlayerWPF player) => player.Init(GetBinaryPath(), "UserName", "RegKey");
 
-        public static void GetDetails(VideoPlayerWPF player, string name) => player.mediaProperties = GetVideoDetails(name);
+        public void GetDetails(VideoPlayerWPF player, string name) => player.mediaProperties = GetVideoDetails(name);
 
         /// <summary>
         /// Handles MPEG-TS files since the Start time differs from other files
         /// </summary>
         /// <returns></returns>
-        public static TimeSpan GetPlayerPosition(VideoPlayerWPF player) => player.PositionGet() - TimeSpan.FromSeconds(double.Parse(player.mediaProperties.Format.StartTime));
+        public TimeSpan GetPlayerPosition(VideoPlayerWPF player) => player.PositionGet() - TimeSpan.FromSeconds(double.Parse(player.mediaProperties.Format.StartTime));
 
-        public static void SetPlayerPosition(VideoPlayerWPF player, double newValue)
+        public void SetPlayerPosition(VideoPlayerWPF player, double newValue)
             => player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)newValue) + TimeSpan.FromSeconds(double.Parse(player.mediaProperties.Format.StartTime)));
 
-        public static void ClosePlayer(VideoPlayerWPF player)
+        public void ClosePlayer(VideoPlayerWPF player)
         {
             var mediaPlayer = player.GetType().GetField("mediaPlayer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(player);
             mediaPlayer?.GetType().GetMethod("Close")?.Invoke(mediaPlayer, null);
         }
 
-        private static MediaProperties GetVideoDetails(string input)
+        private MediaProperties GetVideoDetails(string input)
         {
             var output = DoProcess(input);
             var serializer = new XmlSerializer(typeof(MediaProperties));
@@ -48,7 +59,7 @@ namespace VideoEditorUi.Utilities
             return mediaProperties;
         }
 
-        private static string DoProcess(string input)
+        private string DoProcess(string input)
         {
             string output;
             using (var process = new Process())

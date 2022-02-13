@@ -2,12 +2,7 @@
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using VideoEditorUi.Utilities;
 using VideoEditorUi.Views;
 using VideoUtilities;
 
@@ -164,16 +159,19 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            FileLoaded = false;
-            InputPath = string.Empty;
-            CanCrop = false;
-            OldSize = $"Old size: 0x0";
-            NewSize = $"New size: 0x0";
-            Position = $"Starting position: (0,0)";
-            CropClass = null;
-            base.CleanUp();
+            if (!isError)
+            {
+                FileLoaded = false;
+                InputPath = string.Empty;
+                CanCrop = false;
+                OldSize = $"Old size: 0x0";
+                NewSize = $"New size: 0x0";
+                Position = $"Starting position: (0,0)";
+                CropClass = null;
+            }
+            base.CleanUp(isError);
         }
     }
 

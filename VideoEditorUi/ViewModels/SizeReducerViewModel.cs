@@ -96,7 +96,7 @@ namespace VideoEditorUi.ViewModels
         public string SelectFileLabel => new SelectFileLabelTranslatable();
         public string MoveUpLabel => new MoveUpLabelTranslatable();
         public string MoveDownLabel => new MoveDownLabelTranslatable();
-        public string RemoveLabel => new RemoveLabelTranslatable();
+        public string RemoveLabel => new RemoveSelectedLabelTranslatable();
         public string OutputFormatLabel => $"{new OutputFormatLabelTranslatable()}:";
         public string OutputFolderLabel => new OutputFolderLabelTranslatable();
         public string ReduceVideoSizeLabel => new ReduceVideoSizeLabelTranslatable();
@@ -166,7 +166,12 @@ namespace VideoEditorUi.ViewModels
             Setup(true, FileCollection.Count);
             Execute(StageEnum.Primary, new ConvertingLabelTranslatable());
         }
-        private void RemoveExecute() => FileCollection.Remove(SelectedFile);
+        private void RemoveExecute(object param)
+        {
+            var items = ((System.Collections.IList)param).Cast<string>().ToList();
+            for (var i = 0; i < items.Count; i++)
+                FileCollection.Remove(items[i]);
+        }
 
         private void SelectOutputFolderCommandExecute()
         {
@@ -193,12 +198,15 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            FileCollection.Clear();
-            FormatType = FormatEnum.avi;
-            OutputPath = null;
-            base.CleanUp();
+            if (!isError)
+            {
+                FileCollection.Clear();
+                FormatType = FormatEnum.avi;
+                OutputPath = null;
+            }
+            base.CleanUp(isError);
         }
     }
 }

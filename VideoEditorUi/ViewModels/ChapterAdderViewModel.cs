@@ -13,7 +13,6 @@ using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Views;
 using VideoUtilities;
-using static VideoEditorUi.Utilities.UtilityClass;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -165,13 +164,13 @@ namespace VideoEditorUi.ViewModels
         private void SeekBackCommandExecute()
         {
             Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
-            SetPlayerPosition(Player, Slider.Value);
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
             Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
-            SetPlayerPosition(Player, Slider.Value);
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
         }
 
@@ -179,7 +178,7 @@ namespace VideoEditorUi.ViewModels
         {
             TimeSpan.TryParseExact(CurrentTimeString, "hh':'mm':'ss':'fff", CultureInfo.CurrentCulture, out var result);
             Slider.Value = result.TotalMilliseconds;
-            SetPlayerPosition(Player, Slider.Value);
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
         }
 
         private void AddChapterCommandExecute()
@@ -202,18 +201,18 @@ namespace VideoEditorUi.ViewModels
         private void StartCommandExecute()
         {
             StartTimeSet = true;
-            StartTime = GetPlayerPosition(Player);
+            StartTime = UtilityClass.GetPlayerPosition(Player);
         }
         private void EndCommandExecute()
         {
-            if (GetPlayerPosition(Player) <= StartTime)
+            if (UtilityClass.GetPlayerPosition(Player) <= StartTime)
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
                 ShowMessage(new MessageBoxEventArgs(new EndTimeAfterStartTimeTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
-            EndTime = GetPlayerPosition(Player);
+            EndTime = UtilityClass.GetPlayerPosition(Player);
             AddRectangle();
 
             new ChapterTitleDialogView(this) { Title = new AddChapterTitleTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
@@ -236,7 +235,7 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            GetDetails(Player, openFileDialog.FileName);
+            UtilityClass.GetDetails(Player, openFileDialog.FileName);
             Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
             ResetAll();
@@ -330,11 +329,14 @@ namespace VideoEditorUi.ViewModels
             Execute(StageEnum.Secondary);
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            FileLoaded = false;
-            ResetAll();
-            base.CleanUp();
+            if (!isError)
+            {
+                FileLoaded = false;
+                ResetAll();
+            }
+            base.CleanUp(isError);
         }
     }
 }

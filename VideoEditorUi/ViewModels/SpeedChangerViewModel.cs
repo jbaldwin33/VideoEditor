@@ -73,7 +73,8 @@ namespace VideoEditorUi.ViewModels
         #region Commands
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
-        public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, () => FileLoaded && CurrentSpeed != 1));
+        public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, FormatCommandCanExecute));
+
         public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
         public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
 
@@ -102,6 +103,8 @@ namespace VideoEditorUi.ViewModels
             SpeedSlider.Value = 1;
             SpeedLabel = "1x";
         }
+
+        private bool FormatCommandCanExecute() => FileLoaded && (RotateNumber != 0 || FlipScale != 1 || CurrentSpeed != 1);
 
         private void SelectFileCommandExecute()
         {
@@ -184,13 +187,16 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp()
+        protected override void CleanUp(bool isError)
         {
-            ChangeSpeed = false;
-            CurrentSpeed = 1;
-            Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);
-            FileLoaded = false;
-            base.CleanUp();
+            if (!isError)
+            {
+                ChangeSpeed = false;
+                CurrentSpeed = 1;
+                Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);
+                FileLoaded = false;
+            }
+            base.CleanUp(isError);
         }
     }
 }

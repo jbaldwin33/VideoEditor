@@ -100,7 +100,7 @@ namespace VideoEditorUi.ViewModels
 
         private void CropCommandExecute()
         {
-            var files = Directory.GetFiles("C:\\Users\\Josh\\VSProjects\\Pokedex\\PkdxDatabase\\pokemonicons\\newnew");
+            var files = Directory.GetFiles("C:\\Users\\Josh\\VSProjects\\Pokedex\\PkdxDatabase\\pokemonicons");
             var counter = 0;
             foreach (var file in files)
             {

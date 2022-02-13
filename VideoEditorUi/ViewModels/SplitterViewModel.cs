@@ -13,8 +13,6 @@ using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
 using VideoUtilities;
 using static VideoUtilities.Enums;
-using static VideoEditorUi.Utilities.UtilityClass;
-using Path = System.IO.Path;
 using MVVMFramework.Localization;
 using System.Windows.Input;
 
@@ -49,7 +47,7 @@ namespace VideoEditorUi.ViewModels
         private bool outputDifferentFormat;
         private string textInput;
         private bool timesImported;
-        
+
         public TimeSpan StartTime
         {
             get => startTime;
@@ -142,7 +140,7 @@ namespace VideoEditorUi.ViewModels
                 ReEncodeVideo = value;
             }
         }
-        
+
         public string TextInput
         {
             get => textInput;
@@ -219,7 +217,7 @@ namespace VideoEditorUi.ViewModels
         protected override void DragFilesCallback(string[] files)
         {
             InputPath = files[0];
-            GetDetails(Player, files[0]);
+            UtilityClass.GetDetails(Player, files[0]);
             Player.Open(new Uri(files[0]));
             FileLoaded = true;
             CommandManager.InvalidateRequerySuggested();
@@ -231,13 +229,13 @@ namespace VideoEditorUi.ViewModels
         private void SeekBackCommandExecute()
         {
             Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
-            SetPlayerPosition(Player, Slider.Value);
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
             Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
-            SetPlayerPosition(Player, Slider.Value);
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
         }
 
@@ -245,7 +243,7 @@ namespace VideoEditorUi.ViewModels
         {
             TimeSpan.TryParseExact(CurrentTimeString, "hh':'mm':'ss':'fff", CultureInfo.CurrentCulture, out var result);
             Slider.Value = result.TotalMilliseconds;
-            SetPlayerPosition(Player, Slider.Value);
+            UtilityClass.SetPlayerPosition(Player, Slider.Value);
         }
 
         private void SplitCommandExecute()
@@ -259,19 +257,19 @@ namespace VideoEditorUi.ViewModels
         private void StartCommandExecute()
         {
             StartTimeSet = true;
-            StartTime = GetPlayerPosition(Player);
+            StartTime = UtilityClass.GetPlayerPosition(Player);
         }
 
         private void EndCommandExecute()
         {
-            if (GetPlayerPosition(Player) <= StartTime)
+            if (UtilityClass.GetPlayerPosition(Player) <= StartTime)
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
                 ShowMessage(new MessageBoxEventArgs(new EndTimeAfterStartTimeTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
-            EndTime = GetPlayerPosition(Player);
+            EndTime = UtilityClass.GetPlayerPosition(Player);
             AddRectangle();
             SectionViewModels.Add(new SectionViewModel(StartTime, EndTime, TextInput));
             TextInput = string.Empty;
@@ -291,18 +289,18 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            GetDetails(Player, openFileDialog.FileName);
+            UtilityClass.GetDetails(Player, openFileDialog.FileName);
             Player.Open(new Uri(openFileDialog.FileName));
             FileLoaded = true;
             ResetAll();
         }
-        
+
         private void RectCommandExecute(object obj)
         {
             var rect = obj as RectClass;
-            var args = new MessageBoxEventArgs(new DeleteSectionConfirmTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var args = new MessageBoxEventArgs(new DeleteSectionConfirmTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
-            if (args.Result != MessageBoxResult.Yes) 
+            if (args.Result != MessageBoxResult.Yes)
                 return;
 
             var index = RectCollection.IndexOf(rect);
@@ -334,7 +332,7 @@ namespace VideoEditorUi.ViewModels
             RectCollection.Clear();
             SectionViewModels.Clear();
         }
-        
+
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
             base.FinishedDownload(sender, e);
@@ -347,7 +345,7 @@ namespace VideoEditorUi.ViewModels
         protected override void ErrorDownload(object sender, ProgressEventArgs e)
         {
             base.ErrorDownload(sender, e);
-            ShowMessage(new MessageBoxEventArgs($"{new ChapterAdderTryAgainTranslatable(Path.GetDirectoryName(InputPath))}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
+            ShowMessage(new MessageBoxEventArgs($"{new ErrorOccurredTranslatable()}\n\n{e.Error}", MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
         }
 
         private void Splitter_SplitFinished(object sender, EventArgs e)
@@ -356,16 +354,19 @@ namespace VideoEditorUi.ViewModels
             Setup(false);
             Execute(StageEnum.Secondary);
         }
-        
-        protected override void CleanUp()
+
+        protected override void CleanUp(bool isError)
         {
-            CombineVideo = false;
-            OutputDifferentFormat = false;
-            ReEncodeVideo = false;
-            FileLoaded = false;
-            FormatType = FormatEnum.avi;
-            ResetAll();
-            base.CleanUp();
+            if (!isError)
+            {
+                CombineVideo = false;
+                OutputDifferentFormat = false;
+                ReEncodeVideo = false;
+                FileLoaded = false;
+                FormatType = FormatEnum.avi;
+                ResetAll();
+            }
+            base.CleanUp(isError);
         }
     }
 

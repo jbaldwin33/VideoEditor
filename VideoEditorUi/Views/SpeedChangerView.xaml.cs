@@ -16,7 +16,7 @@ namespace VideoEditorUi.Views
         public SpeedChangerView() : base()
         {
             InitializeComponent();
-            Utilities.UtilityClass.InitializePlayer(player);
+            Utilities.UtilityClass.Instance.InitializePlayer(player);
             viewModel = Navigator.Instance.CurrentViewModel as SpeedChangerViewModel;
             viewModel.Player = player;
             viewModel.SpeedSlider = speedSlider;
