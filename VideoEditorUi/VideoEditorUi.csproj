@@ -21,6 +21,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
@@ -70,10 +71,6 @@
     <Reference Include="MVVMFramework">
       <HintPath>..\DLLs\MVVMFramework.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\DLLs\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="VideoUtilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\DLLs\VideoUtilities.dll</HintPath>
@@ -93,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="6.0.0" />
   </ItemGroup>
@@ -102,5 +100,6 @@ xcopy /Y/E "$(SolutionDir)\CSFiles\*" "Binaries\"
 if not exist "Localization" mkdir "Localization"
 xcopy /Y/E "$(SolutionDir)DLLs\Localization" "Localization\"</PostBuildEvent>
     <UseWindowsForms>True</UseWindowsForms>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 </Project>
