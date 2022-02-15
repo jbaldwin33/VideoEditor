@@ -69,7 +69,7 @@ namespace VideoEditorUi.Utilities
         private void slider_DragStarted(object sender, DragStartedEventArgs e) => isDragging = true;
 
         private void slider_DragCompleted(object sender, DragCompletedEventArgs e)
-        {
+        {//
             isDragging = false;
             UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
             viewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
