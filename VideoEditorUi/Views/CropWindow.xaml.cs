@@ -9,6 +9,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using VideoEditorUi.Utilities;
 using VideoEditorUi.ViewModels;
+using VideoUtilities;
 
 namespace VideoEditorUi.Views
 {
@@ -42,8 +43,8 @@ namespace VideoEditorUi.Views
             player.Height = gridChild.Height = border.Height = border.MaxHeight = totalHeight = recSelection.Height = height;
             resizerViewModel = vm;
             DataContext = vm;
-            resizerViewModel.Player = player;
-            resizerViewModel.Slider = slider;
+            //resizerViewModel.Player = player;
+            //resizerViewModel.Slider = slider;
             resizerViewModel.OldSize = $"Old size: {width}x{height}";
             resizerViewModel.NewSize = $"New size: {border.Width}x{border.Height}";
 

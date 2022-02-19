@@ -89,9 +89,9 @@ namespace VideoEditorUi.ViewModels
             InputPath = openFileDialog.FileName;
             FileLoaded = true;
 
-            UtilityClass.GetDetails(Player, InputPath);
-            width = double.Parse(Player.mediaProperties.Streams.Stream[0].Width);
-            height = double.Parse(Player.mediaProperties.Streams.Stream[0].Height);
+            var mediaProps = GetDetailsEvent(InputPath);
+            width = double.Parse(mediaProps.Streams.Stream[0].Width);
+            height = double.Parse(mediaProps.Streams.Stream[0].Height);
 
             padHeight = width > height;
             movePos = Math.Abs(width.Value - height.Value) / 2;
@@ -127,9 +127,9 @@ namespace VideoEditorUi.ViewModels
                 //    File.Move(file, newnew);
                 //}
 
-                UtilityClass.GetDetails(Player, file);
-                width = double.Parse(Player.mediaProperties.Streams.Stream[0].Width);
-                height = double.Parse(Player.mediaProperties.Streams.Stream[0].Height);
+                var mediaProps = GetDetailsEvent(file);
+                width = double.Parse(mediaProps.Streams.Stream[0].Width);
+                height = double.Parse(mediaProps.Streams.Stream[0].Height);
 
                 if (width == height)
                     continue;
@@ -137,8 +137,9 @@ namespace VideoEditorUi.ViewModels
                 padHeight = width > height;
                 movePos = Math.Abs(width.Value - height.Value) / 2;
 
-                VideoEditor = new ImageCropper(file, padHeight ? null : height, padHeight ? width : null, padHeight ? null : movePos, padHeight ? movePos : null);
-                Setup(true);
+                var args = new ImageCropperArgs(file, padHeight ? null : height, padHeight ? width : null, padHeight ? null : movePos, padHeight ? movePos : null);
+                //VideoEditor = new ImageCropper(file, padHeight ? null : height, padHeight ? width : null, padHeight ? null : movePos, padHeight ? movePos : null);
+                Setup(true, false, args, null, null);
                 Execute(StageEnum.Primary, "Cropping image...");
                 counter++;
             }

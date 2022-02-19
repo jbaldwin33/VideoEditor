@@ -7,26 +7,23 @@ namespace VideoUtilities
 {
     public class VideoSizeReducer : BaseClass
     {
-        public VideoSizeReducer(IEnumerable<(string Folder, string Filename, string Extension)> fileViewModels, string outPath)
+        public VideoSizeReducer(ReducerArgs args) : base(args.InputPaths)
         {
-            Failed = false;
-            Cancelled = false;
-            OutputPath = $"{outPath}\\{fileViewModels.First().Filename}_reduced{fileViewModels.First().Extension}";
-            SetList(fileViewModels);
+            OutputPath = $"{args.OutputPath}\\{Path.GetFileNameWithoutExtension(args.InputPaths.First())}_reduced{Path.GetExtension(args.InputPaths.First())}";
         }
 
         public override void Setup() => DoSetup(null);
 
         protected override string CreateOutput(int index, object obj)
         {
-            var(_, filename, extension) = (ValueTuple<string, string, string>)obj;
-            return $"{Path.GetDirectoryName(OutputPath)}\\{filename}_reduced{extension}";
+            var args = (string)obj;
+            return $"{Path.GetDirectoryName(OutputPath)}\\{Path.GetFileNameWithoutExtension(args)}_reduced{Path.GetExtension(args)}";
         }
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
-            var (folder, filename, extension) = (ValueTuple<string, string, string>)obj;
-            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" -vcodec libx264 -crf 28 \"{output}\"";
+            var args = (string)obj;
+            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{Path.GetDirectoryName(args)}\\{Path.GetFileNameWithoutExtension(args)}{Path.GetExtension(args)}\" -vcodec libx264 -crf 28 \"{output}\"";
         }
 
         protected override TimeSpan? GetDuration(object obj) => null;

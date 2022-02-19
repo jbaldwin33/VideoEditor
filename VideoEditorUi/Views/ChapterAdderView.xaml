@@ -23,12 +23,22 @@
           <RowDefinition Height="*"/>
           <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal" Grid.Row="0" HorizontalAlignment="Center">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Orientation="Vertical" Grid.Row="0" Grid.Column="0">
+          <CheckBox IsChecked="{Binding DeleteChapterFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+            <TextBlock Text="{Binding DeleteChapterFileLabel}" TextWrapping="Wrap"/>
+          </CheckBox>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.ColumnSpan="3" HorizontalAlignment="Center">
           <controls:SmallButton Command="{Binding StartCommand}" Content="{Binding StartLabel}"/>
           <controls:SmallButton Command="{Binding EndCommand}" Content="{Binding EndLabel}"/>
           <controls:MediumButton Command="{Binding AddChapterCommand}" Content="{Binding AddChapterLabel}"/>
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.RowSpan="2" HorizontalAlignment="Center">
+        <StackPanel Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="3" HorizontalAlignment="Center">
           <controls:LargeTextBox IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Text="{Binding CurrentTimeString, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Top"/>
           <controls:MediumButton Content="{Binding JumpToTimeLabel}" Command="{Binding JumpToTimeCommand}"/>
         </StackPanel>

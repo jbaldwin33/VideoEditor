@@ -5,6 +5,7 @@ using System.Linq;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -32,7 +33,7 @@ namespace VideoEditorUi.ViewModels
 
         public string CancelLabel => new CancelLabelTranslatable();
 
-        public ProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> urls)
+        public ProgressBarViewModel(int count, List<UrlClass> urls)
         {
             ProgressBarCollection = new ObservableCollection<ProgressViewModel>();
             for (var i = 0; i < count; i++)

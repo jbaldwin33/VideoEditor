@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
@@ -40,6 +41,8 @@ namespace VideoEditorUi.ViewModels
         private ObservableCollection<RectClass> rectCollection;
         private string textInput;
         private bool timesImported;
+        private bool deleteChapterFile;
+
         public TimeSpan StartTime
         {
             get => startTime;
@@ -104,6 +107,12 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref timesImported, value);
         }
 
+        public bool DeleteChapterFile
+        {
+            get => deleteChapterFile;
+            set => SetProperty(ref deleteChapterFile, value);
+        }
+
         #endregion
 
         #region  Labels
@@ -118,6 +127,7 @@ namespace VideoEditorUi.ViewModels
         public string JumpToTimeLabel => new JumpToTimeLabelTranslatable();
         public string TagText => new EnterTitleTranslatable();
         public string DragFileLabel => new DragFileTranslatable();
+        public string DeleteChapterFileLabel => new DeleteChapterFileLabelTranslatable();
 
         #endregion
 
@@ -162,22 +172,20 @@ namespace VideoEditorUi.ViewModels
 
         private void SeekBackCommandExecute()
         {
-            Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
-            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
+            SeekEvent(-5000);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)SliderValue).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
-            Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
-            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
+            SeekEvent(5000);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)SliderValue).ToString("hh':'mm':'ss':'fff");
         }
 
         private void JumpToTimeCommandExecute()
         {
             TimeSpan.TryParseExact(CurrentTimeString, "hh':'mm':'ss':'fff", CultureInfo.CurrentCulture, out var result);
-            Slider.Value = result.TotalMilliseconds;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
+            SeekEvent(result.TotalMilliseconds);
+            //SetPlayerPosition(SliderValue);
         }
 
         private void AddChapterCommandExecute()
@@ -188,30 +196,28 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
 
-            VideoEditor = TimesImported
-                ? new VideoChapterAdder(InputPath, importChapterFile: importedFile)
-                : new VideoChapterAdder(InputPath, SectionViewModels.Select(t => new Tuple<TimeSpan, TimeSpan, string>(t.StartTime, t.EndTime, t.Title)).ToList());
-            VideoEditor.PreWork();
-            VideoEditor.FirstWorkFinished += Adder_GetMetadataFinished;
-            Setup(true);
+            var args = TimesImported 
+                ? new ChapterAdderArgs(InputPath, importedFile, DeleteChapterFile)
+                : new ChapterAdderArgs(InputPath, SectionViewModels.ToList(), DeleteChapterFile);
+            Setup(true, true, args, null, Adder_GetMetadataFinished);
             Execute(StageEnum.Primary, new GettingMetadataMessageTranslatable());
         }
 
         private void StartCommandExecute()
         {
             StartTimeSet = true;
-            StartTime = UtilityClass.GetPlayerPosition(Player);
+            StartTime = GetPlayerPosition();
         }
         private void EndCommandExecute()
         {
-            if (UtilityClass.GetPlayerPosition(Player) <= StartTime)
+            if (GetPlayerPosition() <= StartTime)
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
                 ShowMessage(new MessageBoxEventArgs(new EndTimeAfterStartTimeTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
-            EndTime = UtilityClass.GetPlayerPosition(Player);
+            EndTime = GetPlayerPosition();
             AddRectangle();
 
             new ChapterTitleDialogView { DataContext = this, Title = new AddChapterTitleTranslatable(), WindowStartupLocation = WindowStartupLocation.CenterOwner, Owner = Application.Current.MainWindow }.ShowDialog();
@@ -233,14 +239,14 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            InputPath = openFileDialog.FileName;
-            UtilityClass.GetDetails(Player, openFileDialog.FileName);
-            Player.Open(new Uri(openFileDialog.FileName));
-            FileLoaded = true;
-            ResetAll();
+            //InputPath = openFileDialog.FileName;
+            //UtilityClass.GetDetails(Player, openFileDialog.FileName);
+            //Player.Open(new Uri(openFileDialog.FileName));
+            //FileLoaded = true;
+            //ResetAll();
 
-            if (!canAddChapters())
-                ShowMessage(new MessageBoxEventArgs(new ChapterMarkerCompatibleFormatsTranslatable(string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+            //if (!canAddChapters())
+            //    ShowMessage(new MessageBoxEventArgs(new ChapterMarkerCompatibleFormatsTranslatable(string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
 
             bool canAddChapters() => FormatTypeViewModel.ChapterMarkerCompatibleFormats.Contains((Enums.FormatEnum)Enum.Parse(typeof(Enums.FormatEnum), Path.GetExtension(openFileDialog.FileName).Substring(1)));
         }
@@ -280,8 +286,8 @@ namespace VideoEditorUi.ViewModels
             var rect = new RectClass
             {
                 RectCommand = RectCommand,
-                Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, Slider.Maximum), 0, 0, 0),
-                Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, Slider.Maximum),
+                Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, SliderMax), 0, 0, 0),
+                Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, SliderMax),
                 Height = 5,
                 HorizontalAlignment = HorizontalAlignment.Left,
                 Fill = new SolidColorBrush(Colors.Red)
@@ -324,8 +330,8 @@ namespace VideoEditorUi.ViewModels
         private void Adder_GetMetadataFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Setup(false);
-            Execute(StageEnum.Secondary);
+            Setup(false, false, null, null, null);
+            Execute(StageEnum.Secondary, null);
         }
 
         public override void CleanUp(bool isError)

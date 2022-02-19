@@ -8,29 +8,29 @@ namespace VideoUtilities
     public class VideoConverter : BaseClass
     {
         private readonly string outExtension;
-
-        public VideoConverter(IEnumerable<(string folder, string filename, string extension)> fileViewModels, string outExt, string outPath)
+        
+        public VideoConverter(ConverterArgs args) : base(args.InputFiles)
         {
-            Failed = false;
-            Cancelled = false;
-            OutputPath = $"{outPath}\\{fileViewModels.First().filename}_converted{outExt}";
-            outExtension = outExt;
-            SetList(fileViewModels);
+            OutputPath = $"{args.OutputPath}\\{Path.GetFileNameWithoutExtension(args.InputFiles.First().FilePath)}_converted{args.OutputFormat}";
+            outExtension = args.OutputFormat;
         }
-
+        
         public override void Setup() => DoSetup(null);
 
         protected override string CreateOutput(int index, object obj)
         {
-            var (_, filename, _) = (ValueTuple<string, string, string>)obj;
-            return $"{Path.GetDirectoryName(OutputPath)}\\{filename}_converted{outExtension}";
+            var args = (ConverterPathClass)obj;
+            return $"{Path.GetDirectoryName(OutputPath)}\\{Path.GetFileNameWithoutExtension(args.FilePath)}_converted{outExtension}";
         }
 
         protected override string CreateArguments(int index, ref string output, object obj)
         {
-            var (folder, filename, extension) = (ValueTuple<string, string, string>)obj;
-            var copyClause = (extension == ".webm" && outExtension == ".mp4") || outExtension == ".avi" ? string.Empty : "-c:v copy";
-            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{folder}\\{filename}{extension}\" -c:a copy {copyClause} \"{output}\"";
+            var args = (ConverterPathClass)obj;
+            var copyClause = (Path.GetExtension(args.FilePath) == ".webm" && outExtension == ".mp4") || outExtension == ".avi" ? string.Empty : "-c:v copy";
+            var qScaleClause = outExtension == ".avi" ? "-q:v 0 -q:a 0" : string.Empty;
+            var subPath = args.FilePath.Replace(@"\", @"\\\\").Replace(":", @"\\:");
+            var subtitleClause = args.EmbedSubs ? $"-vf subtitles=\"{subPath}\"" : string.Empty;
+            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{args.FilePath}\" -c:a copy {copyClause} {subtitleClause} {qScaleClause} \"{output}\"";
         }
 
         protected override TimeSpan? GetDuration(object obj) => null;

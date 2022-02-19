@@ -144,9 +144,10 @@ namespace VideoEditorUi.ViewModels
                 ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
                 return;
             }
-            var urls = UrlCollection.OrderByDescending(u => u.IsPlaylist);
-            VideoEditor = new VideoDownloader(urls.Select(u => (u.Url, u.IsPlaylist)), ExtractAudio, OutputPath);
-            Setup(true, UrlCollection.Count, urls.ToList());
+            var urls = UrlCollection.OrderByDescending(u => u.IsPlaylist).ToList();
+            var args = new DownloaderArgs(urls, ExtractAudio, OutputPath);
+            //VideoEditor = new VideoDownloader(urls.Select(u => (u.Url, u.IsPlaylist)), ExtractAudio, OutputPath);
+            Setup(true, false, args, null, null, UrlCollection.Count, urls);
             Execute(StageEnum.Primary, new DownloadingLabelTranslatable());
         }
 
@@ -192,18 +193,6 @@ namespace VideoEditorUi.ViewModels
                 OutputPath = null;
             }
             base.CleanUp(isError);
-        }
-
-        public class UrlClass
-        {
-            public string Url { get; set; }
-            public bool IsPlaylist { get; set; }
-
-            public UrlClass(string url, bool isPlaylist)
-            {
-                Url = isPlaylist || !url.Contains("list") ? url : url.Substring(0, url.IndexOf("list") - 1);
-                IsPlaylist = isPlaylist;
-            }
         }
     }
 }

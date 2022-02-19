@@ -15,19 +15,15 @@ namespace VideoUtilities
         private readonly List<MetadataClass> metadataClasses = new List<MetadataClass>();
         private readonly string tempFile;
         private readonly string outputExtension;
-        private readonly List<(string sourceFolder, string filename, string extension)> files;
+        private readonly List<string> files;
         private TimeSpan totalDuration;
 
-        public VideoMerger(List<(string sourceFolder, string filename, string extension)> fileViewModels, string outPath, string outExt)
+        public VideoMerger(MergerArgs args) : base(args.InputPaths)
         {
-            Failed = false;
-            Cancelled = false;
-            OutputPath = $"{outPath}\\Merged_File{outExt}";
-            outputExtension = outExt;
-            files = fileViewModels;
-            tempFile = Path.Combine(outPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
-
-            SetList(new[] { "" });
+            OutputPath = $"{args.OutputPath}\\Merged_File{args.OutputFormat}";
+            outputExtension = args.OutputFormat;
+            files = args.InputPaths.ToList();
+            tempFile = Path.Combine(args.OutputPath, $"temp_section_filenames{Guid.NewGuid()}.txt");
         }
 
         public override void Setup() => DoSetup(null);
@@ -46,7 +42,7 @@ namespace VideoUtilities
 
             using (var writeText = new StreamWriter(tempFile))
                 for (var i = 0; i < files.Count; i++)
-                    writeText.WriteLine($"file '{files[i].sourceFolder}\\{files[i].filename}{files[i].extension}'");
+                    writeText.WriteLine($"file '{Path.GetDirectoryName(files[i])}\\{Path.GetFileNameWithoutExtension(files[i])}{Path.GetExtension(files[i])}'");
             Setup();
             DoWork(new MergingLabelTranslatable());
         }
@@ -57,13 +53,13 @@ namespace VideoUtilities
         protected override string CreateArguments(int index, ref string output, object obj)
         {
             var sb = new StringBuilder($"{(CheckOverwrite(ref output) ? "-y" : string.Empty)}");
-            var ext = files.First().extension;
-            if (files.All(f => f.extension == ext) && sameDimensions())
+            var ext = Path.GetExtension(files.First());
+            if (files.All(f => Path.GetExtension(f) == ext) && sameDimensions())
                 sb.Append($"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
             else
             {
-                foreach (var (folder, filename, extension) in files)
-                    sb.Append($"-i \"{folder}\\{filename}{extension}\" ");
+                foreach (var file in files)
+                    sb.Append($"-i \"{Path.GetDirectoryName(file)}\\{Path.GetFileNameWithoutExtension(file)}{Path.GetExtension(file)}\" ");
                 sb.Append("-f lavfi -i anullsrc -filter_complex \"");
                 for (int i = 0; i < files.Count; i++)
                     sb.Append(
@@ -82,7 +78,7 @@ namespace VideoUtilities
 
         protected override TimeSpan? GetDuration(object obj) => totalDuration;
 
-        public void GetMetadata(List<(string folder, string name, string extension)> files)
+        public void GetMetadata(List<string> files)
         {
             var jsonSerializer = new JsonSerializer();
             for (int i = 0; i < files.Count; i++)
@@ -95,7 +91,7 @@ namespace VideoUtilities
                     WindowStyle = ProcessWindowStyle.Hidden,
                     FileName = Path.Combine(GetBinaryPath(), "ffprobe.exe"),
                     CreateNoWindow = true,
-                    Arguments = $"-v quiet -print_format json -select_streams v:0 -show_entries stream=width,height -show_entries format=duration -sexagesimal \"{files[i].folder}\\{files[i].name}{files[i].extension}\""
+                    Arguments = $"-v quiet -print_format json -select_streams v:0 -show_entries stream=width,height -show_entries format=duration -sexagesimal \"{Path.GetDirectoryName(files[i])}\\{Path.GetFileNameWithoutExtension(files[i])}{Path.GetExtension(files[i])}\""
                 };
                 var process = new Process { StartInfo = info };
                 process.Start();

@@ -17,7 +17,6 @@ namespace VideoEditorUi.Views
         {
             InitializeComponent();
             viewModel = Navigator.Instance.CurrentViewModel as ImageCropViewModel;
-            viewModel.Player = player;
         }
 
         private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);

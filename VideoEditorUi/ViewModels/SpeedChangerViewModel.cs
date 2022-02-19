@@ -90,14 +90,15 @@ namespace VideoEditorUi.ViewModels
 
         public override void OnUnloaded()
         {
-            UtilityClass.ClosePlayer(Player);
+            ClosePlayerEvent?.Invoke();
             FileLoaded = false;
             SpeedSlider.ValueChanged -= SpeedSlider_ValueChanged;
             base.OnUnloaded();
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
+            WithSlider = false;
             FlipScale = 1;
             SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
             SpeedSlider.Value = 1;
@@ -118,14 +119,16 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            Player.Open(new Uri(openFileDialog.FileName));
+            GetDetailsEvent(openFileDialog.FileName);
+            OpenEvent(openFileDialog.FileName);
             FileLoaded = true;
         }
 
         private void FormatCommandExecute()
         {
-            VideoEditor = new VideoSpeedChanger(InputPath, CurrentSpeed, ConvertToEnum());
-            Setup(true);
+            var args = new SpeedChangerArgs(InputPath, CurrentSpeed, ConvertToEnum());
+            //VideoEditor = new VideoSpeedChanger(c);
+            Setup(true, false, args, null, null);
             Execute(StageEnum.Primary, new ChangingLabelTranslatable());
         }
 
@@ -187,12 +190,14 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp(bool isError)
+        public override void CleanUp(bool isError)
         {
             if (!isError)
             {
                 ChangeSpeed = false;
                 CurrentSpeed = 1;
+                FlipScale = 1;
+                RotateNumber = 0;
                 Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);
                 FileLoaded = false;
             }

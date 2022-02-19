@@ -94,8 +94,7 @@ namespace VideoEditorUi.ViewModels
 
         public override void OnUnloaded()
         {
-            if (Player != null)
-                UtilityClass.ClosePlayer(Player);
+            ClosePlayerEvent?.Invoke();
             FileLoaded = false;
             base.OnUnloaded();
         }
@@ -109,13 +108,11 @@ namespace VideoEditorUi.ViewModels
 
         private void SeekBackCommandExecute()
         {
-            Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
+            SeekEvent(-5000);
         }
         private void SeekForwardCommandExecute()
         {
-            Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
+            SeekEvent(5000);
         }
 
         private void SelectFileCommandExecute()
@@ -138,8 +135,9 @@ namespace VideoEditorUi.ViewModels
 
         private void CropCommandExecute()
         {
-            VideoEditor = new VideoCropper(InputPath, CropClass.Width, CropClass.Height, CropClass.X, CropClass.Y);
-            Setup(true);
+            var args = new VideoCropperArgs(InputPath, CropClass);
+            //VideoEditor = new VideoCropper(InputPath, CropClass.Width, CropClass.Height, CropClass.X, CropClass.Y);
+            Setup(true, false, args, null, null);
             Execute(StageEnum.Primary, new CroppingLabelTranslatable());
         }
 
@@ -173,13 +171,5 @@ namespace VideoEditorUi.ViewModels
             }
             base.CleanUp(isError);
         }
-    }
-
-    public class CropClass
-    {
-        public double Width { get; set; }
-        public double Height { get; set; }
-        public double X { get; set; }
-        public double Y { get; set; }
     }
 }

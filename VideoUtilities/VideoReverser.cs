@@ -10,20 +10,15 @@ namespace VideoUtilities
 {
     public class VideoReverser : BaseClass
     {
-        private readonly string sourceFolder;
-        private readonly string filenameWithoutExtension;
-        private readonly string fileExtension;
-        private string tempFile;
         private readonly string fullInputPath;
+        private string tempFile;
+        private string sourceFolder => Path.GetDirectoryName(fullInputPath);
+        private string filenameWithoutExtension => Path.GetFileNameWithoutExtension(fullInputPath);
+        private string fileExtension => Path.GetExtension(fullInputPath);
 
-        public VideoReverser(string fullPath)
+        public VideoReverser(ReverserArgs args) : base(args.InputPaths)
         {
-            fullInputPath = fullPath;
-            sourceFolder = Path.GetDirectoryName(fullPath);
-            filenameWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
-            fileExtension = Path.GetExtension(fullPath);
-            Failed = false;
-            Cancelled = false;
+            fullInputPath = args.InputPaths[0];
             OutputPath = $"{sourceFolder}\\{filenameWithoutExtension}_reversed{fileExtension}";
         }
 

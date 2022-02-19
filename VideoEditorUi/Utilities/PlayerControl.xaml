@@ -17,7 +17,7 @@
     </Grid.RowDefinitions>
     <Label AllowDrop="True" Drop="Grid_OnDrop" Height="240" Width="700" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="20" Content="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}" DragEnter="OnDragEnter" DragLeave="OnPreviewDragLeave"/>
     <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
-    <StackPanel Orientation="Vertical" Grid.Row="1" HorizontalAlignment="Center">
+    <StackPanel x:Name="sliderPanel" Orientation="Vertical" Grid.Row="1" HorizontalAlignment="Center" Visibility="{Binding WithSlider, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}">
       <Grid>
         <Grid.RowDefinitions>
           <RowDefinition Height="*"/>

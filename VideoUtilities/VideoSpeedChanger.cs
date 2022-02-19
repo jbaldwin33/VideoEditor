@@ -7,15 +7,12 @@ namespace VideoUtilities
     {
         private readonly Enums.ScaleRotate scaleRotate;
         private readonly double newSpeed;
-
-        public VideoSpeedChanger(string fullPath, double speed, Enums.ScaleRotate sr)
+        
+        public VideoSpeedChanger(SpeedChangerArgs args) : base(args.InputPaths)
         {
-            Failed = false;
-            Cancelled = false;
-            OutputPath = $"{Path.GetDirectoryName(fullPath)}\\{Path.GetFileNameWithoutExtension(fullPath)}_formatted{Path.GetExtension(fullPath)}";
-            scaleRotate = sr;
-            newSpeed = speed;
-            SetList(new[] { fullPath });
+            OutputPath = $"{Path.GetDirectoryName(args.InputPaths[0])}\\{Path.GetFileNameWithoutExtension(args.InputPaths[0])}_formatted{Path.GetExtension(args.InputPaths[0])}";
+            scaleRotate = args.ScaleRotate;
+            newSpeed = args.CurrentSpeed;
         }
 
         public override void Setup() => DoSetup(null);

@@ -15,6 +15,7 @@ using VideoUtilities;
 using static VideoUtilities.Enums;
 using MVVMFramework.Localization;
 using System.Windows.Input;
+using VideoEditorUi.Services;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -187,7 +188,7 @@ namespace VideoEditorUi.ViewModels
         #endregion
 
         private static readonly object _lock = new object();
-        //public Action<TimeSpan> PositionChanged;
+        public Action AddRectangleEvent;
 
         public override void OnUnloaded()
         {
@@ -197,7 +198,7 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
             CanCombine = false;
             StartTimeSet = false;
@@ -217,8 +218,8 @@ namespace VideoEditorUi.ViewModels
         protected override void DragFilesCallback(string[] files)
         {
             InputPath = files[0];
-            UtilityClass.GetDetails(Player, files[0]);
-            Player.Open(new Uri(files[0]));
+            GetDetailsEvent?.Invoke(files[0]);
+            OpenEvent?.Invoke(files[0]);
             FileLoaded = true;
             CommandManager.InvalidateRequerySuggested();
             ResetAll();
@@ -228,49 +229,45 @@ namespace VideoEditorUi.ViewModels
 
         private void SeekBackCommandExecute()
         {
-            Slider.Value = Slider.Value - 5000 < 0 ? 0 : Slider.Value - 5000;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
-            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
+            SeekEvent?.Invoke(-5000);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)SliderValue).ToString("hh':'mm':'ss':'fff");
         }
         private void SeekForwardCommandExecute()
         {
-            Slider.Value = Slider.Value + 5000 > Slider.Maximum ? Slider.Maximum : Slider.Value + 5000;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
-            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)Slider.Value).ToString("hh':'mm':'ss':'fff");
+            SeekEvent?.Invoke(5000);
+            CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)SliderValue).ToString("hh':'mm':'ss':'fff");
         }
 
         private void JumpToTimeCommandExecute()
         {
             TimeSpan.TryParseExact(CurrentTimeString, "hh':'mm':'ss':'fff", CultureInfo.CurrentCulture, out var result);
-            Slider.Value = result.TotalMilliseconds;
-            UtilityClass.SetPlayerPosition(Player, Slider.Value);
+            SeekEvent?.Invoke(result.TotalMilliseconds);
         }
 
         private void SplitCommandExecute()
         {
-            VideoEditor = new VideoSplitter(SectionViewModels.Select(t => (t.StartTime, t.EndTime, t.Title)).ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
-            VideoEditor.FirstWorkFinished += Splitter_SplitFinished;
-            Setup(true, SectionViewModels.Count);
+            var splitterArgs = new SplitterArgs(SectionViewModels.ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
+            Setup(true, false, splitterArgs, null, Splitter_SplitFinished, SectionViewModels.Count);
             Execute(StageEnum.Primary, new SplittingLabelTranslatable());
         }
 
         private void StartCommandExecute()
         {
             StartTimeSet = true;
-            StartTime = UtilityClass.GetPlayerPosition(Player);
+            StartTime = GetPlayerPosition();
         }
 
         private void EndCommandExecute()
         {
-            if (UtilityClass.GetPlayerPosition(Player) <= StartTime)
+            if (GetPlayerPosition() <= StartTime)
             {
                 StartTimeSet = false;
                 StartTime = TimeSpan.FromMilliseconds(0);
                 ShowMessage(new MessageBoxEventArgs(new EndTimeAfterStartTimeTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Error, MessageBoxButton.OK, MessageBoxImage.Error));
                 return;
             }
-            EndTime = UtilityClass.GetPlayerPosition(Player);
-            AddRectangle();
+            EndTime = GetPlayerPosition();
+            AddRectangleEvent?.Invoke();
             SectionViewModels.Add(new SectionViewModel(StartTime, EndTime, TextInput));
             TextInput = string.Empty;
             StartTimeSet = false;
@@ -288,11 +285,11 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            InputPath = openFileDialog.FileName;
-            UtilityClass.GetDetails(Player, openFileDialog.FileName);
-            Player.Open(new Uri(openFileDialog.FileName));
-            FileLoaded = true;
-            ResetAll();
+            //InputPath = openFileDialog.FileName;
+            ////UtilityClass.GetDetails(Player, openFileDialog.FileName);
+            ////Player.Open(new Uri(openFileDialog.FileName));
+            //FileLoaded = true;
+            //ResetAll();
         }
 
         private void RectCommandExecute(object obj)
@@ -306,21 +303,6 @@ namespace VideoEditorUi.ViewModels
             var index = RectCollection.IndexOf(rect);
             RectCollection.Remove(rect);
             SectionViewModels.RemoveAt(index);
-        }
-
-        private void AddRectangle()
-        {
-            var rect = new RectClass
-            {
-                RectCommand = RectCommand,
-                Margin = new Thickness(mapToRange(StartTime.TotalMilliseconds, 760, Slider.Maximum), 0, 0, 0),
-                Width = mapToRange((EndTime - StartTime).TotalMilliseconds, 760, Slider.Maximum),
-                Height = 5,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Fill = new SolidColorBrush(Colors.Red)
-            };
-            RectCollection.Add(rect);
-            double mapToRange(double toConvert, double maxRange1, double maxRange2) => toConvert * (maxRange1 / maxRange2);
         }
 
         private void ResetAll()
@@ -351,11 +333,11 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_SplitFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Setup(false);
-            Execute(StageEnum.Secondary);
+            Setup(false, false, null, null, null);
+            Execute(StageEnum.Secondary, null);
         }
 
-        protected override void CleanUp(bool isError)
+        public override void CleanUp(bool isError)
         {
             if (!isError)
             {
@@ -370,6 +352,7 @@ namespace VideoEditorUi.ViewModels
         }
     }
 
+    
     public class RectClass
     {
         public Thickness Margin { get; set; }
@@ -378,36 +361,5 @@ namespace VideoEditorUi.ViewModels
         public HorizontalAlignment HorizontalAlignment { get; set; }
         public SolidColorBrush Fill { get; set; }
         public RelayCommand RectCommand { get; set; }
-    }
-
-    public class SectionViewModel : ViewModel
-    {
-        private TimeSpan startTime;
-        private TimeSpan endTime;
-        private string title;
-
-        public TimeSpan StartTime
-        {
-            get => startTime;
-            set => SetProperty(ref startTime, value);
-        }
-
-        public TimeSpan EndTime
-        {
-            get => endTime;
-            set => SetProperty(ref endTime, value);
-        }
-        public string Title
-        {
-            get => title;
-            set => SetProperty(ref title, value);
-        }
-
-        public SectionViewModel(TimeSpan start, TimeSpan end, string title)
-        {
-            StartTime = start;
-            EndTime = end;
-            Title = title;
-        }
     }
 }

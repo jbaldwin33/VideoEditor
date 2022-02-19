@@ -30,6 +30,8 @@ namespace VideoEditorUi.ViewModels
         private bool fileSelected;
         private ObservableCollection<string> fileCollection;
         private bool converterSelected;
+        private bool showEmbedSubs;
+        private bool embedSubs;
 
         public List<FormatTypeViewModel> Formats
         {
@@ -40,7 +42,11 @@ namespace VideoEditorUi.ViewModels
         public FormatEnum FormatType
         {
             get => formatType;
-            set => SetProperty(ref formatType, value);
+            set
+            {
+                SetProperty(ref formatType, value);
+                UpdateShowEmbedSubs();
+            }
         }
 
         public string OutputPath
@@ -74,8 +80,26 @@ namespace VideoEditorUi.ViewModels
         public bool ConverterSelected
         {
             get => converterSelected;
-            set => SetProperty(ref converterSelected, value);
+            set
+            {
+                SetProperty(ref converterSelected, value);
+                UpdateShowEmbedSubs();
+            }
         }
+
+        public bool EmbedSubs
+        {
+            get => embedSubs;
+            set => SetProperty(ref embedSubs, value);
+        }
+
+        public bool ShowEmbedSubs
+        {
+            get => showEmbedSubs;
+            set => SetProperty(ref showEmbedSubs, value);
+        }
+
+
 
         #endregion
 
@@ -101,6 +125,7 @@ namespace VideoEditorUi.ViewModels
         public string ReduceVideoSizeLabel => new ReduceVideoSizeLabelTranslatable();
         public string ConvertLabel => new ConvertLabelTranslatable();
         public string ConvertFormatLabel => new ConvertFormatLabelTranslatable();
+        public string EmbedSubsLabel => new EmbedSubsLabelTranslatable();
 
         #endregion
 
@@ -112,9 +137,10 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
             ConverterSelected = true;
+            EmbedSubs = true;
             Formats = FormatTypeViewModel.CreateViewModels();
             FormatType = FormatEnum.avi;
             FileCollection = new ObservableCollection<string>();
@@ -149,8 +175,9 @@ namespace VideoEditorUi.ViewModels
                 ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
                 return;
             }
-            VideoEditor = new VideoSizeReducer(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), OutputPath);
-            Setup(true, FileCollection.Count);
+            var args = new ReducerArgs(FileCollection.ToList(), OutputPath);
+            //VideoEditor = new VideoSizeReducer(c);
+            Setup(true, false, args, null, null, FileCollection.Count);
             Execute(StageEnum.Primary, new ReducingSizeLabelTranslatable());
         }
 
@@ -161,8 +188,21 @@ namespace VideoEditorUi.ViewModels
                 ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
                 return;
             }
-            VideoEditor = new VideoConverter(FileCollection.Select(f => (Path.GetDirectoryName(f), Path.GetFileNameWithoutExtension(f), Path.GetExtension(f))), $".{FormatType}", OutputPath);
-            Setup(true, FileCollection.Count);
+            var createVms = new List<ConverterPathClass>();
+            var player = new CSVideoPlayer.VideoPlayerWPF();
+            if (EmbedSubs)
+            {
+                for (var i = 0; i < FileCollection.Count; i++)
+                {
+                    UtilityClass.GetDetails(player, FileCollection[i]);
+                    createVms.Add(new ConverterPathClass(FileCollection[i], player.mediaProperties.Streams.Stream.Any(x => x.CodecType == "subtitle")));
+                }
+            }
+            else
+                createVms = FileCollection.Select(f => new ConverterPathClass(f, false)).ToList();
+            var args = new ConverterArgs(createVms, $".{FormatType}", OutputPath);
+            //VideoEditor = new VideoConverter(c);
+            Setup(true, false, args, null, null, FileCollection.Count);
             Execute(StageEnum.Primary, new ConvertingLabelTranslatable());
         }
         private void RemoveExecute(object param)
@@ -185,6 +225,8 @@ namespace VideoEditorUi.ViewModels
             OutputPath = openFolderDialog.SelectedPath;
         }
 
+        private void UpdateShowEmbedSubs() => ShowEmbedSubs = converterSelected && formatType == FormatEnum.avi;
+
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
             if (!ConverterSelected)
@@ -196,7 +238,7 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp(bool isError)
+        public override void CleanUp(bool isError)
         {
             if (!isError)
             {

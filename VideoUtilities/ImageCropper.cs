@@ -10,17 +10,14 @@ namespace VideoUtilities
         private readonly double? xPos;
         private readonly double? yPos;
 
-        public ImageCropper(string fullPath, double? w, double? h, double? x, double? y)
+        public ImageCropper(ImageCropperArgs args) : base(args.InputPaths)
         {
-            Failed = false;
-            Cancelled = false;
             ShowFile = false;
-            OutputPath = $"{Path.GetDirectoryName(fullPath)}\\{Path.GetFileNameWithoutExtension(fullPath)}_formatted{Path.GetExtension(fullPath)}";
-            width = w;
-            height = h;
-            xPos = x;
-            yPos = y;
-            SetList(new[] { fullPath });
+            OutputPath = $"{Path.GetDirectoryName(args.InputPaths[0])}\\{Path.GetFileNameWithoutExtension(args.InputPaths[0])}_formatted{Path.GetExtension(args.InputPaths[0])}";
+            width = args.Width;
+            height = args.Height;
+            xPos = args.XPos;
+            yPos = args.YPos;
         }
 
         public override void Setup() => DoSetup(null);

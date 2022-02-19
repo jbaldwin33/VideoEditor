@@ -45,7 +45,10 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        public override void Initialize() { }
+        public override void Initialize()
+        {
+            WithSlider = false;
+        }
 
         private void SelectFileCommandExecute()
         {
@@ -59,7 +62,8 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             InputPath = openFileDialog.FileName;
-            Player.Open(new Uri(openFileDialog.FileName));
+            GetDetailsEvent(openFileDialog.FileName);
+            OpenEvent(openFileDialog.FileName);
             FileLoaded = true;
         }
 
@@ -69,11 +73,12 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(messageArgs);
             if (messageArgs.Result == MessageBoxResult.No)
                 return;
-            VideoEditor = new VideoReverser(InputPath);
-            VideoEditor.PreWorkFinished += Reverser_TrimFinished;
-            VideoEditor.FirstWorkFinished += Reverser_ReverseFinished;
-            Setup(false);
-            Execute(StageEnum.Pre);
+            var args = new ReverserArgs(InputPath);
+            //VideoEditor = new VideoReverser(InputPath);
+            //VideoEditor.PreWorkFinished += Reverser_TrimFinished;
+            //VideoEditor.FirstWorkFinished += Reverser_ReverseFinished;
+            Setup(false, false, args, Reverser_TrimFinished, Reverser_ReverseFinished);
+            Execute(StageEnum.Pre, null);
         }
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
@@ -88,15 +93,15 @@ namespace VideoEditorUi.ViewModels
         private void Reverser_TrimFinished(object sender, PreWorkEventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Setup(false, (int)e.Argument);
+            Setup(false, false, null, null, null, (int)e.Argument);
             Execute(StageEnum.Primary, new ReversingSectionsLabelTranslatable());
         }
 
         private void Reverser_ReverseFinished(object sender, EventArgs e)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            Setup(false);
-            Execute(StageEnum.Secondary);
+            Setup(false, false, null, null, null);
+            Execute(StageEnum.Secondary, null);
         }
 
         public override void CleanUp(bool isError)

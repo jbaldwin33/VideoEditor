@@ -16,9 +16,9 @@ namespace VideoEditorUi.Views
         public ReverseView() : base()
         {
             InitializeComponent();
-            Utilities.UtilityClass.Instance.InitializePlayer(player);
+            playerControl.DataContext = DataContext;
             viewModel = Navigator.Instance.CurrentViewModel as ReverseViewModel;
-            viewModel.Player = player;
+            playerControl.Initialize();
         }
 
         private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);

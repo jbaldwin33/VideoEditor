@@ -9,45 +9,40 @@ namespace VideoUtilities
 {
     public class VideoSplitter : BaseClass
     {
-        private readonly string sourceFolder;
-        private readonly string sourceFileWithoutExtension;
-        private readonly string extension;
         private readonly bool outputDifferentFormat;
         private readonly string outputFormat;
         private readonly bool combineVideo;
         private readonly string fullInputPath;
         private readonly bool doReEncode;
         private string tempFile;
+        private string sourceFolder => Path.GetDirectoryName(fullInputPath);
+        private string sourceFileWithoutExtension => Path.GetFileNameWithoutExtension(fullInputPath);
+        private string extension => Path.GetExtension(fullInputPath);
         private readonly object _lock = new object();
 
-        public VideoSplitter(List<(TimeSpan, TimeSpan, string)> times, string fullPath, bool combine, bool outputDiffFormat, string outFormat, bool reEncodeVideo)
+        public VideoSplitter(SplitterArgs args) : base(args.List)
         {
-            Cancelled = false;
-            fullInputPath = fullPath;
-            doReEncode = reEncodeVideo;
-            sourceFolder = Path.GetDirectoryName(fullPath);
-            sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullPath);
-            extension = Path.GetExtension(fullPath);
-            combineVideo = combine;
-            outputDifferentFormat = outputDiffFormat;
-            outputFormat = outFormat;
+            fullInputPath = args.InputPaths[0];
+            doReEncode = args.ReEncodeVideo;
+            combineVideo = args.CombineVideo;
+            outputDifferentFormat = args.OutputDifferentFormat;
+            outputFormat = args.OutputFormat;
             OutputPath = $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed1{(outputDifferentFormat ? outputFormat : extension)}";
-            SetList(times);
         }
 
         public override void Setup() => DoSetup(() => OnFirstWorkFinished(EventArgs.Empty));
         protected override string CreateArguments(int index, ref string output, object obj)
         {
-            var (startTime, endTime, _) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
-            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {startTime.TotalSeconds} -to {endTime.TotalSeconds} \"{output}\"";
+            var args = (SectionViewModel)obj;
+            return $"{(CheckOverwrite(ref output) ? "-y" : string.Empty)} -i \"{fullInputPath}\" {(doReEncode ? string.Empty : "-codec copy")} -ss {args.StartTime.TotalSeconds} -to {args.EndTime.TotalSeconds} \"{output}\"";
         }
 
         protected override string CreateOutput(int index, object obj) => $"{sourceFolder}\\{sourceFileWithoutExtension}_trimmed{index + 1}{(outputDifferentFormat ? outputFormat : extension)}";
 
         protected override TimeSpan? GetDuration(object obj)
         {
-            var (startTime, endTime, _) = (ValueTuple<TimeSpan, TimeSpan, string>)obj;
-            return endTime - startTime;
+            var args = (SectionViewModel)obj;
+            return args.EndTime - args.StartTime;
         }
 
         public override void SecondaryWork()

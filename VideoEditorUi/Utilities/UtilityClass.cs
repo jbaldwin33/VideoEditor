@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using CSMediaProperties;
 using CSVideoPlayer;

@@ -14,21 +14,20 @@ namespace VideoUtilities
         private readonly string sourceFolder;
         private readonly string sourceFileWithoutExtension;
         private readonly string extension;
-        private readonly List<Tuple<TimeSpan, TimeSpan, string>> timeList;
+        private readonly List<SectionViewModel> timeList;
+        private bool deleteChapterFile;
 
-        public VideoChapterAdder(string fullPath, List<Tuple<TimeSpan, TimeSpan, string>> times = null, string importChapterFile = null)
+        public VideoChapterAdder(ChapterAdderArgs args) : base(args.InputPaths)
         {
-            Cancelled = false;
-            OutputPath = fullPath;
-            fullInputPath = fullPath;
-            chapterFile = importChapterFile;
-            timeList = times;
+            OutputPath = args.InputPaths[0];
+            fullInputPath = args.InputPaths[0];
+            chapterFile = args.ImportChapterFile;
+            timeList = args.Sections;
+            deleteChapterFile = args.DeleteChapterFile;
             sourceFolder = Path.GetDirectoryName(fullInputPath);
             sourceFileWithoutExtension = Path.GetFileNameWithoutExtension(fullInputPath);
             extension = Path.GetExtension(fullInputPath);
             metadataFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_metadataFile.txt");
-            
-            SetList(new[] { fullPath });
         }
 
         public override void Setup()
@@ -53,12 +52,12 @@ namespace VideoUtilities
 
         protected override TimeSpan? GetDuration(object obj) => null;
 
-        private void CreateChapterFile(List<Tuple<TimeSpan, TimeSpan, string>> times, string sourceFolder, string sourceFileWithoutExtension)
+        private void CreateChapterFile(List<SectionViewModel> times, string sourceFolder, string sourceFileWithoutExtension)
         {
             chapterFile = Path.Combine(sourceFolder, $"{sourceFileWithoutExtension}_chapters.txt");
             using (var sw = new StreamWriter(chapterFile))
-                foreach (var (startTime, _, title) in times)
-                    sw.WriteLine($"{startTime},{title}");
+                foreach (var time in times)
+                    sw.WriteLine($"{time.StartTime},{time.Title}");
         }
 
         public override void SecondaryWork()
@@ -91,6 +90,8 @@ namespace VideoUtilities
             Thread.Sleep(1000);
             if (!string.IsNullOrEmpty(metadataFile))
                 File.Delete(metadataFile);
+            if (deleteChapterFile)
+                File.Delete(chapterFile);
         }
 
         private void WriteToMetadata()

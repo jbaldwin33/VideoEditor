@@ -16,11 +16,11 @@ namespace VideoEditorUi.Views
         public SpeedChangerView() : base()
         {
             InitializeComponent();
-            Utilities.UtilityClass.Instance.InitializePlayer(player);
+            playerControl.DataContext = DataContext;
             viewModel = Navigator.Instance.CurrentViewModel as SpeedChangerViewModel;
-            viewModel.Player = player;
             viewModel.SpeedSlider = speedSlider;
             viewModel.VideoStackPanel = stackPanel;
+            playerControl.Initialize();
         }
 
         private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);

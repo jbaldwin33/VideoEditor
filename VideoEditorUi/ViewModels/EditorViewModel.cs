@@ -10,39 +10,53 @@ using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Services;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
+using static VideoUtilities.BaseClass;
 
 namespace VideoEditorUi.ViewModels
 {
     public interface IEditorViewModel
     {
-        void Setup(bool doSetup, int count = 1, List<DownloaderViewModel.UrlClass> urlCollection = null);
-        void Execute(EditorViewModel.StageEnum stage, string label = "");
+        void Setup(bool doSetup, bool DoPreWork, BaseArgs args, PreWorkFinishedEventHandler preWorkFinished = null, FirstWorkFinishedEventHandler firstWorkFinished = null, int count = 1, List<UrlClass> urlCollection = null);
+        void Execute(EditorViewModel.StageEnum stage, string label);
         void Initialize();
         void CleanUp(bool isError);
     }
-    
-
 
     public abstract class EditorViewModel : ViewModel, IEditorViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
-        private Slider slider;
+        private bool withSlider;
+        private double sliderValue;
         private bool fileLoaded;
-        private bool editorInitialized;
         private bool isPlaying;
 
         public IUtilityClass UtilityClass = Utilities.UtilityClass.Instance;
-        //public IVideoEditorFactory VideoEditorFactory
-        protected BaseClass VideoEditor;
+        public IVideoEditorFactory EditorFactory = VideoEditorFactory.Instance;
+        public IVideoEditorService EditorService = VideoEditorService.Instance;
         protected ProgressBarViewModel ProgressBarViewModel;
+        public double SliderMax;
         public Action<string[]> DragFiles;
-        public VideoPlayerWPF Player;
+        //public VideoPlayerWPF Player;
         public Action<TimeSpan> PositionChanged;
+        public Action<double> SeekEvent;
+        public Action PlayEvent;
+        public Action PauseEvent;
+        public Func<string, CSMediaProperties.MediaProperties> GetDetailsEvent;
+        public Action<string> OpenEvent;
+        public Action ClosePlayerEvent;
+        public Func<TimeSpan> GetPlayerPosition;
+        public Action<double> SetPlayerPosition;
 
-        public Slider Slider
+        public bool WithSlider
         {
-            get => slider;
-            set => SetProperty(ref slider, value);
+            get => withSlider;
+            set => SetProperty(ref withSlider, value);
+        }
+
+        public double SliderValue
+        {
+            get => sliderValue;
+            set => SetProperty(ref sliderValue, value);
         }
 
         public bool FileLoaded
@@ -60,44 +74,43 @@ namespace VideoEditorUi.ViewModels
 
         public override void OnLoaded()
         {
+            WithSlider = true;
             Initialize();
             DragFiles = DragFilesCallback;
             base.OnLoaded();
         }
 
-        public override void OnUnloaded()
-        {
-            if (Player != null)
-                UtilityClass.ClosePlayer(Player);
-            base.OnUnloaded();
-        }
+        public override void OnUnloaded() => ClosePlayerEvent?.Invoke();
 
-        public void Setup(bool doSetup, int count = 1, List<DownloaderViewModel.UrlClass> urlCollection = null)
+        public void Setup(bool doSetup, bool doPreWork, BaseArgs args, PreWorkFinishedEventHandler preWorkFinished, FirstWorkFinishedEventHandler firstWorkFinished, int count = 1, List<UrlClass> urlCollection = null)
         {
-            SetupEditor();
+            if (!EditorService.IsInitialized())
+            {
+                EditorFactory.SetArgs(args);
+                EditorService.SetEditor(EditorFactory.GetVideoEditor());
+                EditorService.SetupEditor(StartedDownload, ProgressDownload, FinishedDownload, ErrorDownload, LibraryMessageHandler, UpdatePlaylist, preWorkFinished, firstWorkFinished);
+            }
+
+            if (doPreWork)
+                EditorService.DoPreWork();
+
             SetupProgressBarViewModel(count, urlCollection);
             if (doSetup)
-                VideoEditor.Setup();
+                EditorService.DoSetup();
         }
 
-        public void Execute(StageEnum stage, string label = "")
+        public void Execute(StageEnum stage, string label)
         {
-            switch (stage)
-            {
-                case StageEnum.Pre: Task.Run(() => VideoEditor.PreWork()); break;
-                case StageEnum.Primary: Task.Run(() => VideoEditor.DoWork(label)); break;
-                case StageEnum.Secondary: Task.Run(() => VideoEditor.SecondaryWork()); break;
-                default: throw new ArgumentOutOfRangeException(nameof(stage), stage, null);
-            }
+            EditorService.ExecuteVideoEditor(stage, label);
             Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
         }
 
         protected void PlayCommandExecute()
         {
             if (!IsPlaying)
-                Player.Play();
+                PlayEvent?.Invoke();
             else
-                Player.Pause();
+                PauseEvent?.Invoke();
             IsPlaying = !IsPlaying;
         }
 
@@ -132,36 +145,21 @@ namespace VideoEditorUi.ViewModels
         public virtual void CleanUp(bool isError)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
-            editorInitialized = false;
+            EditorService.SetInitialized(false);
             if (isError)
                 return;
 
-            if (Player != null)
-                UtilityClass.ClosePlayer(Player);
+            ClosePlayerEvent?.Invoke();
         }
 
-        private void SetupEditor()
-        {
-            if (editorInitialized)
-                return;
-
-            VideoEditor.StartedDownload += StartedDownload;
-            VideoEditor.ProgressDownload += ProgressDownload;
-            VideoEditor.FinishedDownload += FinishedDownload;
-            VideoEditor.ErrorDownload += ErrorDownload;
-            VideoEditor.MessageHandler += LibraryMessageHandler;
-            VideoEditor.UpdatePlaylist += UpdatePlaylist;
-            editorInitialized = true;
-        }
-
-        private void SetupProgressBarViewModel(int count, List<DownloaderViewModel.UrlClass> urls = null)
+        private void SetupProgressBarViewModel(int count, List<UrlClass> urls = null)
         {
             ProgressBarViewModel = new ProgressBarViewModel(count, urls);
             ProgressBarViewModel.OnCancelledHandler += (sender, args) =>
             {
                 try
                 {
-                    VideoEditor.CancelOperation(string.Empty);
+                    EditorService.CancelOperation(string.Empty);
                 }
                 catch (Exception ex)
                 {

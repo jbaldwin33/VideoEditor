@@ -1,5 +1,6 @@
 ﻿using CSVideoPlayer;
 using System;
+using System.Threading.Tasks;
 using VideoEditorUi.Utilities;
 
 namespace VideoEditorTests

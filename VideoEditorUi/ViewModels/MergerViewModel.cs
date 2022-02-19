@@ -27,7 +27,7 @@ namespace VideoEditorUi.ViewModels
         private RelayCommand selectOutputFolderCommand;
         private string selectedFile;
         private bool fileSelected;
-        private List<(string, string, string)> fileViewModels;
+        private List<string> fileViewModels;
         private ObservableCollection<string> fileCollection;
         private bool canChangeExtension;
         private bool outputDifferentFormat;
@@ -63,7 +63,7 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref fileSelected, value);
         }
 
-        public List<(string folder, string filename, string extension)> FileViewModels
+        public List<string> FileViewModels
         {
             get => fileViewModels;
             set => SetProperty(ref fileViewModels, value);
@@ -137,7 +137,7 @@ namespace VideoEditorUi.ViewModels
         public override void Initialize()
         {
             FileCollection = new ObservableCollection<string>();
-            FileViewModels = new List<(string, string, string)>();
+            FileViewModels = new List<string>();
             Formats = FormatTypeViewModel.CreateViewModels();
             FileCollection.CollectionChanged += FileCollection_CollectionChanged;
             FormatType = FormatEnum.avi;
@@ -147,7 +147,7 @@ namespace VideoEditorUi.ViewModels
 
         protected override void DragFilesCallback(string[] files)
         {
-            FileViewModels.AddRange(files.Select(CreateFileViewModel));
+            FileViewModels.AddRange(files);
             var safeFileNames = files.Select(Path.GetFileName);
             foreach (var file in safeFileNames)
                 FileCollection.Add(file);
@@ -156,8 +156,8 @@ namespace VideoEditorUi.ViewModels
 
         private void FileCollection_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            MultipleExtensions = FileViewModels.Any(f => f.extension != FileViewModels[0].extension);
-            if (FileViewModels.Any(f => f.extension.Contains(FormatEnum.mp4.ToString())))
+            MultipleExtensions = FileViewModels.Any(f => Path.GetExtension(f) != Path.GetExtension(FileViewModels[0]));
+            if (FileViewModels.Any(f => Path.GetExtension(f).Contains(FormatEnum.mp4.ToString())))
             {
                 CanChangeExtension = false;
                 FormatType = FormatEnum.mp4;
@@ -183,7 +183,7 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == DialogResult.Cancel)
                 return;
 
-            FileViewModels.AddRange(openFileDialog.FileNames.Select(CreateFileViewModel));
+            FileViewModels.AddRange(openFileDialog.FileNames);
             foreach (var file in openFileDialog.SafeFileNames)
                 FileCollection.Add(file);
         }
@@ -198,14 +198,15 @@ namespace VideoEditorUi.ViewModels
                 ShowMessage(new MessageBoxEventArgs(new SelectOutputFolderTranslatable(), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
                 return;
             }
-            var outExt = FileViewModels.Any(f => f.extension.Contains("mp4"))
+            var outExt = FileViewModels.Any(f => Path.GetExtension(f).Contains("mp4"))
                 ? ".mp4"
                 : MultipleExtensions
                     ? $".{FormatType}"
-                    : FileViewModels[0].extension;
-            VideoEditor = new VideoMerger(FileViewModels, OutputPath, outExt);
-            Setup(false);
-            Execute(StageEnum.Pre);
+                    : Path.GetExtension(FileViewModels[0]);
+            var args = new MergerArgs(FileViewModels, OutputPath, outExt);
+            //VideoEditor = new VideoMerger(FileViewModels, OutputPath, outExt);
+            Setup(false, false, args, null, null);
+            Execute(StageEnum.Pre, null);
         }
 
         private void MoveUpExecute()
@@ -213,12 +214,12 @@ namespace VideoEditorUi.ViewModels
             var index = FileCollection.IndexOf(SelectedFile);
             if (index == 0)
                 return;
-            var (path, file, ext) = FileViewModels.First(f => f.filename == Path.GetFileNameWithoutExtension(SelectedFile));
-            var fileWithExt = $"{file}{ext}";
+            var ff = FileViewModels.First(f => Path.GetFileNameWithoutExtension(f) == Path.GetFileNameWithoutExtension(SelectedFile));
+            var fileWithExt = Path.GetFileName(ff);// $"{file}{ext}";
             FileCollection.Remove(fileWithExt);
-            FileViewModels.Remove((path, file, ext));
+            FileViewModels.Remove(ff);//(path, file, ext));
             FileCollection.Insert(index - 1, fileWithExt);
-            FileViewModels.Insert(index - 1, (path, file, ext));
+            FileViewModels.Insert(index - 1, ff);//(path, file, ext));
             SelectedFile = fileWithExt;
         }
         private void MoveDownExecute()
@@ -237,7 +238,7 @@ namespace VideoEditorUi.ViewModels
             var items = ((System.Collections.IList)param).Cast<string>().ToList();
             for (var i = 0; i < items.Count; i++)
             {
-                FileViewModels.Remove(FileViewModels.First(f => f.filename.Contains(Path.GetFileNameWithoutExtension(items[i]))));
+                FileViewModels.Remove(FileViewModels.First(f => Path.GetFileNameWithoutExtension(f).Contains(Path.GetFileNameWithoutExtension(items[i]))));
                 FileCollection.Remove(items[i]);
             }
         }
