@@ -147,7 +147,7 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
             StartTimeSet = false;
             StartTime = EndTime = TimeSpan.FromMilliseconds(0);
@@ -328,7 +328,7 @@ namespace VideoEditorUi.ViewModels
             Execute(StageEnum.Secondary);
         }
 
-        protected override void CleanUp(bool isError)
+        public override void CleanUp(bool isError)
         {
             if (!isError)
             {

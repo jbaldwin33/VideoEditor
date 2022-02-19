@@ -145,7 +145,7 @@ namespace VideoEditorUi.ViewModels
             ShowMessage("done");
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
 
         }

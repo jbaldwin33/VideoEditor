@@ -6,6 +6,7 @@ using VideoEditorUi.ViewModels;
 using static VideoEditorUi.Utilities.GlobalExceptionHandler;
 using System.Threading;
 using System.Globalization;
+using VideoEditorUi.Utilities;
 
 namespace VideoEditorUi
 {

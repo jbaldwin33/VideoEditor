@@ -7,12 +7,23 @@ using CSVideoPlayer;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Services;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
-    public abstract class EditorViewModel : ViewModel
+    public interface IEditorViewModel
+    {
+        void Setup(bool doSetup, int count = 1, List<DownloaderViewModel.UrlClass> urlCollection = null);
+        void Execute(EditorViewModel.StageEnum stage, string label = "");
+        void Initialize();
+        void CleanUp(bool isError);
+    }
+    
+
+
+    public abstract class EditorViewModel : ViewModel, IEditorViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
         private Slider slider;
@@ -20,7 +31,8 @@ namespace VideoEditorUi.ViewModels
         private bool editorInitialized;
         private bool isPlaying;
 
-        protected IUtilityClass UtilityClass => Utilities.UtilityClass.Instance;
+        public IUtilityClass UtilityClass = Utilities.UtilityClass.Instance;
+        //public IVideoEditorFactory VideoEditorFactory
         protected BaseClass VideoEditor;
         protected ProgressBarViewModel ProgressBarViewModel;
         public Action<string[]> DragFiles;
@@ -60,7 +72,7 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected void Setup(bool doSetup, int count = 1, List<DownloaderViewModel.UrlClass> urlCollection = null)
+        public void Setup(bool doSetup, int count = 1, List<DownloaderViewModel.UrlClass> urlCollection = null)
         {
             SetupEditor();
             SetupProgressBarViewModel(count, urlCollection);
@@ -68,7 +80,7 @@ namespace VideoEditorUi.ViewModels
                 VideoEditor.Setup();
         }
 
-        protected void Execute(StageEnum stage, string label = "")
+        public void Execute(StageEnum stage, string label = "")
         {
             switch (stage)
             {
@@ -99,7 +111,7 @@ namespace VideoEditorUi.ViewModels
 
         protected void UpdatePlaylist(object sender, PlaylistEventArgs e) => ProgressBarViewModel.ProgressBarCollection[e.Index].UpdatePlaylist(e.Current, e.Total);
 
-        protected virtual void Initialize() => throw new NotImplementedException();
+        public virtual void Initialize() => throw new NotImplementedException();
         protected virtual void DragFilesCallback(string[] files) => throw new NotImplementedException();
 
         protected virtual void FinishedDownload(object sender, FinishedEventArgs e) => CleanUp(false);
@@ -117,7 +129,7 @@ namespace VideoEditorUi.ViewModels
             e.Result = args.Result == MessageBoxResult.Yes;
         }
 
-        protected virtual void CleanUp(bool isError)
+        public virtual void CleanUp(bool isError)
         {
             Navigator.Instance.CloseChildWindow.Execute(false);
             editorInitialized = false;

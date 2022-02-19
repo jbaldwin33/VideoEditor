@@ -52,6 +52,9 @@
       <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ConvertFormatLabel}" GroupName="radioGroup" IsChecked="{Binding ConverterSelected}"/>
       <RadioButton Margin="10" Height="20" Width="auto" Content="{Binding ReduceVideoSizeLabel}" GroupName="radioGroup" />
     </StackPanel>
+    <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Vertical" Visibility="{Binding ShowEmbedSubs, Converter={StaticResource BoolToVisConverter}}">
+      <CheckBox Content="{Binding EmbedSubsLabel}" IsChecked="{Binding EmbedSubs, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+    </StackPanel>
     <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding ConverterSelected, Converter={StaticResource BoolToVisConverter}}">
       <controls:DefaultTextBlock Text="{Binding OutputFormatLabel}"/>
       <ComboBox IsEditable="False" IsReadOnly="True" ItemsSource="{Binding Formats}" DisplayMemberPath="Name" SelectedValuePath="FormType" SelectedValue="{Binding FormatType, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>

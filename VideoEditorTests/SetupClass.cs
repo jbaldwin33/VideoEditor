@@ -20,10 +20,8 @@ namespace VideoEditorTests
         public static T CreateSut<T>() where T : VideoEditorUi.ViewModels.EditorViewModel
         {
             var sut = new Mock<T>();
-            var utilityClass = Builder<FakeUtilityClass>.CreateNew().Build();
-            sut.Protected().As<IProtectedMembers>()
-                .Setup(_ => _.UtilityClass)
-                .Returns(utilityClass);
+            
+            //sut.UtilityClass = new FakeUtilityClass();
             return sut.Object;
         }
     }

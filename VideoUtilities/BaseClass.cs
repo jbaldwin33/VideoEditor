@@ -36,7 +36,7 @@ namespace VideoUtilities
         protected Action DoAfterProcessExit;
         protected bool Cancelled;
         protected bool Failed;
-        protected bool ShowFile = true;
+        protected bool ShowFile;
         protected List<string> ErrorData = new List<string>();
         protected readonly List<ProcessClass> CurrentProcess = new List<ProcessClass>();
         protected readonly List<ProcessClass> ProcessStuff = new List<ProcessClass>();
@@ -64,6 +64,15 @@ namespace VideoUtilities
 
 
         #endregion
+
+        public BaseClass(IEnumerable list)
+        {
+            ShowFile = true;
+            Failed = false;
+            Cancelled = false;
+            ObjectList = list;
+
+        }
 
         protected void SetList(IEnumerable list)
         {

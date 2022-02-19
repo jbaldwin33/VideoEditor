@@ -96,7 +96,7 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>if not exist "Binaries" mkdir "Binaries"
-xcopy /Y/E "$(SolutionDir)\CSFiles\*" "Binaries\"
+xcopy /Y/E "$(SolutionDir)CSFiles\*" "Binaries\"
 if not exist "Localization" mkdir "Localization"
 xcopy /Y/E "$(SolutionDir)DLLs\Localization" "Localization\"</PostBuildEvent>
     <UseWindowsForms>True</UseWindowsForms>

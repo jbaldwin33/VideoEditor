@@ -118,7 +118,7 @@ namespace VideoEditorUi.ViewModels
             base.OnUnloaded();
         }
 
-        protected override void Initialize()
+        public override void Initialize()
         {
             AddUrl = () =>
             {
@@ -183,7 +183,7 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(new MessageBoxEventArgs(message, MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
         }
 
-        protected override void CleanUp(bool isError)
+        public override void CleanUp(bool isError)
         {
             if (!isError)
             {
