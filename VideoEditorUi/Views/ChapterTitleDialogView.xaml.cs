@@ -2,8 +2,8 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-using MVVMFramework.Localization;
-using MVVMFramework.ViewModels;
+using MVVMFrameworkNet472.Localization;
+using MVVMFrameworkNet472.ViewModels;
 
 namespace VideoEditorUi.Views
 {

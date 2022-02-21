@@ -12,7 +12,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoUtilities", "VideoUtil
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFVideoPlayer", "WPFVideoPlayer\WPFVideoPlayer.csproj", "{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VideoEditorTests", "VideoEditorTests\VideoEditorTests.csproj", "{5859F923-19F0-4D12-9EE1-152E4D59E83B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VideoEditorTests", "VideoEditorTests\VideoEditorTests.csproj", "{5859F923-19F0-4D12-9EE1-152E4D59E83B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

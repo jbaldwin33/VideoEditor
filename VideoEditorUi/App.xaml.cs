@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
-using MVVMFramework.Views;
-using MVVMFramework.Localization;
+using MVVMFrameworkNet472.Views;
+using MVVMFrameworkNet472.Localization;
 using VideoEditorUi.ViewModels;
 using static VideoEditorUi.Utilities.GlobalExceptionHandler;
 using System.Threading;

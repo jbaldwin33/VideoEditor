@@ -1,5 +1,5 @@
 ﻿using CSVideoPlayer;
-using MVVMFramework.ViewModels;
+using MVVMFrameworkNet472.ViewModels;
 using System;
 using System.Threading.Tasks;
 using VideoEditorUi.Services;

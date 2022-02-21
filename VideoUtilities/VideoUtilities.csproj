@@ -44,8 +44,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
-    <Reference Include="MVVMFramework">
-      <HintPath>..\DLLs\MVVMFramework.dll</HintPath>
+    <Reference Include="MVVMFrameworkNet472">
+      <HintPath>..\DLLs\MVVMFrameworkNet472.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -63,6 +63,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ArgClasses.cs" />
     <Compile Include="BaseClass.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="MetadataClass.cs" />

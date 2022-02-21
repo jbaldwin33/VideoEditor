@@ -8,11 +8,11 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
-using MVVMFramework.ViewModels;
-using MVVMFramework.ViewNavigator;
+using MVVMFrameworkNet472.ViewModels;
+using MVVMFrameworkNet472.ViewNavigator;
 using VideoUtilities;
 using static VideoUtilities.Enums;
-using MVVMFramework.Localization;
+using MVVMFrameworkNet472.Localization;
 using System.Windows.Input;
 
 namespace VideoEditorUi.ViewModels

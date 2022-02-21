@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
-using MVVMFramework.Localization;
-using MVVMFramework.ViewModels;
+using MVVMFrameworkNet472.Localization;
+using MVVMFrameworkNet472.ViewModels;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
@@ -141,17 +141,17 @@ namespace VideoEditorUi.ViewModels
         private Enums.ScaleRotate ConvertToEnum()
         {
             var sr = (FlipScale, RotateNumber);
-            return sr switch
+            switch (sr)
             {
-                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 0 => Enums.ScaleRotate.NoSNoR,
-                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 90 => Enums.ScaleRotate.NoS90R,
-                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 180 => Enums.ScaleRotate.NoS180R,
-                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 270 => Enums.ScaleRotate.NoS270R,
-                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 0 => Enums.ScaleRotate.SNoR,
-                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 90 => Enums.ScaleRotate.S90R,
-                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 180 => Enums.ScaleRotate.S180R,
-                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 270 => Enums.ScaleRotate.S270R,
-                _ => throw new ArgumentOutOfRangeException(nameof(sr), sr, null),
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 0: return Enums.ScaleRotate.NoSNoR;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 90: return Enums.ScaleRotate.NoS90R;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 180: return Enums.ScaleRotate.NoS180R;
+                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 270: return Enums.ScaleRotate.NoS270R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 0: return Enums.ScaleRotate.SNoR;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 90: return Enums.ScaleRotate.S90R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 180: return Enums.ScaleRotate.S180R;
+                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 270: return Enums.ScaleRotate.S270R;
+                default: throw new ArgumentOutOfRangeException(nameof(sr), sr, null);
             };
         }
 

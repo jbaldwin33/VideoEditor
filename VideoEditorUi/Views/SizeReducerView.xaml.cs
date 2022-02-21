@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using MVVMFramework.ViewNavigator;
-using MVVMFramework.Views;
+using MVVMFrameworkNet472.ViewNavigator;
+using MVVMFrameworkNet472.Views;
 using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views

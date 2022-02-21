@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows;
 using System.Windows.Threading;
-using MVVMFramework.Localization;
+using MVVMFrameworkNet472.Localization;
 
 namespace VideoEditorUi.Utilities
 {

@@ -114,8 +114,8 @@
     <Reference Include="Microsoft.Xaml.Behaviors">
       <HintPath>..\DLLs\Microsoft.Xaml.Behaviors.dll</HintPath>
     </Reference>
-    <Reference Include="MVVMFramework">
-      <HintPath>..\DLLs\MVVMFramework.dll</HintPath>
+    <Reference Include="MVVMFrameworkNet472">
+      <HintPath>..\DLLs\MVVMFrameworkNet472.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -146,8 +146,8 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-	<Compile Include="Services\VideoEditorFactory.cs" />
-	<Compile Include="Services\VideoEditorService.cs" />
+    <Compile Include="Services\VideoEditorFactory.cs" />
+    <Compile Include="Services\VideoEditorService.cs" />
     <Compile Include="Utilities\PlayerControl.xaml.cs">
       <DependentUpon>PlayerControl.xaml</DependentUpon>
     </Compile>

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using MVVMFramework.Localization;
+using MVVMFrameworkNet472.Localization;
 
 namespace VideoUtilities
 {

@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoEditorUi.Views"
-        xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+        xmlns:controls="clr-namespace:MVVMFrameworkNet472.Controls;assembly=MVVMFrameworkNet472"
         mc:Ignorable="d"
         Title="UrlDialogView" Height="200" Width="300" WindowStartupLocation="CenterOwner">
   <Grid>

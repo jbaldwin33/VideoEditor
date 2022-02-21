@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using CSMediaProperties;
 using CSVideoPlayer;
-using MVVMFramework.ViewModels;
-using MVVMFramework.ViewNavigator;
+using MVVMFrameworkNet472.ViewModels;
+using MVVMFrameworkNet472.ViewNavigator;
 
 namespace VideoEditorUi.Utilities
 {

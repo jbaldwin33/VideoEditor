@@ -4,9 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:VideoEditorUi.Views"
-        xmlns:views="clr-namespace:MVVMFramework.Views;assembly=MVVMFramework" 
+        xmlns:views="clr-namespace:MVVMFrameworkNet472.Views;assembly=MVVMFrameworkNet472" 
         xmlns:CSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" 
-        xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
+        xmlns:controls="clr-namespace:MVVMFrameworkNet472.Controls;assembly=MVVMFrameworkNet472"
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
         Height="920" Width="1350" WindowStartupLocation="CenterScreen">

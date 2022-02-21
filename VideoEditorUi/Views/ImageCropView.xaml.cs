@@ -1,5 +1,5 @@
-﻿using MVVMFramework.ViewNavigator;
-using MVVMFramework.Views;
+﻿using MVVMFrameworkNet472.ViewNavigator;
+using MVVMFrameworkNet472.Views;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;

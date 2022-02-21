@@ -1,5 +1,5 @@
-﻿using MVVMFramework.Localization;
-using MVVMFramework.ViewModels;
+﻿using MVVMFrameworkNet472.Localization;
+using MVVMFrameworkNet472.ViewModels;
 using System;
 using System.Runtime.InteropServices;
 using System.Windows;

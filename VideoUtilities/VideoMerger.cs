@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
-using MVVMFramework.Localization;
+using MVVMFrameworkNet472.Localization;
 
 namespace VideoUtilities
 {
