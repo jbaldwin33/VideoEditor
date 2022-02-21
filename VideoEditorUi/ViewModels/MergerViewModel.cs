@@ -5,12 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
+using Microsoft.Win32;
 using MVVMFramework.ViewModels;
 using VideoUtilities;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using static VideoUtilities.Enums;
 using System.Windows.Input;
-using System.Windows.Forms;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -180,7 +181,7 @@ namespace VideoEditorUi.ViewModels
                 Multiselect = true
             };
 
-            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
+            if (openFileDialog.ShowDialog() == false)
                 return;
 
             FileViewModels.AddRange(openFileDialog.FileNames);
@@ -245,15 +246,16 @@ namespace VideoEditorUi.ViewModels
 
         private void SelectOutputFolderCommandExecute()
         {
-            var openFolderDialog = new FolderBrowserDialog
+            var openFolderDialog = new CommonOpenFileDialog
             {
+                IsFolderPicker = true,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
             };
 
-            if (openFolderDialog.ShowDialog() == DialogResult.Cancel)
+            if (openFolderDialog.ShowDialog() == CommonFileDialogResult.Cancel)
                 return;
 
-            OutputPath = openFolderDialog.SelectedPath;
+            OutputPath = openFolderDialog.FileName;
         }
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)

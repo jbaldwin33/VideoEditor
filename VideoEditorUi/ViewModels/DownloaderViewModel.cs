@@ -6,11 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Forms;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using VideoEditorUi.Views;
 using VideoUtilities;
+using static VideoUtilities.Enums;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -155,15 +156,16 @@ namespace VideoEditorUi.ViewModels
 
         private void SelectOutputFolderCommandExecute()
         {
-            var openFolderDialog = new FolderBrowserDialog
+            var openFolderDialog = new CommonOpenFileDialog
             {
+                IsFolderPicker = true,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
             };
 
-            if (openFolderDialog.ShowDialog() == DialogResult.Cancel)
+            if (openFolderDialog.ShowDialog() == CommonFileDialogResult.Cancel)
                 return;
 
-            OutputPath = openFolderDialog.SelectedPath;
+            OutputPath = openFolderDialog.FileName;
         }
 
         private bool IsPlaylist(string url) => url.Contains("playlist");

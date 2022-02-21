@@ -4,8 +4,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Forms;
 using System.Windows.Input;
+using Microsoft.Win32;
+using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using VideoUtilities;
@@ -161,7 +162,7 @@ namespace VideoEditorUi.ViewModels
                 Multiselect = true
             };
 
-            if (openFileDialog.ShowDialog() == DialogResult.Cancel)
+            if (openFileDialog.ShowDialog() == false)
                 return;
 
             openFileDialog.FileNames.ToList().ForEach(FileCollection.Add);
@@ -212,15 +213,16 @@ namespace VideoEditorUi.ViewModels
 
         private void SelectOutputFolderCommandExecute()
         {
-            var openFolderDialog = new FolderBrowserDialog
+            var openFolderDialog = new CommonOpenFileDialog
             {
+                IsFolderPicker = true,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyVideos),
             };
 
-            if (openFolderDialog.ShowDialog() == DialogResult.Cancel)
+            if (openFolderDialog.ShowDialog() == CommonFileDialogResult.Cancel)
                 return;
 
-            OutputPath = openFolderDialog.SelectedPath;
+            OutputPath = openFolderDialog.FileName;
         }
 
         private void UpdateShowEmbedSubs() => ShowEmbedSubs = converterSelected && formatType == FormatEnum.avi;
