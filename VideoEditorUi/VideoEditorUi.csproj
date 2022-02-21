@@ -146,6 +146,8 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+	<Compile Include="Services\VideoEditorFactory.cs" />
+	<Compile Include="Services\VideoEditorService.cs" />
     <Compile Include="Utilities\PlayerControl.xaml.cs">
       <DependentUpon>PlayerControl.xaml</DependentUpon>
     </Compile>
