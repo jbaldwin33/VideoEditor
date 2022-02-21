@@ -73,10 +73,8 @@ namespace VideoEditorUi.ViewModels
             ShowMessage(messageArgs);
             if (messageArgs.Result == MessageBoxResult.No)
                 return;
+
             var args = new ReverserArgs(InputPath);
-            //VideoEditor = new VideoReverser(InputPath);
-            //VideoEditor.PreWorkFinished += Reverser_TrimFinished;
-            //VideoEditor.FirstWorkFinished += Reverser_ReverseFinished;
             Setup(false, false, args, Reverser_TrimFinished, Reverser_ReverseFinished);
             Execute(StageEnum.Pre, null);
         }
@@ -92,14 +90,14 @@ namespace VideoEditorUi.ViewModels
 
         private void Reverser_TrimFinished(object sender, PreWorkEventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            UtilityClass.CloseChildWindow(false);
             Setup(false, false, null, null, null, (int)e.Argument);
             Execute(StageEnum.Primary, new ReversingSectionsLabelTranslatable());
         }
 
         private void Reverser_ReverseFinished(object sender, EventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            UtilityClass.CloseChildWindow(false);
             Setup(false, false, null, null, null);
             Execute(StageEnum.Secondary, null);
         }

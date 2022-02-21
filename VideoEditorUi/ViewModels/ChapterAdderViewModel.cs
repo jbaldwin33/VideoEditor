@@ -329,7 +329,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Adder_GetMetadataFinished(object sender, EventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            UtilityClass.CloseChildWindow(false);
             Setup(false, false, null, null, null);
             Execute(StageEnum.Secondary, null);
         }

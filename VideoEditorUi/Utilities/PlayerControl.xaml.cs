@@ -31,12 +31,12 @@ namespace VideoEditorUi.Utilities
             viewModel = DataContext as EditorViewModel;
             timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
             timer.Tick += timer_Tick;
-            UtilityClass.Instance.InitializePlayer(player);
-            player.MediaOpened += Player_MediaOpened;
-            player.MediaEnded += Player_MediaEnded;
             slider.ApplyTemplate();
             thumb.MouseEnter += Thumb_MouseEnter;
             Unloaded += PlayerControl_Unloaded;
+            UtilityClass.Instance.InitializePlayer(player);
+            player.MediaOpened += Player_MediaOpened;
+            player.MediaEnded += Player_MediaEnded;
             slider.ValueChanged += Slider_ValueChanged;
             viewModel.SliderMax = slider.Maximum;
             viewModel.SeekEvent = Seek;
@@ -47,30 +47,6 @@ namespace VideoEditorUi.Utilities
             viewModel.ClosePlayerEvent = ClosePlayer;
             viewModel.GetPlayerPosition = GetPlayerPosition;
             viewModel.SetPlayerPosition = SetPlayerPosition;
-        }
-
-        private CSMediaProperties.MediaProperties GetPlayerDetails(string file)
-        {
-            UtilityClass.Instance.GetDetails(player, file);
-            return player.mediaProperties;
-        }
-
-        private void OpenPlayer(string file) => player.Open(new Uri(file));
-        private TimeSpan GetPlayerPosition() => UtilityClass.Instance.GetPlayerPosition(player);
-        private void SetPlayerPosition(double time) => UtilityClass.Instance.SetPlayerPosition(player, time);
-
-        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            viewModel.SliderValue = e.NewValue;
-        }
-
-        private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
-        {
-            player.MediaOpened -= Player_MediaOpened;
-            player.MediaEnded -= Player_MediaEnded;
-            timer.Tick -= timer_Tick;
-            thumb.MouseEnter -= Thumb_MouseEnter;
-            slider.ValueChanged -= Slider_ValueChanged;
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -86,6 +62,15 @@ namespace VideoEditorUi.Utilities
             isDragging = false;
             UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
             viewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
+        }
+
+        private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            player.MediaOpened -= Player_MediaOpened;
+            player.MediaEnded -= Player_MediaEnded;
+            timer.Tick -= timer_Tick;
+            thumb.MouseEnter -= Thumb_MouseEnter;
+            slider.ValueChanged -= Slider_ValueChanged;
         }
 
         private void UpdateSliderValue(double value)
@@ -105,6 +90,21 @@ namespace VideoEditorUi.Utilities
         {
             if (player != null)
                 UtilityClass.Instance.ClosePlayer(player);
+        }
+
+        private CSMediaProperties.MediaProperties GetPlayerDetails(string file)
+        {
+            UtilityClass.Instance.GetDetails(player, file);
+            return player.mediaProperties;
+        }
+
+        private void OpenPlayer(string file) => player.Open(new Uri(file));
+        private TimeSpan GetPlayerPosition() => UtilityClass.Instance.GetPlayerPosition(player);
+        private void SetPlayerPosition(double time) => UtilityClass.Instance.SetPlayerPosition(player, time);
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            viewModel.SliderValue = e.NewValue;
         }
 
         private void Player_MediaOpened(object sender, MediaOpenedEventArgs e)

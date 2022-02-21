@@ -7,11 +7,15 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using CSMediaProperties;
 using CSVideoPlayer;
+using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 
 namespace VideoEditorUi.Utilities
 {
     public interface IUtilityClass
     {
+        void OpenChildWindow(ViewModel viewModel);
+        void CloseChildWindow(bool isError);
         void InitializePlayer(VideoPlayerWPF player);
         void GetDetails(VideoPlayerWPF player, string name);
         TimeSpan GetPlayerPosition(VideoPlayerWPF player);
@@ -23,6 +27,9 @@ namespace VideoEditorUi.Utilities
     {
         private static readonly Lazy<UtilityClass> lazy = new Lazy<UtilityClass>(() => new UtilityClass());
         public static UtilityClass Instance => lazy.Value;
+
+        public void OpenChildWindow(ViewModel viewModel) => Navigator.Instance.OpenChildWindow.Execute(viewModel);
+        public void CloseChildWindow(bool isError) => Navigator.Instance.CloseChildWindow.Execute(isError);
 
         public string GetBinaryPath()
         {
@@ -44,11 +51,7 @@ namespace VideoEditorUi.Utilities
         public void SetPlayerPosition(VideoPlayerWPF player, double newValue)
             => player.PositionSet(new TimeSpan(0, 0, 0, 0, (int)newValue) + TimeSpan.FromSeconds(double.Parse(player.mediaProperties.Format.StartTime)));
 
-        public void ClosePlayer(VideoPlayerWPF player)
-        {
-            var mediaPlayer = player.GetType().GetField("mediaPlayer", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(player);
-            mediaPlayer?.GetType().GetMethod("Close")?.Invoke(mediaPlayer, null);
-        }
+        public void ClosePlayer(VideoPlayerWPF player) => player.Open(null);
 
         private MediaProperties GetVideoDetails(string input)
         {

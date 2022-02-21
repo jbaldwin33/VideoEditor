@@ -27,7 +27,7 @@
       </Border>
     </Canvas>
     <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center">
-      <Slider HorizontalAlignment="Center" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Name="slider" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+      <Slider x:Name="slider" HorizontalAlignment="Center" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
         <controls:DefaultButton Command="{Binding SeekBackCommand}">
           <metro:Material Kind="Rewind5"/>

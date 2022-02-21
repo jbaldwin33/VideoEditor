@@ -106,14 +106,8 @@ namespace VideoEditorUi.ViewModels
             Position = $"Starting position: (0,0)";
         }
 
-        private void SeekBackCommandExecute()
-        {
-            SeekEvent(-5000);
-        }
-        private void SeekForwardCommandExecute()
-        {
-            SeekEvent(5000);
-        }
+        private void SeekBackCommandExecute() => SeekEvent(-5000);
+        private void SeekForwardCommandExecute() => SeekEvent(5000);
 
         private void SelectFileCommandExecute()
         {
@@ -136,7 +130,6 @@ namespace VideoEditorUi.ViewModels
         private void CropCommandExecute()
         {
             var args = new VideoCropperArgs(InputPath, CropClass);
-            //VideoEditor = new VideoCropper(InputPath, CropClass.Width, CropClass.Height, CropClass.X, CropClass.Y);
             Setup(true, false, args, null, null);
             Execute(StageEnum.Primary, new CroppingLabelTranslatable());
         }

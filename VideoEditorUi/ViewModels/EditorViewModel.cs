@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using CSVideoPlayer;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
@@ -25,7 +22,7 @@ namespace VideoEditorUi.ViewModels
     public abstract class EditorViewModel : ViewModel, IEditorViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
-        private bool withSlider;
+        private bool withSlider = true;
         private double sliderValue;
         private bool fileLoaded;
         private bool isPlaying;
@@ -36,7 +33,6 @@ namespace VideoEditorUi.ViewModels
         protected ProgressBarViewModel ProgressBarViewModel;
         public double SliderMax;
         public Action<string[]> DragFiles;
-        //public VideoPlayerWPF Player;
         public Action<TimeSpan> PositionChanged;
         public Action<double> SeekEvent;
         public Action PlayEvent;
@@ -71,10 +67,8 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref isPlaying, value);
         }
 
-
         public override void OnLoaded()
         {
-            WithSlider = true;
             Initialize();
             DragFiles = DragFilesCallback;
             base.OnLoaded();
@@ -102,7 +96,7 @@ namespace VideoEditorUi.ViewModels
         public void Execute(StageEnum stage, string label)
         {
             EditorService.ExecuteVideoEditor(stage, label);
-            Navigator.Instance.OpenChildWindow.Execute(ProgressBarViewModel);
+            UtilityClass.OpenChildWindow(ProgressBarViewModel);
         }
 
         protected void PlayCommandExecute()
@@ -144,7 +138,7 @@ namespace VideoEditorUi.ViewModels
 
         public virtual void CleanUp(bool isError)
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            UtilityClass.CloseChildWindow(false);
             EditorService.SetInitialized(false);
             if (isError)
                 return;

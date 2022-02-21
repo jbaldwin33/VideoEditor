@@ -18,7 +18,7 @@ namespace VideoUtilities
         private readonly List<string> files;
         private TimeSpan totalDuration;
 
-        public VideoMerger(MergerArgs args) : base(args.InputPaths)
+        public VideoMerger(MergerArgs args) : base(new string[] { "" })
         {
             OutputPath = $"{args.OutputPath}\\Merged_File{args.OutputFormat}";
             outputExtension = args.OutputFormat;
@@ -55,7 +55,7 @@ namespace VideoUtilities
             var sb = new StringBuilder($"{(CheckOverwrite(ref output) ? "-y" : string.Empty)}");
             var ext = Path.GetExtension(files.First());
             if (files.All(f => Path.GetExtension(f) == ext) && sameDimensions())
-                sb.Append($"-safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
+                sb.Append($" -safe 0 -f concat -i \"{tempFile}\" -c copy \"{output}\"");
             else
             {
                 foreach (var file in files)

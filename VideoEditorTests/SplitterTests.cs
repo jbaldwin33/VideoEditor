@@ -10,7 +10,7 @@ using Xunit;
 
 namespace VideoEditorTests
 {
-    
+
     public class SplitterTests
     {
         private void Setup(SplitterViewModel sut)
@@ -24,22 +24,27 @@ namespace VideoEditorTests
             sut.RectCollection = new ObservableCollection<RectClass>();
             sut.Formats = FormatTypeViewModel.CreateViewModels();
             sut.UtilityClass = new FakeUtilityClass();
+            sut.EditorService = new FakeEditorService();
+            sut.GetPlayerPosition = () => sut.StartTime.Add(new TimeSpan(0, 0, 5));
             sut.AddRectangleEvent = () => sut.RectCollection.Add(new RectClass());
-            //sut.FormatType = FormatEnum.avi;
-            //sut.SectionViewModels.CollectionChanged += Times_CollectionChanged;
         }
-        [Fact]
-        public void Should_Clear_Collection_After_Finish()
+        [Theory]
+        [InlineData(false, 0)]
+        [InlineData(true, 2)]
+        public void Verify_Collection_After_Finish(bool isError, int collectionCount)
         {
-            var mock = new Mock<SplitterViewModel>();
-            mock.As<IEditorViewModel>().Setup(x => x.Execute(EditorViewModel.StageEnum.Primary, ""))// "Execute", new object[] { EditorViewModel.StageEnum.Pre, "" })
-                .Callback(() => { mock.Object.CleanUp(false); })
-                .Verifiable();
-            var sut = mock.Object;
+            var sut = new SplitterViewModel();
             Setup(sut);
             sut.StartCommand.Execute(null);
             sut.EndCommand.Execute(null);
+            sut.StartCommand.Execute(null);
+            sut.EndCommand.Execute(null);
             sut.SplitCommand.Execute(null);
+            sut.CleanUp(isError);
+
+            Assert.Equal(collectionCount, sut.SectionViewModels.Count);
+            Assert.Equal(collectionCount,  sut.RectCollection.Count);
         }
+
     }
 }

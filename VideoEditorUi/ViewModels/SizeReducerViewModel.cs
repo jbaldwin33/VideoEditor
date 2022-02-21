@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Data;
@@ -176,7 +175,6 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
             var args = new ReducerArgs(FileCollection.ToList(), OutputPath);
-            //VideoEditor = new VideoSizeReducer(c);
             Setup(true, false, args, null, null, FileCollection.Count);
             Execute(StageEnum.Primary, new ReducingSizeLabelTranslatable());
         }
@@ -200,8 +198,8 @@ namespace VideoEditorUi.ViewModels
             }
             else
                 createVms = FileCollection.Select(f => new ConverterPathClass(f, false)).ToList();
+            UtilityClass.ClosePlayer(player);
             var args = new ConverterArgs(createVms, $".{FormatType}", OutputPath);
-            //VideoEditor = new VideoConverter(c);
             Setup(true, false, args, null, null, FileCollection.Count);
             Execute(StageEnum.Primary, new ConvertingLabelTranslatable());
         }

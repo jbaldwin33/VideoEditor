@@ -5,7 +5,6 @@ using System.Windows.Media;
 using Microsoft.Win32;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
-using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
@@ -67,14 +66,13 @@ namespace VideoEditorUi.ViewModels
 
         #endregion
 
-        public Slider SpeedSlider { get; set; }
-        public StackPanel VideoStackPanel { get; set; }
+        public Action<double> UpdateSliderEvent;
+        public Action<int, int> UpdateStackPanelEvent;
 
         #region Commands
 
         public RelayCommand SelectFileCommand => selectFileCommand ?? (selectFileCommand = new RelayCommand(SelectFileCommandExecute, () => true));
         public RelayCommand FormatCommand => formatCommand ?? (formatCommand = new RelayCommand(FormatCommandExecute, FormatCommandCanExecute));
-
         public RelayCommand FlipCommand => flipCommand ?? (flipCommand = new RelayCommand(FlipCommandExecute, () => FileLoaded));
         public RelayCommand RotateCommand => rotateCommand ?? (rotateCommand = new RelayCommand(RotateCommandExecute, () => FileLoaded));
 
@@ -92,7 +90,6 @@ namespace VideoEditorUi.ViewModels
         {
             ClosePlayerEvent?.Invoke();
             FileLoaded = false;
-            SpeedSlider.ValueChanged -= SpeedSlider_ValueChanged;
             base.OnUnloaded();
         }
 
@@ -100,8 +97,6 @@ namespace VideoEditorUi.ViewModels
         {
             WithSlider = false;
             FlipScale = 1;
-            SpeedSlider.ValueChanged += SpeedSlider_ValueChanged;
-            SpeedSlider.Value = 1;
             SpeedLabel = "1x";
         }
 
@@ -127,7 +122,6 @@ namespace VideoEditorUi.ViewModels
         private void FormatCommandExecute()
         {
             var args = new SpeedChangerArgs(InputPath, CurrentSpeed, ConvertToEnum());
-            //VideoEditor = new VideoSpeedChanger(c);
             Setup(true, false, args, null, null);
             Execute(StageEnum.Primary, new ChangingLabelTranslatable());
         }
@@ -135,51 +129,32 @@ namespace VideoEditorUi.ViewModels
         private void FlipCommandExecute()
         {
             FlipScale = FlipScale < 0 ? 1 : -1;
-            var transformGroup = new TransformGroup
-            {
-                Children = new TransformCollection
-                {
-                    new RotateTransform(RotateNumber * FlipScale),
-                    new ScaleTransform { ScaleX = FlipScale }
-                }
-            };
-            VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
-            VideoStackPanel.LayoutTransform = transformGroup;
+            UpdateStackPanelEvent(RotateNumber, FlipScale);
         }
 
         private void RotateCommandExecute()
         {
             RotateNumber = (RotateNumber + 90) % 360;
-            var transformGroup = new TransformGroup
-            {
-                Children = new TransformCollection
-                {
-                    new RotateTransform(RotateNumber * FlipScale),
-                    new ScaleTransform { ScaleX = FlipScale }
-                }
-            };
-            VideoStackPanel.RenderTransformOrigin = new Point(0.5, 0.5);
-            VideoStackPanel.LayoutTransform = transformGroup;
+            UpdateStackPanelEvent(RotateNumber, FlipScale);
         }
 
         private Enums.ScaleRotate ConvertToEnum()
         {
             var sr = (FlipScale, RotateNumber);
-            switch (sr)
+            return sr switch
             {
-                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 0: return Enums.ScaleRotate.NoSNoR;
-                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 90: return Enums.ScaleRotate.NoS90R;
-                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 180: return Enums.ScaleRotate.NoS180R;
-                case var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 270: return Enums.ScaleRotate.NoS270R;
-                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 0: return Enums.ScaleRotate.SNoR;
-                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 90: return Enums.ScaleRotate.S90R;
-                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 180: return Enums.ScaleRotate.S180R;
-                case var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 270: return Enums.ScaleRotate.S270R;
-                default: throw new ArgumentOutOfRangeException(nameof(sr), sr, null);
-            }
+                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 0 => Enums.ScaleRotate.NoSNoR,
+                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 90 => Enums.ScaleRotate.NoS90R,
+                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 180 => Enums.ScaleRotate.NoS180R,
+                var tuple when tuple.FlipScale == 1 && tuple.RotateNumber == 270 => Enums.ScaleRotate.NoS270R,
+                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 0 => Enums.ScaleRotate.SNoR,
+                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 90 => Enums.ScaleRotate.S90R,
+                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 180 => Enums.ScaleRotate.S180R,
+                var tuple when tuple.FlipScale == -1 && tuple.RotateNumber == 270 => Enums.ScaleRotate.S270R,
+                _ => throw new ArgumentOutOfRangeException(nameof(sr), sr, null),
+            };
         }
 
-        private void SpeedSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => CurrentSpeed = e.NewValue;
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
@@ -198,7 +173,7 @@ namespace VideoEditorUi.ViewModels
                 CurrentSpeed = 1;
                 FlipScale = 1;
                 RotateNumber = 0;
-                Application.Current.Dispatcher.Invoke(() => SpeedSlider.Value = 1);
+                Application.Current.Dispatcher.Invoke(() => UpdateSliderEvent(1));
                 FileLoaded = false;
             }
             base.CleanUp(isError);

@@ -5,6 +5,7 @@ using System.Linq;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
@@ -56,7 +57,7 @@ namespace VideoEditorUi.ViewModels
         private void CancelCommandExecute()
         {
             OnCancelled();
-            Navigator.Instance.CloseChildWindow.Execute(true);
+            UtilityClass.Instance.CloseChildWindow(true);
         }
 
         public void SetFinished(int index) => ProgressBarCollection[index].VideoIndexLabel = new CompleteLabelTranslatable();

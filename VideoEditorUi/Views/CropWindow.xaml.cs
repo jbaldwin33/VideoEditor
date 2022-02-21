@@ -43,8 +43,7 @@ namespace VideoEditorUi.Views
             player.Height = gridChild.Height = border.Height = border.MaxHeight = totalHeight = recSelection.Height = height;
             resizerViewModel = vm;
             DataContext = vm;
-            //resizerViewModel.Player = player;
-            //resizerViewModel.Slider = slider;
+            
             resizerViewModel.OldSize = $"Old size: {width}x{height}";
             resizerViewModel.NewSize = $"New size: {border.Width}x{border.Height}";
 
@@ -55,6 +54,16 @@ namespace VideoEditorUi.Views
             slider.ApplyTemplate();
             thumb.MouseEnter += Thumb_MouseEnter;
             Unloaded += CropWindow_Unloaded;
+            slider.ValueChanged += Slider_ValueChanged;
+            resizerViewModel.SliderMax = slider.Maximum;
+            resizerViewModel.SeekEvent = Seek;
+            resizerViewModel.PlayEvent = () => player.Play();
+            resizerViewModel.PauseEvent = () => player.Pause();
+            resizerViewModel.GetDetailsEvent = GetPlayerDetails;
+            resizerViewModel.OpenEvent = OpenPlayer;
+            resizerViewModel.ClosePlayerEvent = ClosePlayer;
+            resizerViewModel.GetPlayerPosition = GetPlayerPosition;
+            resizerViewModel.SetPlayerPosition = SetPlayerPosition;
 
             Loaded += (sender, e) =>
             {
@@ -112,6 +121,40 @@ namespace VideoEditorUi.Views
                 resizerViewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
             }
         }
+
+        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            resizerViewModel.SliderValue = e.NewValue;
+        }
+
+        private void UpdateSliderValue(double value)
+        {
+            slider.Value = value < 0
+                ? slider.Value + value < 0 ? 0 : slider.Value + value
+                : slider.Value + value > slider.Maximum ? slider.Maximum : slider.Value + value;
+        }
+
+        private void Seek(double value)
+        {
+            UpdateSliderValue(value);
+            UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
+        }
+
+        private void ClosePlayer()
+        {
+            if (player != null)
+                UtilityClass.Instance.ClosePlayer(player);
+        }
+
+        private CSMediaProperties.MediaProperties GetPlayerDetails(string file)
+        {
+            UtilityClass.Instance.GetDetails(player, file);
+            return player.mediaProperties;
+        }
+
+        private void OpenPlayer(string file) => player.Open(new Uri(file));
+        private TimeSpan GetPlayerPosition() => UtilityClass.Instance.GetPlayerPosition(player);
+        private void SetPlayerPosition(double time) => UtilityClass.Instance.SetPlayerPosition(player, time);
 
         private void recSelection_MouseDown(object sender, MouseButtonEventArgs e)
         {

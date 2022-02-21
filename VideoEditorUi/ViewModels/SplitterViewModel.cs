@@ -6,7 +6,6 @@ using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using MVVMFramework.ViewModels;
@@ -15,7 +14,6 @@ using VideoUtilities;
 using static VideoUtilities.Enums;
 using MVVMFramework.Localization;
 using System.Windows.Input;
-using VideoEditorUi.Services;
 
 namespace VideoEditorUi.ViewModels
 {
@@ -232,6 +230,7 @@ namespace VideoEditorUi.ViewModels
             SeekEvent?.Invoke(-5000);
             CurrentTimeString = new TimeSpan(0, 0, 0, 0, (int)SliderValue).ToString("hh':'mm':'ss':'fff");
         }
+
         private void SeekForwardCommandExecute()
         {
             SeekEvent?.Invoke(5000);
@@ -285,11 +284,11 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            //InputPath = openFileDialog.FileName;
-            ////UtilityClass.GetDetails(Player, openFileDialog.FileName);
-            ////Player.Open(new Uri(openFileDialog.FileName));
-            //FileLoaded = true;
-            //ResetAll();
+            InputPath = openFileDialog.FileName;
+            GetDetailsEvent(openFileDialog.FileName);
+            OpenEvent(openFileDialog.FileName);
+            FileLoaded = true;
+            ResetAll();
         }
 
         private void RectCommandExecute(object obj)
@@ -332,7 +331,7 @@ namespace VideoEditorUi.ViewModels
 
         private void Splitter_SplitFinished(object sender, EventArgs e)
         {
-            Navigator.Instance.CloseChildWindow.Execute(false);
+            UtilityClass.CloseChildWindow(false);
             Setup(false, false, null, null, null);
             Execute(StageEnum.Secondary, null);
         }
@@ -352,7 +351,6 @@ namespace VideoEditorUi.ViewModels
         }
     }
 
-    
     public class RectClass
     {
         public Thickness Margin { get; set; }
