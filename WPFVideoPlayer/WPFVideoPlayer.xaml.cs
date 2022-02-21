@@ -27,8 +27,8 @@ namespace WPFVideoPlayer
     /// </summary>
     public partial class WPFVideoPlayer : UserControl
     {
-        //public event EventHandler MediaOpened;
-        //public event EventHandler MediaClosed;
+        public event EventHandler MediaOpened;
+        public event EventHandler MediaClosed;
 
         public string SourcePath { get; private set; }
         public TimeSpan StartTime;
