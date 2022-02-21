@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
@@ -26,8 +26,8 @@
     <Reference Include="CSVideoPlayer">
       <HintPath>..\DLLs\CSVideoPlayer.dll</HintPath>
     </Reference>
-    <Reference Include="MVVMFrameworkNet472">
-      <HintPath>..\DLLs\MVVMFrameworkNet472.dll</HintPath>
+    <Reference Include="MVVMFramework">
+      <HintPath>..\DLLs\MVVMFramework.dll</HintPath>
     </Reference>
     <Reference Include="VideoUtilities">
       <HintPath>..\DLLs\VideoUtilities.dll</HintPath>

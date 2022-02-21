@@ -6,10 +6,10 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.Win32;
-using MVVMFrameworkNet472.ViewModels;
+using MVVMFramework.ViewModels;
 using VideoUtilities;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using MVVMFrameworkNet472.Localization;
+using MVVMFramework.Localization;
 using static VideoUtilities.Enums;
 using System.Windows.Input;
 

@@ -7,8 +7,8 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
-using MVVMFrameworkNet472.Localization;
-using MVVMFrameworkNet472.ViewModels;
+using MVVMFramework.Localization;
+using MVVMFramework.ViewModels;
 using VideoUtilities;
 using static VideoUtilities.Enums;
 

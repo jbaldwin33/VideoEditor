@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.VisualBasic.Devices;
-using MVVMFrameworkNet472.Localization;
+using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {

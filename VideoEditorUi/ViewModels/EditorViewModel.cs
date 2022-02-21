@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-using MVVMFrameworkNet472.Localization;
-using MVVMFrameworkNet472.ViewModels;
-using MVVMFrameworkNet472.ViewNavigator;
+using MVVMFramework.Localization;
+using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Services;
 using VideoEditorUi.Utilities;
 using VideoUtilities;

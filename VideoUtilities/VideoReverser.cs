@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using MVVMFrameworkNet472.Localization;
+using MVVMFramework.Localization;
 
 namespace VideoUtilities
 {

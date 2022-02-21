@@ -9,9 +9,9 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using Microsoft.Win32;
-using MVVMFrameworkNet472.Localization;
-using MVVMFrameworkNet472.ViewModels;
-using MVVMFrameworkNet472.ViewNavigator;
+using MVVMFramework.Localization;
+using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Views;
 using VideoUtilities;
 

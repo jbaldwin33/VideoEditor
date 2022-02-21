@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VideoEditorUi.Utilities" 
              xmlns:cSVideoPlayer="clr-namespace:CSVideoPlayer;assembly=CSVideoPlayer" 
-             xmlns:controls="clr-namespace:MVVMFrameworkNet472.Controls;assembly=MVVMFrameworkNet472"
+             xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
              xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:utilities="clr-namespace:VideoEditorUi.Utilities"
              mc:Ignorable="d" 

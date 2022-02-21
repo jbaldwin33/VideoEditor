@@ -1,4 +1,4 @@
-﻿using MVVMFrameworkNet472.ViewModels;
+﻿using MVVMFramework.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

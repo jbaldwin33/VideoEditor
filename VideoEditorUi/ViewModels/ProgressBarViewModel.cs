@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using MVVMFrameworkNet472.Localization;
-using MVVMFrameworkNet472.ViewModels;
-using MVVMFrameworkNet472.ViewNavigator;
+using MVVMFramework.Localization;
+using MVVMFramework.ViewModels;
+using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
 

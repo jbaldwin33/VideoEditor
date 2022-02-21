@@ -1,6 +1,6 @@
 ﻿using CSVideoPlayer;
 using Microsoft.Win32;
-using MVVMFrameworkNet472.ViewModels;
+using MVVMFramework.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VideoUtilities;
 using VideoEditorUi.Utilities;
-using MVVMFrameworkNet472.Localization;
+using MVVMFramework.Localization;
 using System.IO;
 
 namespace VideoEditorUi.ViewModels

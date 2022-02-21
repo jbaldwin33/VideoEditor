@@ -7,7 +7,7 @@
   <Application.Resources>
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="pack://application:,,,/MVVMFrameworkNet472;component/Controls/ControlStyles.xaml" />
+        <ResourceDictionary Source="pack://application:,,,/MVVMFramework;component/Controls/ControlStyles.xaml" />
         <ResourceDictionary>
           <Style x:Key="ThumbStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Template">

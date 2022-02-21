@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using MVVMFrameworkNet472.Localization;
+using MVVMFramework.Localization;
 using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views

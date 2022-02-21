@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.Win32;
-using MVVMFrameworkNet472.Localization;
-using MVVMFrameworkNet472.ViewModels;
+using MVVMFramework.Localization;
+using MVVMFramework.ViewModels;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels

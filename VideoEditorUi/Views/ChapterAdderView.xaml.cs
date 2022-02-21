@@ -6,8 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using CSVideoPlayer;
-using MVVMFrameworkNet472.ViewNavigator;
-using MVVMFrameworkNet472.Views;
+using MVVMFramework.ViewNavigator;
+using MVVMFramework.Views;
 using VideoEditorUi.ViewModels;
 using static VideoEditorUi.Utilities.UtilityClass;
 

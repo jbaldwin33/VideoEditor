@@ -1,4 +1,4 @@
-﻿using MVVMFrameworkNet472.Views;
+﻿using MVVMFramework.Views;
 using System;
 using System.Windows;
 using System.Windows.Media;
