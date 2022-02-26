@@ -9,6 +9,8 @@ using System.Windows.Data;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 using VideoEditorUi.Views;
 using VideoUtilities;
 using static VideoUtilities.Enums;
@@ -17,6 +19,7 @@ namespace VideoEditorUi.ViewModels
 {
     public class DownloaderViewModel : EditorViewModel
     {
+        public override string Name => new DownloaderTranslatable();
         #region Fields and props
 
         private string outputPath;
@@ -112,6 +115,11 @@ namespace VideoEditorUi.ViewModels
         #endregion
 
         private static readonly object _lock = new object();
+
+        public DownloaderViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

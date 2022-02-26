@@ -3,6 +3,8 @@ using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using System;
 using System.Windows;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 using VideoEditorUi.Views;
 using VideoUtilities;
 
@@ -10,6 +12,7 @@ namespace VideoEditorUi.ViewModels
 {
     public class ResizerViewModel : EditorViewModel
     {
+        public override string Name => new CropperTranslatable();
         #region Fields and props
 
         private string inputPath;
@@ -91,6 +94,11 @@ namespace VideoEditorUi.ViewModels
         public string OpenCropWindowLabel => new OpenCropWindowTranslatable();
 
         #endregion
+
+        public ResizerViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

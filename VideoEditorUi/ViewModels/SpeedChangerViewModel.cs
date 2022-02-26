@@ -5,12 +5,15 @@ using System.Windows.Media;
 using Microsoft.Win32;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
     public class SpeedChangerViewModel : EditorViewModel
     {
+        public override string Name => new SpeedChangerTranslatable();
         #region Fields and props
 
         private bool changeSpeed;
@@ -85,6 +88,11 @@ namespace VideoEditorUi.ViewModels
         public string DragFileLabel => new DragFileTranslatable();
 
         #endregion
+
+        public SpeedChangerViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

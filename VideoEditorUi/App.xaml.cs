@@ -7,6 +7,8 @@ using static VideoEditorUi.Utilities.GlobalExceptionHandler;
 using System.Threading;
 using System.Globalization;
 using VideoEditorUi.Utilities;
+using VideoEditorUi.Services;
+using MVVMFramework.ViewModels;
 
 namespace VideoEditorUi
 {
@@ -19,17 +21,19 @@ namespace VideoEditorUi
         {
             //AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("ja-JP");
-            var types = new[]
+            var utilityClass = UtilityClass.Instance;
+            var editorService = VideoEditorService.Instance;
+            var types = new (ViewModel, bool)[]
             {
-                (typeof(SplitterViewModel), new SplitterTranslatable(), true),
-                (typeof(ChapterAdderViewModel), new ChapterAdderTranslatable(), true),
-                (typeof(SpeedChangerViewModel), new SpeedChangerTranslatable(), true),
-                (typeof(ReverseViewModel), new ReverserTranslatable(), true),
-                (typeof(MergerViewModel), new MergerTranslatable(), true),
-                (typeof(SizeReducerViewModel), $"{new ConverterTranslatable()}/{new ReduceSizeTranslatable()}", true),
-                (typeof(ResizerViewModel), new CropperTranslatable(), true),
-                //(typeof(ImageCropViewModel), new ImageCropperTranslatable(), true),
-                (typeof(DownloaderViewModel), new DownloaderTranslatable(), true)
+                (new SplitterViewModel(utilityClass, editorService), true),
+                (new ChapterAdderViewModel(utilityClass, editorService), true),
+                (new SpeedChangerViewModel(utilityClass, editorService), true),
+                (new ReverseViewModel(utilityClass, editorService), true),
+                (new MergerViewModel(utilityClass, editorService), true),
+                (new SizeReducerViewModel(utilityClass, editorService), true),
+                (new ResizerViewModel(utilityClass, editorService), true),
+                (new ImageCropViewModel(utilityClass, editorService), true),
+                (new DownloaderViewModel(utilityClass, editorService), true)
             };
             var window = new BaseWindowView(types) { Title = new VideoEditorTranslatable() };
             window.Show();

@@ -8,7 +8,7 @@ namespace VideoEditorUi.Services
 {
     public interface IVideoEditorService
     {
-        void SetEditor(BaseClass editor);
+        void SetEditor(BaseArgs args);
         void SetupEditor(StartedDownloadEventHandler startedDownload, ProgressEventHandler progressDownload, FinishedDownloadEventHandler finishedDownload, ErrorEventHandler errorDownload, MessageEventHandler libraryMessageHandler, UpdatePlaylistEventHandler updatePlaylist, PreWorkFinishedEventHandler preWorkFinished, FirstWorkFinishedEventHandler firstWorkFinished);
         void DoPreWork();
         void DoSetup();
@@ -24,11 +24,14 @@ namespace VideoEditorUi.Services
         public static VideoEditorService Instance => lazy.Value;
         private BaseClass videoEditor;
         private bool editorInitialized;
+        private readonly IVideoEditorFactory videoEditorFactory = VideoEditorFactory.Instance;
+        
         public bool IsInitialized() => editorInitialized;
 
-        public void SetEditor(BaseClass editor)
+        public void SetEditor(BaseArgs args)
         {
-            videoEditor = editor;
+            videoEditorFactory.SetArgs(args);
+            videoEditor = videoEditorFactory.GetVideoEditor();
         }
 
         public void SetupEditor(StartedDownloadEventHandler startedDownload, ProgressEventHandler progressDownload, FinishedDownloadEventHandler finishedDownload, ErrorEventHandler errorDownload, MessageEventHandler libraryMessageHandler, UpdatePlaylistEventHandler updatePlaylist, PreWorkFinishedEventHandler preWorkFinished, FirstWorkFinishedEventHandler firstWorkFinished)

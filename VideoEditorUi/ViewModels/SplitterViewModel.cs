@@ -14,11 +14,14 @@ using VideoUtilities;
 using static VideoUtilities.Enums;
 using MVVMFramework.Localization;
 using System.Windows.Input;
+using VideoEditorUi.Utilities;
+using VideoEditorUi.Services;
 
 namespace VideoEditorUi.ViewModels
 {
     public class SplitterViewModel : EditorViewModel
     {
+        public override string Name => new SplitterTranslatable();
         #region Fields and props
 
         private RelayCommand seekBackCommand;
@@ -187,6 +190,11 @@ namespace VideoEditorUi.ViewModels
 
         private static readonly object _lock = new object();
         public Action AddRectangleEvent;
+
+        public SplitterViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

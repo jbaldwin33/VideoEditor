@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Windows;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
-using MVVMFramework.ViewNavigator;
 using VideoEditorUi.Services;
 using VideoEditorUi.Utilities;
 using VideoUtilities;
@@ -11,15 +10,7 @@ using static VideoUtilities.BaseClass;
 
 namespace VideoEditorUi.ViewModels
 {
-    public interface IEditorViewModel
-    {
-        void Setup(bool doSetup, bool DoPreWork, BaseArgs args, PreWorkFinishedEventHandler preWorkFinished = null, FirstWorkFinishedEventHandler firstWorkFinished = null, int count = 1, List<UrlClass> urlCollection = null);
-        void Execute(EditorViewModel.StageEnum stage, string label);
-        void Initialize();
-        void CleanUp(bool isError);
-    }
-
-    public abstract class EditorViewModel : ViewModel, IEditorViewModel
+    public abstract class EditorViewModel : ViewModel
     {
         public enum StageEnum { Pre, Primary, Secondary }
         private bool withSlider = true;
@@ -27,9 +18,8 @@ namespace VideoEditorUi.ViewModels
         private bool fileLoaded;
         private bool isPlaying;
 
-        public IUtilityClass UtilityClass = Utilities.UtilityClass.Instance;
-        public IVideoEditorFactory EditorFactory = VideoEditorFactory.Instance;
-        public IVideoEditorService EditorService = VideoEditorService.Instance;
+        protected IUtilityClass UtilityClass;
+        protected IVideoEditorService EditorService;
         protected ProgressBarViewModel ProgressBarViewModel;
         public double SliderMax;
         public Action<string[]> DragFiles;
@@ -42,6 +32,12 @@ namespace VideoEditorUi.ViewModels
         public Action ClosePlayerEvent;
         public Func<TimeSpan> GetPlayerPosition;
         public Action<double> SetPlayerPosition;
+
+        public EditorViewModel(IUtilityClass utilityClass, IVideoEditorService editorService)
+        {
+            UtilityClass = utilityClass;
+            EditorService = editorService;
+        }
 
         public bool WithSlider
         {
@@ -80,8 +76,7 @@ namespace VideoEditorUi.ViewModels
         {
             if (!EditorService.IsInitialized())
             {
-                EditorFactory.SetArgs(args);
-                EditorService.SetEditor(EditorFactory.GetVideoEditor());
+                EditorService.SetEditor(args);
                 EditorService.SetupEditor(StartedDownload, ProgressDownload, FinishedDownload, ErrorDownload, LibraryMessageHandler, UpdatePlaylist, preWorkFinished, firstWorkFinished);
             }
 
@@ -97,6 +92,18 @@ namespace VideoEditorUi.ViewModels
         {
             EditorService.ExecuteVideoEditor(stage, label);
             UtilityClass.OpenChildWindow(ProgressBarViewModel);
+        }
+
+        public virtual void Initialize() => throw new NotImplementedException();
+
+        public virtual void CleanUp(bool isError)
+        {
+            UtilityClass.CloseChildWindow(false);
+            EditorService.SetInitialized(false);
+            if (isError)
+                return;
+
+            ClosePlayerEvent?.Invoke();
         }
 
         protected void PlayCommandExecute()
@@ -118,7 +125,6 @@ namespace VideoEditorUi.ViewModels
 
         protected void UpdatePlaylist(object sender, PlaylistEventArgs e) => ProgressBarViewModel.ProgressBarCollection[e.Index].UpdatePlaylist(e.Current, e.Total);
 
-        public virtual void Initialize() => throw new NotImplementedException();
         protected virtual void DragFilesCallback(string[] files) => throw new NotImplementedException();
 
         protected virtual void FinishedDownload(object sender, FinishedEventArgs e) => CleanUp(false);
@@ -134,16 +140,6 @@ namespace VideoEditorUi.ViewModels
             var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
             ShowMessage(args);
             e.Result = args.Result == MessageBoxResult.Yes;
-        }
-
-        public virtual void CleanUp(bool isError)
-        {
-            UtilityClass.CloseChildWindow(false);
-            EditorService.SetInitialized(false);
-            if (isError)
-                return;
-
-            ClosePlayerEvent?.Invoke();
         }
 
         private void SetupProgressBarViewModel(int count, List<UrlClass> urls = null)

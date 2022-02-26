@@ -9,6 +9,8 @@ using Microsoft.Win32;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 using static VideoUtilities.Enums;
 
@@ -16,6 +18,7 @@ namespace VideoEditorUi.ViewModels
 {
     public class SizeReducerViewModel : EditorViewModel
     {
+        public override string Name => $"{new ConverterTranslatable()}/{new ReduceSizeTranslatable()}";
         #region Fields and props
 
         private List<FormatTypeViewModel> formats;
@@ -130,6 +133,11 @@ namespace VideoEditorUi.ViewModels
         #endregion
 
         private static readonly object _lock = new object();
+
+        public SizeReducerViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

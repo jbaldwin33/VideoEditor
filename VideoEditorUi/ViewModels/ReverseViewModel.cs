@@ -4,12 +4,15 @@ using Microsoft.Win32;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 using VideoUtilities;
 
 namespace VideoEditorUi.ViewModels
 {
     public class ReverseViewModel : EditorViewModel
     {
+        public override string Name => new ReverserTranslatable();
         #region Fields and props
 
         private string inputPath;
@@ -38,6 +41,11 @@ namespace VideoEditorUi.ViewModels
         public string DragFileLabel => new DragFileTranslatable();
 
         #endregion
+
+        public ReverseViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

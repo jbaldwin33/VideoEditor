@@ -12,11 +12,14 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using MVVMFramework.Localization;
 using static VideoUtilities.Enums;
 using System.Windows.Input;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 
 namespace VideoEditorUi.ViewModels
 {
     public class MergerViewModel : EditorViewModel
     {
+        public override string Name => new MergerTranslatable();
         #region Fields and props
 
         private string outputPath;
@@ -126,6 +129,11 @@ namespace VideoEditorUi.ViewModels
         #endregion
 
         private static readonly object _lock = new object();
+
+        public MergerViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         public override void OnUnloaded()
         {

@@ -7,7 +7,7 @@ using VideoEditorUi.Utilities;
 using VideoEditorUi.ViewModels;
 using VideoUtilities;
 
-namespace VideoEditorTests
+namespace TestSuite
 {
     public class FakeUtilityClass : IUtilityClass
     {
@@ -37,6 +37,8 @@ namespace VideoEditorTests
 
     public class FakeEditorService : IVideoEditorService
     {
+        private bool editorInitialized;
+
         public void CancelOperation(string message)
         {
         }
@@ -53,7 +55,7 @@ namespace VideoEditorTests
         {
         }
 
-        public bool IsInitialized() => true;
+        public bool IsInitialized() => editorInitialized;
 
         public void SetEditor(BaseClass editor)
         {
@@ -64,12 +66,13 @@ namespace VideoEditorTests
             
         }
 
-        public void SetInitialized(bool initialized)
-        {
-        }
+        public void SetInitialized(bool initialized) => editorInitialized = initialized;
 
         public void SetupEditor(BaseClass.StartedDownloadEventHandler startedDownload, BaseClass.ProgressEventHandler progressDownload, BaseClass.FinishedDownloadEventHandler finishedDownload, BaseClass.ErrorEventHandler errorDownload, BaseClass.MessageEventHandler libraryMessageHandler, BaseClass.UpdatePlaylistEventHandler updatePlaylist, BaseClass.PreWorkFinishedEventHandler preWorkFinished, BaseClass.FirstWorkFinishedEventHandler firstWorkFinished)
         {
+            if (editorInitialized)
+                return;
+            editorInitialized = true;
         }
     }
 }

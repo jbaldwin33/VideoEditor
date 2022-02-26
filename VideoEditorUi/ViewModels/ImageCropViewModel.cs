@@ -10,11 +10,13 @@ using VideoUtilities;
 using VideoEditorUi.Utilities;
 using MVVMFramework.Localization;
 using System.IO;
+using VideoEditorUi.Services;
 
 namespace VideoEditorUi.ViewModels
 {
     public class ImageCropViewModel : EditorViewModel
     {
+        public override string Name => new ImageCropperTranslatable();
         #region Fields and props
 
         private string inputPath;
@@ -74,6 +76,11 @@ namespace VideoEditorUi.ViewModels
         public string CropLabel => new CropTranslatable();
 
         #endregion
+
+        public ImageCropViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
 
         private void SelectFileCommandExecute()
         {

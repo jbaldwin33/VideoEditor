@@ -12,6 +12,8 @@ using Microsoft.Win32;
 using MVVMFramework.Localization;
 using MVVMFramework.ViewModels;
 using MVVMFramework.ViewNavigator;
+using VideoEditorUi.Services;
+using VideoEditorUi.Utilities;
 using VideoEditorUi.Views;
 using VideoUtilities;
 
@@ -19,6 +21,7 @@ namespace VideoEditorUi.ViewModels
 {
     public class ChapterAdderViewModel : EditorViewModel
     {
+        public override string Name => new ChapterAdderTranslatable();
         #region Fields and props
 
         private RelayCommand seekBackCommand;
@@ -150,6 +153,11 @@ namespace VideoEditorUi.ViewModels
         private string importedFile;
         private static readonly object _lock = new object();
 
+        public ChapterAdderViewModel(IUtilityClass utilityClass, IVideoEditorService editorService) : base(utilityClass, editorService)
+        {
+
+        }
+
         public override void OnUnloaded()
         {
             FileLoaded = false;
@@ -239,14 +247,14 @@ namespace VideoEditorUi.ViewModels
             if (openFileDialog.ShowDialog() == false)
                 return;
 
-            //InputPath = openFileDialog.FileName;
-            //UtilityClass.GetDetails(Player, openFileDialog.FileName);
-            //Player.Open(new Uri(openFileDialog.FileName));
-            //FileLoaded = true;
-            //ResetAll();
+            InputPath = openFileDialog.FileName;
+            GetDetailsEvent?.Invoke(openFileDialog.FileName);
+            OpenEvent?.Invoke(openFileDialog.FileName);
+            FileLoaded = true;
+            ResetAll();
 
-            //if (!canAddChapters())
-            //    ShowMessage(new MessageBoxEventArgs(new ChapterMarkerCompatibleFormatsTranslatable(string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
+            if (!canAddChapters())
+                ShowMessage(new MessageBoxEventArgs(new ChapterMarkerCompatibleFormatsTranslatable(string.Join(", ", FormatTypeViewModel.ChapterMarkerCompatibleFormats.Select(f => f.ToString()))), MessageBoxEventArgs.MessageTypeEnum.Information, MessageBoxButton.OK, MessageBoxImage.Information));
 
             bool canAddChapters() => FormatTypeViewModel.ChapterMarkerCompatibleFormats.Contains((Enums.FormatEnum)Enum.Parse(typeof(Enums.FormatEnum), Path.GetExtension(openFileDialog.FileName).Substring(1)));
         }

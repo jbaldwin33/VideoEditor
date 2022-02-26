@@ -1,14 +1,10 @@
-using FizzWare.NBuilder;
-using Moq;
-using Moq.Protected;
 using System;
 using System.Collections.ObjectModel;
-using VideoEditorUi.Utilities;
 using VideoEditorUi.ViewModels;
 using VideoUtilities;
 using Xunit;
 
-namespace VideoEditorTests
+namespace TestSuite
 {
 
     public class SplitterTests
