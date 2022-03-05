@@ -17,9 +17,9 @@ namespace VideoEditorUi.ViewModels
 
         private string inputPath;
         private bool canCrop;
-        private string oldSize;
-        private string newSize;
-        private string position;
+        private string oldSizeString;
+        private string newSizeString;
+        private string positionString;
         private string aspectRatio;
         private CropClass cropClass;
         private RelayCommand seekBackCommand;
@@ -44,25 +44,32 @@ namespace VideoEditorUi.ViewModels
         public CropClass CropClass
         {
             get => cropClass;
-            set => SetProperty(ref cropClass, value);
+            set
+            {
+                SetProperty(ref cropClass, value);
+                if (cropClass == null)
+                    return;
+                NewSizeString = $"New size: {cropClass.Width}x{cropClass.Height}";
+                PositionString = $"Position: ({cropClass.X},{cropClass.Y})";
+            }
         }
 
-        public string OldSize
+        public string OldSizeString
         {
-            get => oldSize;
-            set => SetProperty(ref oldSize, value);
+            get => oldSizeString;
+            set => SetProperty(ref oldSizeString, value);
         }
 
-        public string NewSize
+        public string NewSizeString
         {
-            get => newSize;
-            set => SetProperty(ref newSize, value);
+            get => newSizeString;
+            set => SetProperty(ref newSizeString, value);
         }
 
-        public string Position
+        public string PositionString
         {
-            get => position;
-            set => SetProperty(ref position, value);
+            get => positionString;
+            set => SetProperty(ref positionString, value);
         }
 
         public string AspectRatio
@@ -104,14 +111,15 @@ namespace VideoEditorUi.ViewModels
         {
             ClosePlayerEvent?.Invoke();
             FileLoaded = false;
+            CropClass = null;
             base.OnUnloaded();
         }
 
         public override void Initialize()
         {
-            OldSize = $"Old size: 0x0";
-            NewSize = $"New size: 0x0";
-            Position = $"Starting position: (0,0)";
+            OldSizeString = $"Old size: 0x0";
+            NewSizeString = $"New size: 0x0";
+            PositionString = $"Starting position: (0,0)";
         }
 
         private void SeekBackCommandExecute() => SeekEvent(-5000);
@@ -132,6 +140,7 @@ namespace VideoEditorUi.ViewModels
             FileLoaded = true;
 
             var cropWindow = new CropWindow(openFileDialog.FileName, this);
+            cropWindow.Initialize();
             cropWindow.Show();
         }
 
@@ -147,7 +156,6 @@ namespace VideoEditorUi.ViewModels
             var cropWindow = new CropWindow(InputPath, this);
             cropWindow.Show();
         }
-
 
         protected override void FinishedDownload(object sender, FinishedEventArgs e)
         {
@@ -165,9 +173,9 @@ namespace VideoEditorUi.ViewModels
                 FileLoaded = false;
                 InputPath = string.Empty;
                 CanCrop = false;
-                OldSize = $"Old size: 0x0";
-                NewSize = $"New size: 0x0";
-                Position = $"Starting position: (0,0)";
+                OldSizeString = $"Old size: 0x0";
+                NewSizeString = $"New size: 0x0";
+                PositionString = $"Starting position: (0,0)";
                 CropClass = null;
             }
             base.CleanUp(isError);

@@ -9,14 +9,14 @@
              xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
              xmlns:utilities="clr-namespace:VideoEditorUi.Utilities"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="450" d:DesignWidth="800" Unloaded="PlayerControlUnloaded">
     <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="1.5*"/>
       <RowDefinition Height="0.4*"/>
     </Grid.RowDefinitions>
     <Label AllowDrop="True" Drop="Grid_OnDrop" Height="240" Width="700" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" FontSize="20" Content="{Binding DragFileLabel}" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvBoolToVisConverter}}" DragEnter="OnDragEnter" DragLeave="OnPreviewDragLeave"/>
-    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+    <cSVideoPlayer:VideoPlayerWPF x:Name="player" VerticalAlignment="Top" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" MediaOpened="PlayerMediaOpened" MediaEnded="PlayerMediaEnded"/>
     <StackPanel x:Name="sliderPanel" Orientation="Vertical" Grid.Row="1" HorizontalAlignment="Center" Visibility="{Binding WithSlider, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}">
       <Grid>
         <Grid.RowDefinitions>
@@ -30,7 +30,7 @@
           <ColumnDefinition Width="*"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Slider x:Name="slider" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+        <Slider x:Name="slider" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsMoveToPointEnabled="True" Thumb.DragStarted="SliderDragStarted" Thumb.DragCompleted="SliderDragCompleted" ValueChanged="SliderValueChanged"/>
         <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Left" Margin="0,0,0,10">
           <Grid.RowDefinitions>
             <RowDefinition Height="*"/>

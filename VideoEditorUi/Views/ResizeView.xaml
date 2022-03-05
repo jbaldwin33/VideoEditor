@@ -20,9 +20,9 @@
       <Rectangle x:Name="recSelection" Stroke="Red" StrokeThickness="5" Fill="Transparent" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}" VerticalAlignment="top" HorizontalAlignment="Left" IsHitTestVisible="True" MouseMove="ctlImage_MouseMove" MouseDown="ctlImage_MouseDown" MouseUp="ctlImage_MouseUp"/>
     </Grid>-->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Vertical" Visibility="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToVisConverter}}">
-      <controls:MediumTextBlock Text="{Binding OldSize, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
-      <controls:MediumTextBlock Text="{Binding NewSize, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
-      <controls:MediumTextBlock Text="{Binding Position, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:MediumTextBlock Text="{Binding OldSizeString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:MediumTextBlock Text="{Binding NewSizeString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
+      <controls:MediumTextBlock Text="{Binding PositionString, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Width="500"/>
     </StackPanel>
     <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
       <Grid>

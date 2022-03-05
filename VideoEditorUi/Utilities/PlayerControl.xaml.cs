@@ -30,14 +30,10 @@ namespace VideoEditorUi.Utilities
         {
             viewModel = DataContext as EditorViewModel;
             timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(200) };
-            timer.Tick += timer_Tick;
+            timer.Tick += TimerTick;
             slider.ApplyTemplate();
-            thumb.MouseEnter += Thumb_MouseEnter;
-            Unloaded += PlayerControl_Unloaded;
+            thumb.MouseEnter += ThumbMouseEnter;
             UtilityClass.Instance.InitializePlayer(player);
-            player.MediaOpened += Player_MediaOpened;
-            player.MediaEnded += Player_MediaEnded;
-            slider.ValueChanged += Slider_ValueChanged;
             viewModel.SliderMax = slider.Maximum;
             viewModel.SeekEvent = Seek;
             viewModel.PlayEvent = () => player.Play();
@@ -49,29 +45,28 @@ namespace VideoEditorUi.Utilities
             viewModel.SetPlayerPosition = SetPlayerPosition;
         }
 
-        private void timer_Tick(object sender, EventArgs e)
+        private void TimerTick(object sender, EventArgs e)
         {
             if (!isDragging)
                 slider.Value = UtilityClass.Instance.GetPlayerPosition(player).TotalMilliseconds;
         }
 
-        private void slider_DragStarted(object sender, DragStartedEventArgs e) => isDragging = true;
+        private void PlayerControlUnloaded(object sender, RoutedEventArgs e)
+        {
+            timer.Tick -= TimerTick;
+            thumb.MouseEnter -= ThumbMouseEnter;
+        }
 
-        private void slider_DragCompleted(object sender, DragCompletedEventArgs e)
+        private void SliderDragStarted(object sender, DragStartedEventArgs e) => isDragging = true;
+
+        private void SliderDragCompleted(object sender, DragCompletedEventArgs e)
         {
             isDragging = false;
             UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
             viewModel.PositionChanged?.Invoke(UtilityClass.Instance.GetPlayerPosition(player));
         }
 
-        private void PlayerControl_Unloaded(object sender, RoutedEventArgs e)
-        {
-            player.MediaOpened -= Player_MediaOpened;
-            player.MediaEnded -= Player_MediaEnded;
-            timer.Tick -= timer_Tick;
-            thumb.MouseEnter -= Thumb_MouseEnter;
-            slider.ValueChanged -= Slider_ValueChanged;
-        }
+        private void SliderValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) => viewModel.SliderValue = e.NewValue;
 
         private void UpdateSliderValue(double value)
         {
@@ -102,12 +97,7 @@ namespace VideoEditorUi.Utilities
         private TimeSpan GetPlayerPosition() => UtilityClass.Instance.GetPlayerPosition(player);
         private void SetPlayerPosition(double time) => UtilityClass.Instance.SetPlayerPosition(player, time);
 
-        private void Slider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            viewModel.SliderValue = e.NewValue;
-        }
-
-        private void Player_MediaOpened(object sender, MediaOpenedEventArgs e)
+        private void PlayerMediaOpened(object sender, MediaOpenedEventArgs e)
         {
             var ts = player.NaturalDuration();
             slider.Maximum = ts.TotalMilliseconds;
@@ -116,9 +106,9 @@ namespace VideoEditorUi.Utilities
             timer.Start();
         }
 
-        private void Player_MediaEnded(object sender, EventArgs e) => player.Stop();
+        private void PlayerMediaEnded(object sender, EventArgs e) => player.Stop();
 
-        private void Thumb_MouseEnter(object sender, MouseEventArgs e)
+        private void ThumbMouseEnter(object sender, MouseEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed)
             {

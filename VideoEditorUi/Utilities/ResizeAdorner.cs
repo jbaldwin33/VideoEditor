@@ -16,15 +16,15 @@ namespace VideoEditorUi.Utilities
         private readonly double maxX;
         private readonly double origY;
         private readonly double maxY;
-        private readonly ResizerViewModel viewModel;
+        private readonly CropWindowViewModel cropWindowViewModel;
         private readonly double angle = 0.0;
         private readonly Thumb leftTop, rightTop, leftBottom, rightBottom;
+        private readonly Border childElement;
         private double topPos;
         private double leftPos;
         private double childWidth;
         private double childHeight;
         private Point transformOrigin = new Point(0, 0);
-        private Border childElement;
         private bool dragStarted = false;
         private bool isHorizontalDrag = false;
 
@@ -35,7 +35,7 @@ namespace VideoEditorUi.Utilities
             {
                 topPos = value;
                 Canvas.SetTop(childElement, value);
-                viewModel.Position = $"Position: ({LeftPos},{TopPos})";
+                cropWindowViewModel.Position = $"Position: ({LeftPos},{TopPos})";
             }
         }
 
@@ -46,7 +46,7 @@ namespace VideoEditorUi.Utilities
             {
                 leftPos = value;
                 Canvas.SetLeft(childElement, value);
-                viewModel.Position = $"Position: ({LeftPos},{TopPos})";
+                cropWindowViewModel.Position = $"Position: ({LeftPos},{TopPos})";
             }
         }
 
@@ -56,7 +56,7 @@ namespace VideoEditorUi.Utilities
             set
             {
                 childWidth = childElement.Width = value;
-                viewModel.NewSize = $"New size: {childElement.Width}x{childElement.Height}";
+                cropWindowViewModel.NewSize = $"New size: {childElement.Width}x{childElement.Height}";
             }
         }
 
@@ -66,23 +66,20 @@ namespace VideoEditorUi.Utilities
             set
             {
                 childHeight = childElement.Height = value;
-                viewModel.NewSize = $"New size: {childElement.Width}x{childElement.Height}";
+                cropWindowViewModel.NewSize = $"New size: {childElement.Width}x{childElement.Height}";
             }
         }
 
-        public ResizeAdorner(UIElement element, ResizerViewModel vm) : base(element)
+        public ResizeAdorner(UIElement element, CropWindowViewModel vm) : base(element)
         {
-            viewModel = vm;
+            cropWindowViewModel = vm;
             visualChildren = new VisualCollection(this);
             childElement = element as Border;
             origX = Canvas.GetLeft(childElement);
             maxX = origX + childElement.MaxWidth - 50;
             origY = Canvas.GetTop(childElement);
             maxY = origY + childElement.MaxHeight - 50;
-
-            if (viewModel.CropClass != null)
-                SetDimensions();
-
+            SetDimensions();
             CreateThumbPart(ref leftTop);
             leftTop.DragDelta += LeftTop_DragDelta;
             CreateThumbPart(ref rightTop);
@@ -221,10 +218,10 @@ namespace VideoEditorUi.Utilities
 
         private void SetDimensions()
         {
-            ChildWidth = viewModel.CropClass.Width;
-            ChildHeight = viewModel.CropClass.Height;
-            LeftPos = viewModel.CropClass.X;
-            TopPos = viewModel.CropClass.Y;
+            ChildWidth = cropWindowViewModel.CropClass == null ? childElement.Width : cropWindowViewModel.CropClass.Width;
+            ChildHeight = cropWindowViewModel.CropClass == null ? childElement.Height : cropWindowViewModel.CropClass.Height;
+            LeftPos = cropWindowViewModel.CropClass == null ? 0 : cropWindowViewModel.CropClass.X;
+            TopPos = cropWindowViewModel.CropClass == null ? 0 : cropWindowViewModel.CropClass.Y;
         }
     }
 }

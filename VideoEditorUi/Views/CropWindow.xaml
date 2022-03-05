@@ -9,7 +9,7 @@
         xmlns:controls="clr-namespace:MVVMFramework.Controls;assembly=MVVMFramework"
         xmlns:metro="http://metro.mahapps.com/winfx/xaml/iconpacks"
         mc:Ignorable="d"
-        Height="920" Width="1350" WindowStartupLocation="CenterScreen">
+        Height="920" Width="1350" WindowStartupLocation="CenterScreen" Unloaded="CropWindowUnloaded">
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="1.5*"/>
@@ -20,14 +20,14 @@
       <ColumnDefinition Width="*"/>
       <ColumnDefinition Width="*"/>
     </Grid.ColumnDefinitions>
-    <CSVideoPlayer:VideoPlayerWPF x:Name="player" Grid.ColumnSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-    <Canvas x:Name="gridChild" Grid.Row="0" Grid.ColumnSpan="3" MouseMove="recSelection_MouseMove" MouseDown="recSelection_MouseDown" MouseUp="recSelection_MouseUp">
+    <CSVideoPlayer:VideoPlayerWPF x:Name="player" Grid.ColumnSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center" MediaOpened="PlayerMediaOpened" MediaEnded="PlayerMediaEnded"/>
+    <Canvas x:Name="gridChild" Grid.Row="0" Grid.ColumnSpan="3">
       <Border x:Name="border" BorderBrush="Red" HorizontalAlignment="Center" VerticalAlignment="Center" BorderThickness="5" Canvas.Left="0" Canvas.Top="0">
         <Rectangle x:Name="recSelection" Fill="LightSalmon" Opacity="0.3" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="True"/>
       </Border>
     </Canvas>
     <StackPanel Orientation="Vertical" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" HorizontalAlignment="Center">
-      <Slider x:Name="slider" HorizontalAlignment="Center" Margin="0,0,0,10" Width="760" IsEnabled="{Binding FileLoaded, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" IsMoveToPointEnabled="True" Thumb.DragStarted="slider_DragStarted" Thumb.DragCompleted="slider_DragCompleted"/>
+      <Slider x:Name="slider" HorizontalAlignment="Center" Margin="0,0,0,10" Width="760" IsMoveToPointEnabled="True" Thumb.DragStarted="SliderDragStarted" Thumb.DragCompleted="SliderDragCompleted" ValueChanged="SliderValueChanged"/>
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
         <controls:DefaultButton Command="{Binding SeekBackCommand}">
           <metro:Material Kind="Rewind5"/>
@@ -53,7 +53,7 @@
     </Grid>
     <StackPanel Grid.Row="2" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
       <controls:DefaultStackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <controls:MediumButton Content="Set crop" Click="MediumButton_Click"/>
+        <controls:MediumButton Content="{Binding SetCropLabel}" Command="{Binding SetCropCommand}"/>
       </controls:DefaultStackPanel>
     </StackPanel>
   </Grid>

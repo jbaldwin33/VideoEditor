@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -67,6 +68,14 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref rotateNumber, value);
         }
 
+        #endregion
+        #region Disable binding errors
+#if DEBUG
+        public ObservableCollection<RectClass> RectCollection { get; set; }
+        public RelayCommand SeekBackCommand { get; set; }
+        public RelayCommand SeekForwardCommand { get; set; }
+        public RelayCommand PlayCommand { get; set; }
+#endif
         #endregion
 
         public Action<double> UpdateSliderEvent;

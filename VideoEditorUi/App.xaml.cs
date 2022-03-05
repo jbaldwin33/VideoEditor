@@ -32,7 +32,7 @@ namespace VideoEditorUi
                 (new MergerViewModel(utilityClass, editorService), true),
                 (new SizeReducerViewModel(utilityClass, editorService), true),
                 (new ResizerViewModel(utilityClass, editorService), true),
-                (new ImageCropViewModel(utilityClass, editorService), true),
+                //(new ImageCropViewModel(utilityClass, editorService), true),
                 (new DownloaderViewModel(utilityClass, editorService), true)
             };
             var window = new BaseWindowView(types) { Title = new VideoEditorTranslatable() };

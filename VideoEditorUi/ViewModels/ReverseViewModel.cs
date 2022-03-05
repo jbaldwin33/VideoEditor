@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows;
 using Microsoft.Win32;
 using MVVMFramework.Localization;
@@ -25,6 +26,15 @@ namespace VideoEditorUi.ViewModels
             set => SetProperty(ref inputPath, value);
         }
 
+        #endregion
+
+        #region Disable binding errors
+#if DEBUG
+        public ObservableCollection<RectClass> RectCollection { get; set; }
+        public RelayCommand SeekBackCommand { get; set; }
+        public RelayCommand SeekForwardCommand { get; set; }
+        public RelayCommand PlayCommand { get; set; }
+#endif
         #endregion
 
         #region Commands
