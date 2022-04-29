@@ -13,6 +13,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFVideoPlayer", "WPFVideoPlayer\WPFVideoPlayer.csproj", "{A0C263AF-CD2D-4A37-9918-41BC4A1CA297}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSuite", "TestSuite\TestSuite.csproj", "{D04A9E0B-8743-4841-AC12-6CFA91256F5E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{96A8755D-750E-40F7-9677-EB5AFEF558B0} = {96A8755D-750E-40F7-9677-EB5AFEF558B0}
+		{1C4D3A71-B899-44B9-8F6B-0DD848D46411} = {1C4D3A71-B899-44B9-8F6B-0DD848D46411}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -3,6 +3,7 @@ using MVVMFramework.Views;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using VideoEditorUi.Utilities;
 using VideoEditorUi.ViewModels;
 
 namespace VideoEditorUi.Views
@@ -17,6 +18,13 @@ namespace VideoEditorUi.Views
         {
             InitializeComponent();
             viewModel = Navigator.Instance.CurrentViewModel as ImageCropViewModel;
+            viewModel.GetDetailsEvent = GetPlayerDetails;
+        }
+
+        private CSMediaProperties.MediaProperties GetPlayerDetails(string file)
+        {
+            UtilityClass.Instance.GetDetails(player, file);
+            return player.mediaProperties;
         }
 
         private void Grid_OnDrop(object sender, DragEventArgs e) => ControlMethods.ImagePanel_Drop(e, viewModel.DragFiles);

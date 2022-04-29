@@ -81,12 +81,6 @@ namespace VideoEditorUi.Utilities
             UtilityClass.Instance.SetPlayerPosition(player, slider.Value);
         }
 
-        private void ClosePlayer()
-        {
-            if (player != null)
-                UtilityClass.Instance.ClosePlayer(player);
-        }
-
         private CSMediaProperties.MediaProperties GetPlayerDetails(string file)
         {
             UtilityClass.Instance.GetDetails(player, file);
@@ -94,6 +88,11 @@ namespace VideoEditorUi.Utilities
         }
 
         private void OpenPlayer(string file) => player.Open(new Uri(file));
+        private void ClosePlayer()
+        {
+            if (player != null)
+                UtilityClass.Instance.ClosePlayer(player);
+        }
         private TimeSpan GetPlayerPosition() => UtilityClass.Instance.GetPlayerPosition(player);
         private void SetPlayerPosition(double time) => UtilityClass.Instance.SetPlayerPosition(player, time);
 

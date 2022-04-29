@@ -1,5 +1,6 @@
 ﻿using CSVideoPlayer;
 using System;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -30,9 +31,9 @@ namespace VideoEditorUi.Views
             InitializeComponent();
             UtilityClass.Instance.GetDetails(player, filename);
             player.Open(new Uri(filename));
-
-            var width = double.Parse(player.mediaProperties.Streams.Stream[0].Width);
-            var height = double.Parse(player.mediaProperties.Streams.Stream[0].Height);
+            var videoStream = player.mediaProperties.Streams.Stream.First(x => x.CodecType == "video");
+            var width = double.Parse(videoStream.Width);
+            var height = double.Parse(videoStream.Height);
             player.Width = gridChild.Width = border.Width = border.MaxWidth = recSelection.Width = width;
             player.Height = gridChild.Height = border.Height = border.MaxHeight = recSelection.Height = height;
             resizerViewModel = vm;
