@@ -156,7 +156,9 @@ namespace VideoEditorUi.ViewModels
             var urls = UrlCollection.OrderByDescending(u => u.IsPlaylist).ToList();
             var args = new DownloaderArgs(urls, ExtractAudio, OutputPath);
             //VideoEditor = new VideoDownloader(urls.Select(u => (u.Url, u.IsPlaylist)), ExtractAudio, OutputPath);
-            Setup(true, false, args, null, null, UrlCollection.Count, urls);
+            Setup(true, false, args, null, out bool isError, null, UrlCollection.Count, urls);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new DownloadingLabelTranslatable());
         }
 

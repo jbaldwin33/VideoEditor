@@ -45,6 +45,7 @@ namespace VideoUtilities
         protected IEnumerable ObjectList;
         protected bool UseYoutubeDL;
         protected List<bool> IsList = new List<bool>();
+        protected BaseArgs Args;
         private readonly List<int> keepOutputList = new List<int>();
         private readonly object _lock = new object();
         private readonly object _lock2 = new object();
@@ -107,6 +108,7 @@ namespace VideoUtilities
             }
         }
 
+        public virtual void DoPreCheck(out bool isError) => throw new NotImplementedException();
         public virtual void PreWork() => throw new NotImplementedException();
         public virtual void SecondaryWork() => throw new NotImplementedException();
 
@@ -226,7 +228,8 @@ namespace VideoUtilities
             if (IsProcessing(outLine.Data))
             {
                 var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                ProcessStuff[index].CurrentTime = TimeSpan.Parse(strSub);
+                if (TimeSpan.TryParse(strSub, out var time))
+                    ProcessStuff[index].CurrentTime = time;
             }
 
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });

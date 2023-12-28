@@ -184,7 +184,9 @@ namespace VideoEditorUi.ViewModels
                 return;
             }
             var args = new ReducerArgs(FileCollection.ToList(), OutputPath);
-            Setup(true, false, args, null, null, FileCollection.Count);
+            Setup(true, false, args, null, out bool isError, null, FileCollection.Count);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new ReducingSizeLabelTranslatable());
         }
 
@@ -209,7 +211,9 @@ namespace VideoEditorUi.ViewModels
                 createVms = FileCollection.Select(f => new ConverterPathClass(f, false)).ToList();
             UtilityClass.ClosePlayer(player);
             var args = new ConverterArgs(createVms, $".{FormatType}", OutputPath);
-            Setup(true, false, args, null, null, FileCollection.Count);
+            Setup(true, false, args, null, out bool isError, null, FileCollection.Count);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new ConvertingLabelTranslatable());
         }
         private void RemoveExecute(object param)

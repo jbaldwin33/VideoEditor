@@ -93,7 +93,9 @@ namespace VideoEditorUi.ViewModels
                 return;
 
             var args = new ReverserArgs(InputPath);
-            Setup(false, false, args, Reverser_TrimFinished, Reverser_ReverseFinished);
+            Setup(false, false, args, Reverser_TrimFinished, out bool isError, Reverser_ReverseFinished);
+            if (isError)
+                return;
             Execute(StageEnum.Pre, null);
         }
 
@@ -109,14 +111,18 @@ namespace VideoEditorUi.ViewModels
         private void Reverser_TrimFinished(object sender, PreWorkEventArgs e)
         {
             UtilityClass.CloseChildWindow(false);
-            Setup(false, false, null, null, null, (int)e.Argument);
+            Setup(false, false, null, null, out bool isError, null, (int)e.Argument);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new ReversingSectionsLabelTranslatable());
         }
 
         private void Reverser_ReverseFinished(object sender, EventArgs e)
         {
             UtilityClass.CloseChildWindow(false);
-            Setup(false, false, null, null, null);
+            Setup(false, false, null, null, out bool isError, null);
+            if (isError)
+                return;
             Execute(StageEnum.Secondary, null);
         }
 

@@ -72,13 +72,18 @@ namespace VideoEditorUi.ViewModels
 
         public override void OnUnloaded() => ClosePlayerEvent?.Invoke();
 
-        public void Setup(bool doSetup, bool doPreWork, BaseArgs args, PreWorkFinishedEventHandler preWorkFinished, FirstWorkFinishedEventHandler firstWorkFinished, int count = 1, List<UrlClass> urlCollection = null)
+        public void Setup(bool doSetup, bool doPreWork, BaseArgs args, PreWorkFinishedEventHandler preWorkFinished, out bool isError, FirstWorkFinishedEventHandler firstWorkFinished, int count = 1, List<UrlClass> urlCollection = null)
         {
             if (!EditorService.IsInitialized())
             {
                 EditorService.SetEditor(args);
                 EditorService.SetupEditor(StartedDownload, ProgressDownload, FinishedDownload, ErrorDownload, LibraryMessageHandler, UpdatePlaylist, preWorkFinished, firstWorkFinished);
             }
+
+            EditorService.DoPreCheck(out bool preCheckError);
+            isError = preCheckError;
+            if (isError)
+                return;
 
             if (doPreWork)
                 EditorService.DoPreWork();

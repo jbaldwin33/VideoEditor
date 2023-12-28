@@ -254,7 +254,9 @@ namespace VideoEditorUi.ViewModels
         private void SplitCommandExecute()
         {
             var splitterArgs = new SplitterArgs(SectionViewModels.ToList(), InputPath, CombineVideo, OutputDifferentFormat, $".{FormatType}", ReEncodeVideo);
-            Setup(true, false, splitterArgs, null, Splitter_SplitFinished, SectionViewModels.Count);
+            Setup(true, false, splitterArgs, null, out bool isError, Splitter_SplitFinished, SectionViewModels.Count);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new SplittingLabelTranslatable());
         }
 
@@ -340,7 +342,9 @@ namespace VideoEditorUi.ViewModels
         private void Splitter_SplitFinished(object sender, EventArgs e)
         {
             UtilityClass.CloseChildWindow(false);
-            Setup(false, false, null, null, null);
+            Setup(false, false, null, null, out bool isError, null);
+            if (isError)
+                return;
             Execute(StageEnum.Secondary, null);
         }
 

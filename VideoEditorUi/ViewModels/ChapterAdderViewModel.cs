@@ -207,7 +207,9 @@ namespace VideoEditorUi.ViewModels
             var args = TimesImported 
                 ? new ChapterAdderArgs(InputPath, importedFile, DeleteChapterFile)
                 : new ChapterAdderArgs(InputPath, SectionViewModels.ToList(), DeleteChapterFile);
-            Setup(true, true, args, null, Adder_GetMetadataFinished);
+            Setup(true, true, args, null, out bool isError, Adder_GetMetadataFinished);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new GettingMetadataMessageTranslatable());
         }
 
@@ -338,7 +340,9 @@ namespace VideoEditorUi.ViewModels
         private void Adder_GetMetadataFinished(object sender, EventArgs e)
         {
             UtilityClass.CloseChildWindow(false);
-            Setup(false, false, null, null, null);
+            Setup(false, false, null, null, out bool isError, null);
+            if (isError)
+                return;
             Execute(StageEnum.Secondary, null);
         }
 

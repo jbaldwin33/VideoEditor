@@ -214,7 +214,9 @@ namespace VideoEditorUi.ViewModels
                     : Path.GetExtension(FileViewModels[0]);
             var args = new MergerArgs(FileViewModels, OutputPath, outExt);
             //VideoEditor = new VideoMerger(FileViewModels, OutputPath, outExt);
-            Setup(false, false, args, null, null);
+            Setup(false, false, args, null, out bool isError, null);
+            if (isError)
+                return;
             Execute(StageEnum.Pre, null);
         }
 
