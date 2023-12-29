@@ -37,9 +37,6 @@ namespace VideoEditorUi.Services
 
         public void SetupEditor(StartedDownloadEventHandler startedDownload, ProgressEventHandler progressDownload, FinishedDownloadEventHandler finishedDownload, ErrorEventHandler errorDownload, MessageEventHandler libraryMessageHandler, UpdatePlaylistEventHandler updatePlaylist, PreWorkFinishedEventHandler preWorkFinished, FirstWorkFinishedEventHandler firstWorkFinished)
         {
-            if (editorInitialized)
-                return;
-
             videoEditor.StartedDownload += startedDownload;
             videoEditor.ProgressDownload += progressDownload;
             videoEditor.FinishedDownload += finishedDownload;
@@ -48,7 +45,7 @@ namespace VideoEditorUi.Services
             videoEditor.UpdatePlaylist += updatePlaylist;
             videoEditor.PreWorkFinished += preWorkFinished;
             videoEditor.FirstWorkFinished += firstWorkFinished;
-            editorInitialized = true;
+            SetInitialized(true);
         }
         public void DoSetup() => videoEditor.Setup();
         public void DoPreCheck(out bool isError) => videoEditor.DoPreCheck(out isError);

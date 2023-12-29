@@ -74,12 +74,8 @@ namespace VideoEditorUi.ViewModels
 
         public void Setup(bool doSetup, bool doPreWork, BaseArgs args, PreWorkFinishedEventHandler preWorkFinished, out bool isError, FirstWorkFinishedEventHandler firstWorkFinished, int count = 1, List<UrlClass> urlCollection = null)
         {
-            if (!EditorService.IsInitialized())
-            {
-                EditorService.SetEditor(args);
-                EditorService.SetupEditor(StartedDownload, ProgressDownload, FinishedDownload, ErrorDownload, LibraryMessageHandler, UpdatePlaylist, preWorkFinished, firstWorkFinished);
-            }
-
+            EditorService.SetEditor(args);
+            EditorService.SetupEditor(StartedDownload, ProgressDownload, FinishedDownload, ErrorDownload, LibraryMessageHandler, UpdatePlaylist, preWorkFinished, firstWorkFinished);
             EditorService.DoPreCheck(out bool preCheckError);
             isError = preCheckError;
             if (isError)
@@ -142,9 +138,56 @@ namespace VideoEditorUi.ViewModels
 
         protected virtual void LibraryMessageHandler(object sender, MessageEventArgs e)
         {
-            var args = new MessageBoxEventArgs(e.Message, MessageBoxEventArgs.MessageTypeEnum.Question, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            var args = new MessageBoxEventArgs(e.Message, GetMessageTypeEnum(e.MessageType), GetMessageBoxButtons(e.MessageBoxButton), GetMessageBoxImage(e.MessageImageType));
             ShowMessage(args);
             e.Result = args.Result == MessageBoxResult.Yes;
+        }
+
+        private MessageBoxEventArgs.MessageTypeEnum GetMessageTypeEnum(MessageEventArgs.MessageTypeEnum type)
+        {
+            switch (type)
+            {
+                case MessageEventArgs.MessageTypeEnum.Question:
+                    return MessageBoxEventArgs.MessageTypeEnum.Question;
+                case MessageEventArgs.MessageTypeEnum.Info:
+                    return MessageBoxEventArgs.MessageTypeEnum.Information;
+                case MessageEventArgs.MessageTypeEnum.Warning:
+                    return MessageBoxEventArgs.MessageTypeEnum.Warning;
+                case MessageEventArgs.MessageTypeEnum.Error:
+                    return MessageBoxEventArgs.MessageTypeEnum.Error;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "");
+            }
+        }
+
+        private MessageBoxButton GetMessageBoxButtons(MessageEventArgs.MessageBoxButtonsEnum type)
+        {
+            switch (type)
+            {
+                case MessageEventArgs.MessageBoxButtonsEnum.Ok:
+                    return MessageBoxButton.OK;
+                case MessageEventArgs.MessageBoxButtonsEnum.YesNo:
+                    return MessageBoxButton.YesNo;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "");
+            }
+        }
+
+        private MessageBoxImage GetMessageBoxImage(MessageEventArgs.MessageImageTypeEnum type)
+        {
+            switch (type)
+            {
+                case MessageEventArgs.MessageImageTypeEnum.Question:
+                    return MessageBoxImage.Question;
+                case MessageEventArgs.MessageImageTypeEnum.Info:
+                    return MessageBoxImage.Information;
+                case MessageEventArgs.MessageImageTypeEnum.Warning:
+                    return MessageBoxImage.Warning;
+                case MessageEventArgs.MessageImageTypeEnum.Error:
+                    return MessageBoxImage.Error;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(type), type, "");
+            }
         }
 
         private void SetupProgressBarViewModel(int count, List<UrlClass> urls = null)

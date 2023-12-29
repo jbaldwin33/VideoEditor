@@ -26,7 +26,10 @@ namespace VideoUtilities
                 //TODO make translatable
                 var messageArgs = new MessageEventArgs
                 {
-                    Message = "Please make sure all input files are in the same folder."
+                    Message = "Please make sure all the files you want to convert are in the same folder.",
+                    MessageBoxButton = MessageEventArgs.MessageBoxButtonsEnum.Ok,
+                    MessageImageType = MessageEventArgs.MessageImageTypeEnum.Error,
+                    MessageType = MessageEventArgs.MessageTypeEnum.Error
                 };
                 ShowMessage(messageArgs);
                 isError = true;

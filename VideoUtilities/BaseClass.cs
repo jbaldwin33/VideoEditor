@@ -138,7 +138,7 @@ namespace VideoUtilities
                         Arguments = CreateArguments(i, ref output, obj)
                     }
                 };
-                process.Exited += Process_Exited;
+                 process.Exited += Process_Exited;
                 if (UseYoutubeDL)
                 {
                     process.ErrorDataReceived += ErrorReceivedHandler;
@@ -334,7 +334,10 @@ namespace VideoUtilities
 
             var args = new MessageEventArgs
             {
-                Message = new FileAlreadyExistsTranslatable(Path.GetFileName(output))
+                Message = new FileAlreadyExistsTranslatable(Path.GetFileName(output)),
+                MessageBoxButton = MessageEventArgs.MessageBoxButtonsEnum.YesNo,
+                MessageImageType = MessageEventArgs.MessageImageTypeEnum.Question,
+                MessageType = MessageEventArgs.MessageTypeEnum.Question
             };
             ShowMessage(args);
             if (args.Result)
@@ -475,8 +478,33 @@ namespace VideoUtilities
 
     public class MessageEventArgs : EventArgs
     {
+        public enum MessageTypeEnum
+        {
+            Question,
+            Info,
+            Warning,
+            Error
+        }
+
+        public enum MessageImageTypeEnum
+        {
+            Question,
+            Info,
+            Warning,
+            Error
+        }
+
+        public enum MessageBoxButtonsEnum
+        {
+            YesNo,
+            Ok
+        }
+
         public string Message { get; set; }
         public bool Result { get; set; }
+        public MessageTypeEnum MessageType { get; set; }
+        public MessageImageTypeEnum MessageImageType { get; set; }
+        public MessageBoxButtonsEnum MessageBoxButton { get; set; }
     }
 
     public class ProgressEventArgs : EventArgs
