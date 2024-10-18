@@ -156,6 +156,7 @@
     <Compile Include="Utilities\ResizeAdorner.cs" />
     <Compile Include="Utilities\GlobalExceptionHandler.cs" />
     <Compile Include="Utilities\RectangleExtensions.cs" />
+    <Compile Include="AppVersion.cs" />
     <Compile Include="ViewModels\ChapterAdderViewModel.cs" />
     <Compile Include="ViewModels\CropWindowViewModel.cs" />
     <Compile Include="ViewModels\DownloaderViewModel.cs" />
