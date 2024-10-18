@@ -459,7 +459,7 @@ namespace VideoUtilities
             FinishedDownload?.Invoke(this, e);
             if (!e.Cancelled && ShowFile)
             {
-                Process.Start("explorer.exe", $"/select,\"{OutputPath}\"");
+                Process.Start("explorer.exe", $"{(this is VideoDownloader ? "" : "/select,")}\"{OutputPath}\"");
                 //open
             }
             CleanUp();
