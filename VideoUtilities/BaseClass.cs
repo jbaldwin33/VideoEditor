@@ -108,7 +108,11 @@ namespace VideoUtilities
             }
         }
 
-        public virtual void DoPreCheck(out bool isError) => throw new NotImplementedException();
+        public virtual void DoPreCheck(out bool isError)
+        {
+            isError = false;
+        }
+        
         public virtual void PreWork() => throw new NotImplementedException();
         public virtual void SecondaryWork() => throw new NotImplementedException();
 
