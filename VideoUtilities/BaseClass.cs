@@ -45,6 +45,7 @@ namespace VideoUtilities
         protected IEnumerable ObjectList;
         protected bool UseYoutubeDL;
         protected List<bool> IsList = new List<bool>();
+        protected BaseArgs Args;
         private readonly List<int> keepOutputList = new List<int>();
         private readonly object _lock = new object();
         private readonly object _lock2 = new object();
@@ -107,6 +108,7 @@ namespace VideoUtilities
             }
         }
 
+        public virtual void DoPreCheck(out bool isError) => throw new NotImplementedException();
         public virtual void PreWork() => throw new NotImplementedException();
         public virtual void SecondaryWork() => throw new NotImplementedException();
 
@@ -136,7 +138,7 @@ namespace VideoUtilities
                         Arguments = CreateArguments(i, ref output, obj)
                     }
                 };
-                process.Exited += Process_Exited;
+                 process.Exited += Process_Exited;
                 if (UseYoutubeDL)
                 {
                     process.ErrorDataReceived += ErrorReceivedHandler;
@@ -226,7 +228,8 @@ namespace VideoUtilities
             if (IsProcessing(outLine.Data))
             {
                 var strSub = outLine.Data.Split(new[] { "time=" }, StringSplitOptions.RemoveEmptyEntries)[1].Substring(0, 11);
-                ProcessStuff[index].CurrentTime = TimeSpan.Parse(strSub);
+                if (TimeSpan.TryParse(strSub, out var time))
+                    ProcessStuff[index].CurrentTime = time;
             }
 
             OnProgress(new ProgressEventArgs { ProcessIndex = index, Percentage = ProcessStuff[index].Percentage, Data = outLine.Data });
@@ -331,7 +334,10 @@ namespace VideoUtilities
 
             var args = new MessageEventArgs
             {
-                Message = new FileAlreadyExistsTranslatable(Path.GetFileName(output))
+                Message = new FileAlreadyExistsTranslatable(Path.GetFileName(output)),
+                MessageBoxButton = MessageEventArgs.MessageBoxButtonsEnum.YesNo,
+                MessageImageType = MessageEventArgs.MessageImageTypeEnum.Question,
+                MessageType = MessageEventArgs.MessageTypeEnum.Question
             };
             ShowMessage(args);
             if (args.Result)
@@ -477,8 +483,33 @@ namespace VideoUtilities
 
     public class MessageEventArgs : EventArgs
     {
+        public enum MessageTypeEnum
+        {
+            Question,
+            Info,
+            Warning,
+            Error
+        }
+
+        public enum MessageImageTypeEnum
+        {
+            Question,
+            Info,
+            Warning,
+            Error
+        }
+
+        public enum MessageBoxButtonsEnum
+        {
+            YesNo,
+            Ok
+        }
+
         public string Message { get; set; }
         public bool Result { get; set; }
+        public MessageTypeEnum MessageType { get; set; }
+        public MessageImageTypeEnum MessageImageType { get; set; }
+        public MessageBoxButtonsEnum MessageBoxButton { get; set; }
     }
 
     public class ProgressEventArgs : EventArgs

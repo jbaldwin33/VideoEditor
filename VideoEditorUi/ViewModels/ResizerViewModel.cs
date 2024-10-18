@@ -147,7 +147,9 @@ namespace VideoEditorUi.ViewModels
         private void CropCommandExecute()
         {
             var args = new VideoCropperArgs(InputPath, CropClass);
-            Setup(true, false, args, null, null);
+            Setup(true, false, args, null, out bool isError, null);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new CroppingLabelTranslatable());
         }
 

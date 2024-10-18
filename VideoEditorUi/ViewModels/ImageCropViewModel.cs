@@ -146,7 +146,9 @@ namespace VideoEditorUi.ViewModels
 
                 var args = new ImageCropperArgs(file, padHeight ? null : height, padHeight ? width : null, padHeight ? null : movePos, padHeight ? movePos : null);
                 //VideoEditor = new ImageCropper(file, padHeight ? null : height, padHeight ? width : null, padHeight ? null : movePos, padHeight ? movePos : null);
-                Setup(true, false, args, null, null);
+                Setup(true, false, args, null, out bool isError, null);
+                if (isError)
+                    return;
                 Execute(StageEnum.Primary, "Cropping image...");
                 counter++;
             }

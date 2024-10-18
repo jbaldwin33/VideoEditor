@@ -139,7 +139,9 @@ namespace VideoEditorUi.ViewModels
         private void FormatCommandExecute()
         {
             var args = new SpeedChangerArgs(InputPath, CurrentSpeed, ConvertToEnum());
-            Setup(true, false, args, null, null);
+            Setup(true, false, args, null, out bool isError, null);
+            if (isError)
+                return;
             Execute(StageEnum.Primary, new ChangingLabelTranslatable());
         }
 
