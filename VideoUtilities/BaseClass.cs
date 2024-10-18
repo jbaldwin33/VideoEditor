@@ -131,7 +131,7 @@ namespace VideoUtilities
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
                         WindowStyle = ProcessWindowStyle.Hidden,
-                        FileName = Path.Combine(GetBinaryPath(), UseYoutubeDL ? "youtube-dl.exe" : "ffmpeg.exe"),
+                        FileName = Path.Combine(GetBinaryPath(), UseYoutubeDL ? "yt-dlp.exe" : "ffmpeg.exe"),
                         CreateNoWindow = true,
                         Arguments = CreateArguments(i, ref output, obj)
                     }
@@ -345,7 +345,12 @@ namespace VideoUtilities
 
         protected void ErrorReceivedHandler(object sender, DataReceivedEventArgs e)
         {
-            if (string.IsNullOrEmpty(e.Data))
+            //check for multiline warning, has 9 spaces
+            //example:
+            //WARNING: this is a multiline warning. this is a multiline warning.
+            //         this is a multiline warning. this is a multiline warning.
+            //         this is a multiline warning. this is a multiline warning.
+            if (string.IsNullOrEmpty(e.Data) || e.Data.Contains("WARNING") || new Regex(@"\s{9,}").IsMatch(e.Data))
                 return;
             Failed = true;
             CancelOperation(e.Data);
